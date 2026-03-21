@@ -1,0 +1,22 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export type Donation = {
+  id: number;
+  receipt_number: number;
+  date: string;
+  beneficiary: string;
+  amount: number;
+  status: "valido" | "anulado";
+  created_at?: string;
+};
+
+export type AnnualGoal = {
+  id: number;
+  year: number;
+  goal_amount: number;
+};
