@@ -4,11 +4,9 @@ import { useState, useRef } from "react";
 import { formatDate } from "@/lib/format";
 
 type ImportRow = {
-  receipt_number: number;
   date: string;
   beneficiary: string;
   amount: number;
-  status: "valido" | "anulado";
   notes?: string;
 };
 
@@ -33,11 +31,9 @@ export default function ImportModal({ isOpen, onClose, onImported }: Props) {
     const sheet = workbook.addWorksheet("Plantilla");
 
     sheet.columns = [
-      { header: "Recibo No.", key: "receipt", width: 12 },
       { header: "Fecha (DD/MM/YYYY)", key: "date", width: 18 },
       { header: "Beneficiario", key: "beneficiary", width: 28 },
       { header: "Monto", key: "amount", width: 14 },
-      { header: "Estado (valido/anulado)", key: "status", width: 22 },
       { header: "Notas", key: "notes", width: 30 },
     ];
 
@@ -49,7 +45,7 @@ export default function ImportModal({ isOpen, onClose, onImported }: Props) {
       fgColor: { argb: "FF1A3A5C" },
     };
 
-    sheet.addRow({ receipt: 2700, date: "15/01/2026", beneficiary: "Ejemplo", amount: 100, status: "valido", notes: "Nota ejemplo" });
+    sheet.addRow({ date: "15/01/2026", beneficiary: "Ejemplo", amount: 100, notes: "Nota ejemplo" });
 
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
@@ -110,25 +106,20 @@ export default function ImportModal({ isOpen, onClose, onImported }: Props) {
         if (rowNumber === 1) return; // skip header
         const vals = row.values as unknown[];
         // ExcelJS row.values is 1-indexed, so vals[0] is empty
-        const receipt = Number(vals[1]);
-        const dateVal = parseDate(vals[2]);
-        const beneficiary = String(vals[3] || "").trim();
-        const amount = Number(vals[4]);
-        const statusRaw = String(vals[5] || "").trim().toLowerCase();
-        const notes = String(vals[6] || "").trim();
+        const dateVal = parseDate(vals[1]);
+        const beneficiary = String(vals[2] || "").trim();
+        const amount = Number(vals[3]);
+        const notes = String(vals[4] || "").trim();
 
-        if (!receipt || !dateVal || !beneficiary || isNaN(amount)) {
+        if (!dateVal || !beneficiary || isNaN(amount)) {
           errors.push(`Fila ${rowNumber}: datos incompletos o inválidos`);
           return;
         }
 
-        const status = statusRaw === "anulado" ? "anulado" : "valido";
         parsed.push({
-          receipt_number: receipt,
           date: dateVal,
           beneficiary,
           amount,
-          status,
           notes: notes || undefined,
         });
       });
@@ -215,21 +206,19 @@ export default function ImportModal({ isOpen, onClose, onImported }: Props) {
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="bg-gray-100 sticky top-0">
-                          <th className="px-2 py-1.5 text-left">Recibo</th>
                           <th className="px-2 py-1.5 text-left">Fecha</th>
                           <th className="px-2 py-1.5 text-left">Beneficiario</th>
                           <th className="px-2 py-1.5 text-right">Monto</th>
-                          <th className="px-2 py-1.5 text-center">Estado</th>
+                          <th className="px-2 py-1.5 text-left">Notas</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rows.map((r, i) => (
                           <tr key={i} className="border-t border-gray-100">
-                            <td className="px-2 py-1">{r.receipt_number}</td>
                             <td className="px-2 py-1">{formatDate(r.date)}</td>
                             <td className="px-2 py-1">{r.beneficiary}</td>
                             <td className="px-2 py-1 text-right">${r.amount.toFixed(2)}</td>
-                            <td className="px-2 py-1 text-center">{r.status}</td>
+                            <td className="px-2 py-1 truncate max-w-[100px]">{r.notes || "—"}</td>
                           </tr>
                         ))}
                       </tbody>

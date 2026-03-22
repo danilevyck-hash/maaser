@@ -38,7 +38,6 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
 
       sheet.columns = [
         { header: "#", key: "num", width: 6 },
-        { header: "Recibo No.", key: "receipt", width: 12 },
         { header: "Fecha", key: "date", width: 14 },
         { header: "Beneficiario", key: "beneficiary", width: 28 },
         { header: "Monto", key: "amount", width: 14 },
@@ -57,7 +56,6 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       filtered.forEach((d, i) => {
         sheet.addRow({
           num: i + 1,
-          receipt: d.receipt_number,
           date: formatDate(d.date),
           beneficiary: d.beneficiary,
           amount: d.amount,
@@ -110,7 +108,6 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       // Table
       const tableData = filtered.map((d, i) => [
         i + 1,
-        d.receipt_number,
         formatDate(d.date),
         d.beneficiary,
         formatCurrency(d.amount),
@@ -119,7 +116,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
 
       autoTable(doc, {
         startY: 42,
-        head: [["#", "Recibo No.", "Fecha", "Beneficiario", "Monto", "Notas"]],
+        head: [["#", "Fecha", "Beneficiario", "Monto", "Notas"]],
         body: tableData,
         headStyles: {
           fillColor: [26, 58, 92],
@@ -128,12 +125,11 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
           halign: "center",
         },
         columnStyles: {
-          0: { halign: "center", cellWidth: 10 },
-          1: { halign: "center", cellWidth: 22 },
-          2: { halign: "center", cellWidth: 26 },
-          3: { cellWidth: 45 },
-          4: { halign: "right", cellWidth: 28 },
-          5: { cellWidth: 45 },
+          0: { halign: "center", cellWidth: 12 },
+          1: { halign: "center", cellWidth: 28 },
+          2: { cellWidth: 50 },
+          3: { halign: "right", cellWidth: 30 },
+          4: { cellWidth: 56 },
         },
         alternateRowStyles: { fillColor: [245, 240, 232] }, // cream
         styles: { fontSize: 8, cellPadding: 3 },

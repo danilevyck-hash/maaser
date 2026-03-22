@@ -13,11 +13,10 @@ export async function POST(request: NextRequest) {
 
   for (const row of rows) {
     const { error } = await supabase.from("donations").insert([{
-      receipt_number: row.receipt_number,
       date: row.date,
       beneficiary: row.beneficiary,
       amount: row.amount,
-      status: row.status,
+      status: "valido",
       notes: row.notes || null,
     }]);
 

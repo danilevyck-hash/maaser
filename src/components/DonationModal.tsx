@@ -12,7 +12,6 @@ type Props = {
 
 export default function DonationModal({ isOpen, onClose, onSave, editingDonation }: Props) {
   const [date, setDate] = useState("");
-  const [receiptNumber, setReceiptNumber] = useState(0);
   const [beneficiary, setBeneficiary] = useState("");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
@@ -20,7 +19,6 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   useEffect(() => {
     if (editingDonation) {
       setDate(editingDonation.date);
-      setReceiptNumber(editingDonation.receipt_number);
       setBeneficiary(editingDonation.beneficiary);
       setAmount(editingDonation.amount.toString());
       setNotes(editingDonation.notes || "");
@@ -29,9 +27,6 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
       setBeneficiary("");
       setAmount("");
       setNotes("");
-      fetch("/api/donations/next-receipt")
-        .then((r) => r.json())
-        .then((d) => setReceiptNumber(d.next));
     }
   }, [editingDonation, isOpen]);
 
@@ -41,7 +36,6 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
     e.preventDefault();
     const donation: Partial<Donation> = {
       date,
-      receipt_number: receiptNumber,
       beneficiary,
       amount: parseFloat(amount) || 0,
       status: "valido",
@@ -69,16 +63,6 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-navy mb-1">Nº Recibo</label>
-            <input
-              type="number"
-              value={receiptNumber}
-              onChange={(e) => setReceiptNumber(parseInt(e.target.value))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-gold focus:border-gold outline-none"
               required
             />
           </div>

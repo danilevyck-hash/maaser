@@ -46,9 +46,6 @@ export default function Dashboard() {
 
   const totalDonated = donations.reduce((sum, d) => sum + d.amount, 0);
   const donationCount = donations.length;
-  const lastReceipt = donations.length > 0
-    ? donations[donations.length - 1].receipt_number
-    : "-";
   const goalProgress = goalAmount > 0 ? Math.min((totalDonated / goalAmount) * 100, 100) : 0;
   const remaining = goalAmount > 0 ? Math.max(goalAmount - totalDonated, 0) : 0;
 
@@ -129,7 +126,7 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-gold">
           <p className="text-sm text-gray-500 uppercase tracking-wide">Total Donado</p>
           <p className="text-2xl font-bold text-navy mt-1">{formatCurrency(totalDonated)}</p>
@@ -137,10 +134,6 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-navy">
           <p className="text-sm text-gray-500 uppercase tracking-wide">Nº Donaciones</p>
           <p className="text-2xl font-bold text-navy mt-1">{donationCount}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-gold">
-          <p className="text-sm text-gray-500 uppercase tracking-wide">Último Recibo</p>
-          <p className="text-2xl font-bold text-navy mt-1">{lastReceipt}</p>
         </div>
       </div>
 
@@ -233,7 +226,6 @@ export default function Dashboard() {
             <thead>
               <tr className="bg-navy text-white">
                 <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3 text-left">Recibo No.</th>
                 <th className="px-4 py-3 text-left">Fecha</th>
                 <th className="px-4 py-3 text-left">Beneficiario</th>
                 <th className="px-4 py-3 text-right">Monto</th>
@@ -249,8 +241,7 @@ export default function Dashboard() {
                     i % 2 === 0 ? "bg-white" : "bg-cream/50"
                   }`}
                 >
-                  <td className="px-4 py-3">{i + 1}</td>
-                  <td className="px-4 py-3 font-medium">{d.receipt_number}</td>
+                  <td className="px-4 py-3 font-medium">{i + 1}</td>
                   <td className="px-4 py-3">{formatDate(d.date)}</td>
                   <td className="px-4 py-3">{d.beneficiary}</td>
                   <td className="px-4 py-3 text-right font-medium">{formatCurrency(d.amount)}</td>

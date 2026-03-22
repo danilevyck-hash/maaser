@@ -9,13 +9,12 @@ export async function GET(request: NextRequest) {
   let query = supabase
     .from("donations")
     .select("*")
-    .order("receipt_number", { ascending: true });
+    .order("date", { ascending: true })
+    .order("id", { ascending: true });
 
   if (from && to) {
-    // Date range query (used by Hebrew year)
     query = query.gte("date", from).lte("date", to);
   } else if (year) {
-    // Legacy calendar year query
     query = query
       .gte("date", `${year}-01-01`)
       .lte("date", `${year}-12-31`);

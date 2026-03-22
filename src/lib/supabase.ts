@@ -7,7 +7,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type Donation = {
   id: number;
-  receipt_number: number;
   date: string;
   beneficiary: string;
   amount: number;
