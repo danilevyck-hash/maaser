@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hebcal/core": "^6.0.8",
     "@supabase/supabase-js": "^2.45.0",
     "exceljs": "^4.4.0",
     "jspdf": "^4.2.1",
