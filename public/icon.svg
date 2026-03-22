@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1A3A5C"/>
+  <g transform="translate(256,256)">
+    <!-- Star of David: two overlapping triangles -->
+    <polygon points="0,-150 129.9,75 -129.9,75" fill="none" stroke="#C9A84C" stroke-width="28" stroke-linejoin="round"/>
+    <polygon points="0,150 129.9,-75 -129.9,-75" fill="none" stroke="#C9A84C" stroke-width="28" stroke-linejoin="round"/>
+    <!-- Inner glow/fill for the hexagonal center -->
+    <polygon points="0,-75 64.95,-37.5 64.95,37.5 0,75 -64.95,37.5 -64.95,-37.5" fill="#C9A84C" opacity="0.25"/>
+  </g>
+</svg>
