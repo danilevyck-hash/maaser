@@ -16,6 +16,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   const [beneficiary, setBeneficiary] = useState("");
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<"valido" | "anulado">("valido");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (editingDonation) {
@@ -24,11 +25,13 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
       setBeneficiary(editingDonation.beneficiary);
       setAmount(editingDonation.amount.toString());
       setStatus(editingDonation.status);
+      setNotes(editingDonation.notes || "");
     } else {
       setDate(new Date().toISOString().split("T")[0]);
       setBeneficiary("");
       setAmount("");
       setStatus("valido");
+      setNotes("");
       fetch("/api/donations/next-receipt")
         .then((r) => r.json())
         .then((d) => setReceiptNumber(d.next));
@@ -45,6 +48,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
       beneficiary,
       amount: parseFloat(amount) || 0,
       status,
+      notes: notes.trim() || undefined,
     };
     if (editingDonation) {
       donation.id = editingDonation.id;
@@ -130,6 +134,16 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
                 <span className="text-red-600 font-medium">Anulado</span>
               </label>
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-navy mb-1">Notas</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none resize-none"
+              placeholder="Notas opcionales..."
+              rows={2}
+            />
           </div>
           <div className="flex gap-3 pt-2">
             <button

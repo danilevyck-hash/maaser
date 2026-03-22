@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Donation } from "@/lib/supabase";
 import { formatCurrency, formatDate } from "@/lib/format";
 import DonationModal from "@/components/DonationModal";
+import ExportModal from "@/components/ExportModal";
+import ImportModal from "@/components/ImportModal";
 
 export default function Dashboard() {
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -13,6 +15,8 @@ export default function Dashboard() {
   const [goalAmount, setGoalAmount] = useState(0);
   const [goalInput, setGoalInput] = useState("");
   const [editingGoal, setEditingGoal] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const currentYear = new Date().getFullYear();
 
@@ -43,6 +47,25 @@ export default function Dashboard() {
     : "-";
   const goalProgress = goalAmount > 0 ? Math.min((totalDonated / goalAmount) * 100, 100) : 0;
   const remaining = goalAmount > 0 ? Math.max(goalAmount - totalDonated, 0) : 0;
+
+  const beneficiarySummary = useMemo(() => {
+    const map = new Map<string, { count: number; total: number }>();
+    validDonations.forEach((d) => {
+      const key = d.beneficiary;
+      const entry = map.get(key) || { count: 0, total: 0 };
+      entry.count += 1;
+      entry.total += d.amount;
+      map.set(key, entry);
+    });
+    return Array.from(map.entries())
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        total: data.total,
+        pct: totalDonated > 0 ? (data.total / totalDonated) * 100 : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+  }, [validDonations, totalDonated]);
 
   const handleSave = async (donation: Partial<Donation>) => {
     if (donation.id) {
@@ -161,8 +184,26 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* New Donation Button */}
-      <div className="flex justify-end">
+      {/* Action Buttons */}
+      <div className="flex flex-wrap justify-end gap-3">
+        <button
+          onClick={() => setImportOpen(true)}
+          className="bg-white border-2 border-navy text-navy hover:bg-navy hover:text-white font-bold px-5 py-3 rounded-xl shadow-md transition-colors flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Importar
+        </button>
+        <button
+          onClick={() => setExportOpen(true)}
+          className="bg-white border-2 border-navy text-navy hover:bg-navy hover:text-white font-bold px-5 py-3 rounded-xl shadow-md transition-colors flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exportar
+        </button>
         <button
           onClick={() => {
             setEditing(null);
@@ -186,6 +227,7 @@ export default function Dashboard() {
                 <th className="px-4 py-3 text-left">Beneficiario</th>
                 <th className="px-4 py-3 text-right">Monto</th>
                 <th className="px-4 py-3 text-center">Estado</th>
+                <th className="px-4 py-3 text-left">Notas</th>
                 <th className="px-4 py-3 text-center">Acciones</th>
               </tr>
             </thead>
@@ -216,6 +258,18 @@ export default function Dashboard() {
                     >
                       {d.status === "valido" ? "Válido" : "Anulado"}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 max-w-[150px]">
+                    {d.notes ? (
+                      <span
+                        className="block truncate cursor-help"
+                        title={d.notes}
+                      >
+                        {d.notes}
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex justify-center gap-2">
@@ -249,6 +303,50 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Summary by Beneficiary */}
+      {beneficiarySummary.length > 0 && (
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="bg-navy text-white px-4 py-3">
+            <h3 className="font-bold">Por Beneficiario</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-navy/10">
+                  <th className="px-4 py-3 text-left text-navy font-bold">Beneficiario</th>
+                  <th className="px-4 py-3 text-center text-navy font-bold">Nº Donaciones</th>
+                  <th className="px-4 py-3 text-right text-navy font-bold">Total Donado</th>
+                  <th className="px-4 py-3 text-right text-navy font-bold">% del Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {beneficiarySummary.map((b, i) => (
+                  <tr
+                    key={b.name}
+                    className={`border-b border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-cream/50"}`}
+                  >
+                    <td className="px-4 py-3 font-medium">{b.name}</td>
+                    <td className="px-4 py-3 text-center">{b.count}</td>
+                    <td className="px-4 py-3 text-right font-medium">{formatCurrency(b.total)}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-gold h-2 rounded-full"
+                            style={{ width: `${b.pct}%` }}
+                          />
+                        </div>
+                        <span className="w-14 text-right">{b.pct.toFixed(1)}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <DonationModal
         isOpen={modalOpen}
         onClose={() => {
@@ -257,6 +355,18 @@ export default function Dashboard() {
         }}
         onSave={handleSave}
         editingDonation={editing}
+      />
+
+      <ExportModal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        donations={donations}
+      />
+
+      <ImportModal
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={fetchDonations}
       />
     </div>
   );
