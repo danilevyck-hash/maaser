@@ -62,11 +62,12 @@ export default function ImportModal({ isOpen, onClose, onImported }: Props) {
   const parseDate = (val: unknown): string | null => {
     if (!val) return null;
 
-    // JavaScript Date object (ExcelJS often returns these for date-formatted cells)
-    if (val instanceof Date) {
-      const y = val.getFullYear();
-      const m = String(val.getMonth() + 1).padStart(2, "0");
-      const d = String(val.getDate()).padStart(2, "0");
+    // JavaScript Date object (ExcelJS returns these for date-formatted cells)
+    // Use UTC methods to avoid timezone offset shifting the date by a day
+    if (val instanceof Date && !isNaN(val.getTime())) {
+      const y = val.getUTCFullYear();
+      const m = String(val.getUTCMonth() + 1).padStart(2, "0");
+      const d = String(val.getUTCDate()).padStart(2, "0");
       return `${y}-${m}-${d}`;
     }
 
