@@ -61,23 +61,56 @@ export default function ImportModal({ isOpen, onClose, onImported }: Props) {
 
   const parseDate = (val: unknown): string | null => {
     if (!val) return null;
+
+    // JavaScript Date object (ExcelJS often returns these for date-formatted cells)
+    if (val instanceof Date) {
+      const y = val.getFullYear();
+      const m = String(val.getMonth() + 1).padStart(2, "0");
+      const d = String(val.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    // Excel serial date number (numeric type, not stringified)
+    if (typeof val === "number") {
+      // Excel epoch: Jan 0, 1900 (with the Lotus 1-2-3 leap year bug)
+      // Dates after 1900-02-28 need -1 adjustment for the bug
+      const serial = val;
+      if (serial > 0 && serial < 100000) {
+        const adjusted = serial > 60 ? serial - 1 : serial;
+        const ms = (adjusted - 1) * 86400000;
+        const date = new Date(Date.UTC(1900, 0, 1) + ms);
+        const y = date.getUTCFullYear();
+        const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+        const d = String(date.getUTCDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+      return null;
+    }
+
     const str = String(val).trim();
+
     // DD/MM/YYYY
     const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (match) {
       const [, d, m, y] = match;
       return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
     }
+
     // YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-    // Excel serial date number
-    if (!isNaN(Number(val))) {
-      const serial = Number(val);
-      if (serial > 40000 && serial < 60000) {
-        const utc = new Date(Date.UTC(1899, 11, 30 + serial));
-        return utc.toISOString().split("T")[0];
-      }
+
+    // Stringified number (e.g. "46042") — Excel serial as text
+    const num = Number(str);
+    if (!isNaN(num) && num > 0 && num < 100000) {
+      const adjusted = num > 60 ? num - 1 : num;
+      const ms = (adjusted - 1) * 86400000;
+      const date = new Date(Date.UTC(1900, 0, 1) + ms);
+      const y = date.getUTCFullYear();
+      const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+      const d = String(date.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
+
     return null;
   };
 
