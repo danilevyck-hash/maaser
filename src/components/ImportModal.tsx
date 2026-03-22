@@ -59,57 +59,63 @@ export default function ImportModal({ isOpen, onClose, onImported }: Props) {
     URL.revokeObjectURL(url);
   };
 
+  const formatDateISO = (date: Date): string => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
   const parseDate = (val: unknown): string | null => {
     if (!val) return null;
 
-    // JavaScript Date object (ExcelJS returns these for date-formatted cells)
-    // Use UTC methods to avoid timezone offset shifting the date by a day
-    if (val instanceof Date && !isNaN(val.getTime())) {
-      const y = val.getUTCFullYear();
-      const m = String(val.getUTCMonth() + 1).padStart(2, "0");
-      const d = String(val.getUTCDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
+    // 1. JavaScript Date object — ExcelJS returns these for date-formatted cells.
+    //    Check both instanceof and duck-typing (getTime) because ExcelJS
+    //    may return objects from a different realm that fail instanceof.
+    if (typeof val === "object" && val !== null && typeof (val as Date).getTime === "function") {
+      const date = val as Date;
+      if (!isNaN(date.getTime())) {
+        return formatDateISO(date);
+      }
     }
 
-    // Excel serial date number (numeric type, not stringified)
+    // 2. Excel serial date number
     if (typeof val === "number") {
-      // Excel epoch: Jan 0, 1900 (with the Lotus 1-2-3 leap year bug)
-      // Dates after 1900-02-28 need -1 adjustment for the bug
       const serial = val;
       if (serial > 0 && serial < 100000) {
         const adjusted = serial > 60 ? serial - 1 : serial;
         const ms = (adjusted - 1) * 86400000;
         const date = new Date(Date.UTC(1900, 0, 1) + ms);
-        const y = date.getUTCFullYear();
-        const m = String(date.getUTCMonth() + 1).padStart(2, "0");
-        const d = String(date.getUTCDate()).padStart(2, "0");
-        return `${y}-${m}-${d}`;
+        return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
       }
       return null;
     }
 
     const str = String(val).trim();
 
-    // DD/MM/YYYY
+    // 3. DD/MM/YYYY string
     const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (match) {
       const [, d, m, y] = match;
       return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
     }
 
-    // YYYY-MM-DD
+    // 4. YYYY-MM-DD string
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
 
-    // Stringified number (e.g. "46042") — Excel serial as text
+    // 5. ISO 8601 datetime string (e.g. "2026-01-15T00:00:00.000Z")
+    const isoDate = new Date(str);
+    if (!isNaN(isoDate.getTime()) && str.length > 10) {
+      return formatDateISO(isoDate);
+    }
+
+    // 6. Stringified Excel serial number
     const num = Number(str);
     if (!isNaN(num) && num > 0 && num < 100000) {
       const adjusted = num > 60 ? num - 1 : num;
       const ms = (adjusted - 1) * 86400000;
       const date = new Date(Date.UTC(1900, 0, 1) + ms);
-      const y = date.getUTCFullYear();
-      const m = String(date.getUTCMonth() + 1).padStart(2, "0");
-      const d = String(date.getUTCDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
     }
 
     return null;
