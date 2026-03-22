@@ -15,7 +15,6 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   const [receiptNumber, setReceiptNumber] = useState(0);
   const [beneficiary, setBeneficiary] = useState("");
   const [amount, setAmount] = useState("");
-  const [status, setStatus] = useState<"valido" | "anulado">("valido");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -24,13 +23,11 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
       setReceiptNumber(editingDonation.receipt_number);
       setBeneficiary(editingDonation.beneficiary);
       setAmount(editingDonation.amount.toString());
-      setStatus(editingDonation.status);
       setNotes(editingDonation.notes || "");
     } else {
       setDate(new Date().toISOString().split("T")[0]);
       setBeneficiary("");
       setAmount("");
-      setStatus("valido");
       setNotes("");
       fetch("/api/donations/next-receipt")
         .then((r) => r.json())
@@ -47,7 +44,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
       receipt_number: receiptNumber,
       beneficiary,
       amount: parseFloat(amount) || 0,
-      status,
+      status: "valido",
       notes: notes.trim() || undefined,
     };
     if (editingDonation) {
@@ -107,33 +104,6 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
               placeholder="0.00"
               required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-navy mb-1">Estado</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="status"
-                  value="valido"
-                  checked={status === "valido"}
-                  onChange={() => setStatus("valido")}
-                  className="accent-gold"
-                />
-                <span className="text-green-700 font-medium">Válido</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="status"
-                  value="anulado"
-                  checked={status === "anulado"}
-                  onChange={() => setStatus("anulado")}
-                  className="accent-gold"
-                />
-                <span className="text-red-600 font-medium">Anulado</span>
-              </label>
-            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-navy mb-1">Notas</label>

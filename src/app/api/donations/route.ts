@@ -22,6 +22,8 @@ async function ensureSeeded() {
 export async function GET(request: NextRequest) {
   await ensureSeeded();
 
+  const from = request.nextUrl.searchParams.get("from");
+  const to = request.nextUrl.searchParams.get("to");
   const year = request.nextUrl.searchParams.get("year");
 
   let query = supabase
@@ -29,7 +31,11 @@ export async function GET(request: NextRequest) {
     .select("*")
     .order("receipt_number", { ascending: true });
 
-  if (year) {
+  if (from && to) {
+    // Date range query (used by Hebrew year)
+    query = query.gte("date", from).lte("date", to);
+  } else if (year) {
+    // Legacy calendar year query
     query = query
       .gte("date", `${year}-01-01`)
       .lte("date", `${year}-12-31`);

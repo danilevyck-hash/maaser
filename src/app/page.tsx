@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Donation } from "@/lib/supabase";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { getCurrentHebrewYear, getHebrewYearData } from "@/lib/hebrew-year";
 import DonationModal from "@/components/DonationModal";
 import ExportModal from "@/components/ExportModal";
 import ImportModal from "@/components/ImportModal";
@@ -18,30 +19,33 @@ export default function Dashboard() {
   const [exportOpen, setExportOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
-  const currentYear = new Date().getFullYear();
+  const hebrewYear = getCurrentHebrewYear();
+  const yearData = getHebrewYearData(hebrewYear);
 
   const fetchDonations = useCallback(async () => {
-    const res = await fetch(`/api/donations?year=${currentYear}`);
+    if (!yearData) return;
+    const res = await fetch(
+      `/api/donations?from=${yearData.startDate}&to=${yearData.endDate}`
+    );
     const data = await res.json();
     setDonations(data);
     setLoading(false);
-  }, [currentYear]);
+  }, [yearData]);
 
   const fetchGoal = useCallback(async () => {
-    const res = await fetch(`/api/goal?year=${currentYear}`);
+    const res = await fetch(`/api/goal?year=${hebrewYear}`);
     const data = await res.json();
     setGoalAmount(data.goal_amount || 0);
     setGoalInput((data.goal_amount || 0).toString());
-  }, [currentYear]);
+  }, [hebrewYear]);
 
   useEffect(() => {
     fetchDonations();
     fetchGoal();
   }, [fetchDonations, fetchGoal]);
 
-  const validDonations = donations.filter((d) => d.status === "valido");
-  const totalDonated = validDonations.reduce((sum, d) => sum + d.amount, 0);
-  const validCount = validDonations.length;
+  const totalDonated = donations.reduce((sum, d) => sum + d.amount, 0);
+  const donationCount = donations.length;
   const lastReceipt = donations.length > 0
     ? donations[donations.length - 1].receipt_number
     : "-";
@@ -50,7 +54,7 @@ export default function Dashboard() {
 
   const beneficiarySummary = useMemo(() => {
     const map = new Map<string, { count: number; total: number }>();
-    validDonations.forEach((d) => {
+    donations.forEach((d) => {
       const key = d.beneficiary;
       const entry = map.get(key) || { count: 0, total: 0 };
       entry.count += 1;
@@ -65,7 +69,7 @@ export default function Dashboard() {
         pct: totalDonated > 0 ? (data.total / totalDonated) * 100 : 0,
       }))
       .sort((a, b) => b.total - a.total);
-  }, [validDonations, totalDonated]);
+  }, [donations, totalDonated]);
 
   const handleSave = async (donation: Partial<Donation>) => {
     if (donation.id) {
@@ -101,7 +105,7 @@ export default function Dashboard() {
     await fetch("/api/goal", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ year: currentYear, goal_amount: amount }),
+      body: JSON.stringify({ year: hebrewYear, goal_amount: amount }),
     });
     setGoalAmount(amount);
     setEditingGoal(false);
@@ -117,6 +121,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Hebrew Year Header */}
+      <div className="text-center">
+        <p className="text-gold font-medium text-sm tracking-wide">
+          Año Hebreo {hebrewYear}
+        </p>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-gold">
@@ -124,8 +135,8 @@ export default function Dashboard() {
           <p className="text-2xl font-bold text-navy mt-1">{formatCurrency(totalDonated)}</p>
         </div>
         <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-navy">
-          <p className="text-sm text-gray-500 uppercase tracking-wide">Nº Donaciones Válidas</p>
-          <p className="text-2xl font-bold text-navy mt-1">{validCount}</p>
+          <p className="text-sm text-gray-500 uppercase tracking-wide">Nº Donaciones</p>
+          <p className="text-2xl font-bold text-navy mt-1">{donationCount}</p>
         </div>
         <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-gold">
           <p className="text-sm text-gray-500 uppercase tracking-wide">Último Recibo</p>
@@ -136,7 +147,7 @@ export default function Dashboard() {
       {/* Annual Goal */}
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-navy text-lg">Meta Anual {currentYear}</h3>
+          <h3 className="font-bold text-navy text-lg">Meta Anual {hebrewYear}</h3>
           {editingGoal ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">$</span>
@@ -226,7 +237,6 @@ export default function Dashboard() {
                 <th className="px-4 py-3 text-left">Fecha</th>
                 <th className="px-4 py-3 text-left">Beneficiario</th>
                 <th className="px-4 py-3 text-right">Monto</th>
-                <th className="px-4 py-3 text-center">Estado</th>
                 <th className="px-4 py-3 text-left">Notas</th>
                 <th className="px-4 py-3 text-center">Acciones</th>
               </tr>
@@ -236,11 +246,7 @@ export default function Dashboard() {
                 <tr
                   key={d.id}
                   className={`border-b border-gray-100 ${
-                    d.status === "anulado"
-                      ? "bg-red-50 text-red-400 line-through"
-                      : i % 2 === 0
-                      ? "bg-white"
-                      : "bg-cream/50"
+                    i % 2 === 0 ? "bg-white" : "bg-cream/50"
                   }`}
                 >
                   <td className="px-4 py-3">{i + 1}</td>
@@ -248,17 +254,6 @@ export default function Dashboard() {
                   <td className="px-4 py-3">{formatDate(d.date)}</td>
                   <td className="px-4 py-3">{d.beneficiary}</td>
                   <td className="px-4 py-3 text-right font-medium">{formatCurrency(d.amount)}</td>
-                  <td className="px-4 py-3 text-center">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-bold ${
-                        d.status === "valido"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {d.status === "valido" ? "Válido" : "Anulado"}
-                    </span>
-                  </td>
                   <td className="px-4 py-3 max-w-[150px]">
                     {d.notes ? (
                       <span

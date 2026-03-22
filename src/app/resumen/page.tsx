@@ -1,55 +1,70 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Donation } from "@/lib/supabase";
-import { formatCurrency, MONTH_NAMES } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
+import {
+  getCurrentHebrewYear,
+  getHebrewYearData,
+  getAvailableHebrewYears,
+} from "@/lib/hebrew-year";
 
 export default function ResumenMensual() {
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [hebrewYear, setHebrewYear] = useState(getCurrentHebrewYear());
   const [loading, setLoading] = useState(true);
 
+  const yearData = getHebrewYearData(hebrewYear);
+  const availableYears = getAvailableHebrewYears();
+
   const fetchDonations = useCallback(async () => {
+    if (!yearData) return;
     setLoading(true);
-    const res = await fetch(`/api/donations?year=${year}`);
+    const res = await fetch(
+      `/api/donations?from=${yearData.startDate}&to=${yearData.endDate}`
+    );
     const data = await res.json();
     setDonations(data);
     setLoading(false);
-  }, [year]);
+  }, [yearData]);
 
   useEffect(() => {
     fetchDonations();
   }, [fetchDonations]);
 
-  const validDonations = donations.filter((d) => d.status === "valido");
-  const annualTotal = validDonations.reduce((sum, d) => sum + d.amount, 0);
+  const annualTotal = donations.reduce((sum, d) => sum + d.amount, 0);
 
-  const monthlyData = MONTH_NAMES.map((name, i) => {
-    const monthNum = (i + 1).toString().padStart(2, "0");
-    const monthDonations = validDonations.filter((d) => {
-      const dMonth = d.date.split("-")[1];
-      return dMonth === monthNum;
+  const monthlyData = useMemo(() => {
+    if (!yearData) return [];
+    return yearData.months.map((month) => {
+      const monthDonations = donations.filter(
+        (d) => d.date >= month.startDate && d.date <= month.endDate
+      );
+      const total = monthDonations.reduce((sum, d) => sum + d.amount, 0);
+      const pct = annualTotal > 0 ? (total / annualTotal) * 100 : 0;
+      return {
+        name: month.name,
+        label: month.label,
+        count: monthDonations.length,
+        total,
+        pct,
+      };
     });
-    const total = monthDonations.reduce((sum, d) => sum + d.amount, 0);
-    const pct = annualTotal > 0 ? (total / annualTotal) * 100 : 0;
-    return { name, count: monthDonations.length, total, pct };
-  });
-
-  const years = [];
-  for (let y = 2024; y <= new Date().getFullYear() + 1; y++) {
-    years.push(y);
-  }
+  }, [yearData, donations, annualTotal]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-navy">Resumen Mensual</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-navy">Resumen Mensual</h2>
+          <p className="text-gold text-sm font-medium mt-0.5">Año Hebreo {hebrewYear}</p>
+        </div>
         <select
-          value={year}
-          onChange={(e) => setYear(parseInt(e.target.value))}
+          value={hebrewYear}
+          onChange={(e) => setHebrewYear(parseInt(e.target.value))}
           className="border border-gray-300 rounded-lg px-4 py-2 text-navy font-medium focus:ring-2 focus:ring-gold outline-none bg-white"
         >
-          {years.map((y) => (
+          {availableYears.map((y) => (
             <option key={y} value={y}>
               {y}
             </option>
@@ -67,7 +82,7 @@ export default function ResumenMensual() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-navy text-white">
-                  <th className="px-4 py-3 text-left">Mes</th>
+                  <th className="px-4 py-3 text-left">Mes Hebreo</th>
                   <th className="px-4 py-3 text-center">Nº Donaciones</th>
                   <th className="px-4 py-3 text-right">Total</th>
                   <th className="px-4 py-3 text-right">% del Total Anual</th>
@@ -81,7 +96,12 @@ export default function ResumenMensual() {
                       i % 2 === 0 ? "bg-white" : "bg-cream/50"
                     } ${m.total > 0 ? "" : "text-gray-400"}`}
                   >
-                    <td className="px-4 py-3 font-medium">{m.name}</td>
+                    <td className="px-4 py-3">
+                      <div>
+                        <span className="font-medium">{m.name}</span>
+                        <span className="block text-xs text-gray-400">{m.label}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-center">{m.count}</td>
                     <td className="px-4 py-3 text-right font-medium">
                       {formatCurrency(m.total)}
@@ -94,7 +114,7 @@ export default function ResumenMensual() {
                 <tr className="bg-navy text-white font-bold">
                   <td className="px-4 py-3">Total Anual</td>
                   <td className="px-4 py-3 text-center">
-                    {validDonations.length}
+                    {donations.length}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {formatCurrency(annualTotal)}

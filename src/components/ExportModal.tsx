@@ -23,9 +23,13 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
     });
   }, [donations, dateFrom, dateTo]);
 
+  const totalAmount = useMemo(() => {
+    return filtered.reduce((s, d) => s + d.amount, 0);
+  }, [filtered]);
+
   if (!isOpen) return null;
 
-  const handleExport = async () => {
+  const handleExportExcel = async () => {
     setExporting(true);
     try {
       const ExcelJS = (await import("exceljs")).default;
@@ -38,7 +42,6 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
         { header: "Fecha", key: "date", width: 14 },
         { header: "Beneficiario", key: "beneficiary", width: 28 },
         { header: "Monto", key: "amount", width: 14 },
-        { header: "Estado", key: "status", width: 12 },
         { header: "Notas", key: "notes", width: 30 },
       ];
 
@@ -58,7 +61,6 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
           date: formatDate(d.date),
           beneficiary: d.beneficiary,
           amount: d.amount,
-          status: d.status === "valido" ? "Válido" : "Anulado",
           notes: d.notes || "",
         });
       });
@@ -75,6 +77,86 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       a.download = `donaciones_${dateFrom || "inicio"}_${dateTo || "fin"}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
+      onClose();
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const { default: autoTable } = await import("jspdf-autotable");
+
+      const doc = new jsPDF();
+
+      // Title
+      doc.setFontSize(18);
+      doc.setTextColor(26, 58, 92); // navy
+      doc.text("Registro de Maaser", 105, 20, { align: "center" });
+
+      // Date range
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      const rangeText = `${dateFrom ? formatDate(dateFrom) : "Inicio"} — ${dateTo ? formatDate(dateTo) : "Fin"}`;
+      doc.text(rangeText, 105, 28, { align: "center" });
+
+      // Total
+      doc.setFontSize(12);
+      doc.setTextColor(201, 168, 76); // gold
+      doc.text(`Total: ${formatCurrency(totalAmount)}`, 105, 36, { align: "center" });
+
+      // Table
+      const tableData = filtered.map((d, i) => [
+        i + 1,
+        d.receipt_number,
+        formatDate(d.date),
+        d.beneficiary,
+        formatCurrency(d.amount),
+        d.notes || "",
+      ]);
+
+      autoTable(doc, {
+        startY: 42,
+        head: [["#", "Recibo No.", "Fecha", "Beneficiario", "Monto", "Notas"]],
+        body: tableData,
+        headStyles: {
+          fillColor: [26, 58, 92],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          halign: "center",
+        },
+        columnStyles: {
+          0: { halign: "center", cellWidth: 10 },
+          1: { halign: "center", cellWidth: 22 },
+          2: { halign: "center", cellWidth: 26 },
+          3: { cellWidth: 45 },
+          4: { halign: "right", cellWidth: 28 },
+          5: { cellWidth: 45 },
+        },
+        alternateRowStyles: { fillColor: [245, 240, 232] }, // cream
+        styles: { fontSize: 8, cellPadding: 3 },
+        didDrawPage: (data) => {
+          // Gold line under header
+          if (data.pageNumber === 1) {
+            doc.setDrawColor(201, 168, 76);
+            doc.setLineWidth(0.5);
+            doc.line(14, 39, 196, 39);
+          }
+          // Footer
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text(
+            `Página ${data.pageNumber}`,
+            105,
+            doc.internal.pageSize.height - 10,
+            { align: "center" }
+          );
+        },
+      });
+
+      doc.save(`donaciones_${dateFrom || "inicio"}_${dateTo || "fin"}.pdf`);
       onClose();
     } finally {
       setExporting(false);
@@ -114,21 +196,28 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
               {filtered.length} donación{filtered.length !== 1 ? "es" : ""} a exportar
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              Total: {formatCurrency(filtered.filter(d => d.status === "valido").reduce((s, d) => s + d.amount, 0))}
+              Total: {formatCurrency(totalAmount)}
             </p>
           </div>
 
           <div className="flex gap-3 pt-2">
             <button
-              onClick={handleExport}
+              onClick={handleExportExcel}
               disabled={filtered.length === 0 || exporting}
-              className="flex-1 bg-gold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-lg transition-colors"
+              className="flex-1 bg-gold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
             >
-              {exporting ? "Exportando..." : "Exportar Excel"}
+              {exporting ? "..." : "Excel"}
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={filtered.length === 0 || exporting}
+              className="flex-1 bg-navy hover:bg-navy/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+            >
+              {exporting ? "..." : "PDF"}
             </button>
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 rounded-lg transition-colors"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 rounded-lg transition-colors text-sm"
             >
               Cancelar
             </button>
