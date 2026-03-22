@@ -18,24 +18,36 @@ export default function Dashboard() {
   const [exportOpen, setExportOpen] = useState(false);
 
 
-  const hebrewYear = getCurrentHebrewYear();
-  const yearData = getHebrewYearData(hebrewYear);
+  const hebrewYear = useMemo(() => getCurrentHebrewYear(), []);
+  const yearData = useMemo(() => getHebrewYearData(hebrewYear), [hebrewYear]);
 
   const fetchDonations = useCallback(async () => {
-    if (!yearData) return;
-    const res = await fetch(
-      `/api/donations?from=${yearData.startDate}&to=${yearData.endDate}`
-    );
-    const data = await res.json();
-    setDonations(data);
-    setLoading(false);
-  }, [yearData]);
+    try {
+      const res = await fetch(
+        `/api/donations?from=${yearData.startDate}&to=${yearData.endDate}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setDonations(data);
+      }
+    } catch {
+      // API error — show empty state
+    } finally {
+      setLoading(false);
+    }
+  }, [yearData.startDate, yearData.endDate]);
 
   const fetchGoal = useCallback(async () => {
-    const res = await fetch(`/api/goal?year=${hebrewYear}`);
-    const data = await res.json();
-    setGoalAmount(data.goal_amount || 0);
-    setGoalInput((data.goal_amount || 0).toString());
+    try {
+      const res = await fetch(`/api/goal?year=${hebrewYear}`);
+      if (res.ok) {
+        const data = await res.json();
+        setGoalAmount(data.goal_amount || 0);
+        setGoalInput((data.goal_amount || 0).toString());
+      }
+    } catch {
+      // Goal fetch failed silently
+    }
   }, [hebrewYear]);
 
   useEffect(() => {
@@ -231,7 +243,7 @@ export default function Dashboard() {
                     i % 2 === 0 ? "bg-white" : "bg-cream/50"
                   }`}
                 >
-                  <td className="px-4 py-3 font-medium">{i + 1}</td>
+                  <td className="px-4 py-3 font-medium">{donations.length - i}</td>
                   <td className="px-4 py-3">{formatDate(d.date)}</td>
                   <td className="px-4 py-3">{d.beneficiary}</td>
                   <td className="px-4 py-3 text-right font-medium">{formatCurrency(d.amount)}</td>

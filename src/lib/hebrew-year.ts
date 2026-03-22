@@ -1,114 +1,215 @@
-import { HDate, months as M } from "@hebcal/core";
+// Lightweight Hebrew calendar calculations — no external dependencies.
+// Uses the "Four Gates" algorithm to compute Rosh Hashana dates
+// and derives month lengths from the year type.
 
 export type HebrewMonth = {
   name: string;
-  startDate: string; // YYYY-MM-DD
-  endDate: string;   // YYYY-MM-DD
-  label: string;     // e.g. "23 sep – 22 oct"
+  startDate: string;
+  endDate: string;
+  label: string;
 };
 
 export type HebrewYearData = {
   hebrewYear: number;
-  startDate: string; // YYYY-MM-DD
-  endDate: string;   // YYYY-MM-DD
+  startDate: string;
+  endDate: string;
   months: HebrewMonth[];
 };
 
-// Hebrew month names in Spanish, ordered Tishrei → Elul
-const MONTH_NAMES_ES: Record<number, string> = {
-  [M.TISHREI]: "Tishrei",
-  [M.CHESHVAN]: "Jeshván",
-  [M.KISLEV]: "Kislev",
-  [M.TEVET]: "Tévet",
-  [M.SHVAT]: "Shvat",
-  [M.ADAR_I]: "Adar I",
-  [M.ADAR_II]: "Adar II",
-  [M.NISAN]: "Nisán",
-  [M.IYYAR]: "Iyar",
-  [M.SIVAN]: "Siván",
-  [M.TAMUZ]: "Tamuz",
-  [M.AV]: "Av",
-  [M.ELUL]: "Elul",
-};
-
-const GREGORIAN_MONTH_ABBR = [
+const GREG_MONTH_ABBR = [
   "ene", "feb", "mar", "abr", "may", "jun",
   "jul", "ago", "sep", "oct", "nov", "dic",
 ];
 
+// ---- Core algorithm: Hebrew Day Number (absolute date) of 1 Tishrei ----
+
+function hebrewNewYearDelay(year: number): number {
+  // Months from molad of creation to Tishrei of year
+  const monthsElapsed =
+    Math.floor((235 * (year - 1) + 1) / 19);
+  const partsElapsed = 12084 + 13753 * monthsElapsed;
+  const day = 1 + 29 * monthsElapsed + Math.floor(partsElapsed / 25920);
+  const parts = partsElapsed % 25920;
+
+  // Postponement rules (dehiyot)
+  let alt = day;
+  const dow = day % 7;
+
+  // Lo ADU: Rosh Hashana can't fall on Sun(1), Wed(4), Fri(6)
+  if (dow === 0 || dow === 3 || dow === 5) {
+    alt = day + 1;
+  }
+  // Molad zaken: if molad is at noon or later, postpone
+  else if (parts >= 19440) {
+    alt = day + 1;
+    const newDow = alt % 7;
+    if (newDow === 0 || newDow === 3 || newDow === 5) {
+      alt++;
+    }
+  }
+  // GaTRaD: after leap year
+  else if (
+    !isHebrewLeapYear(year) &&
+    dow === 2 &&
+    parts >= 9924
+  ) {
+    alt = day + 2;
+  }
+  // BeTUTeKPaT: year after leap year
+  else if (
+    isHebrewLeapYear(year - 1) &&
+    dow === 1 &&
+    parts >= 16789
+  ) {
+    alt = day + 1;
+  }
+
+  return alt;
+}
+
+function isHebrewLeapYear(year: number): boolean {
+  return ((7 * year + 1) % 19) < 7;
+}
+
+/**
+ * Get the Gregorian date of 1 Tishrei for a given Hebrew year.
+ */
+function roshHashanaGregorian(hebrewYear: number): Date {
+  const dayOfThisYear = hebrewNewYearDelay(hebrewYear);
+  // Hebrew epoch: 1 Tishrei 1 = September 7, 3761 BCE (Julian) = RD -1373427
+  // But simpler: anchor to a known date.
+  // 1 Tishrei 5765 = September 16, 2004 (Thursday), absolute day offset = ...
+  // Use: absolute day of 1 Tishrei hebrewYear, then convert via anchor.
+  const anchor = hebrewNewYearDelay(5765); // 1 Tishrei 5765
+  const anchorGreg = new Date(Date.UTC(2004, 8, 16)); // Sep 16, 2004
+  const diff = dayOfThisYear - anchor;
+  return new Date(anchorGreg.getTime() + diff * 86400000);
+}
+
+function hebrewYearLength(hebrewYear: number): number {
+  return hebrewNewYearDelay(hebrewYear + 1) - hebrewNewYearDelay(hebrewYear);
+}
+
+/**
+ * Get month lengths for a Hebrew year.
+ * Returns array of { name, days } from Tishrei to Elul.
+ */
+function getMonthLengths(hebrewYear: number): { name: string; days: number }[] {
+  const yearLen = hebrewYearLength(hebrewYear);
+  const leap = isHebrewLeapYear(hebrewYear);
+
+  // Cheshvan and Kislev vary based on year length
+  // Regular (353/383): Cheshvan=29, Kislev=29
+  // Complete (355/385): Cheshvan=30, Kislev=30
+  // Deficient(354/384): Cheshvan=29, Kislev=30
+  const regularLen = leap ? 383 : 353;
+  const cheshvan = (yearLen - regularLen >= 2) ? 30 : 29;
+  const kislev = (yearLen - regularLen >= 1) ? 30 : 29;
+
+  const months: { name: string; days: number }[] = [
+    { name: "Tishrei", days: 30 },
+    { name: "Jeshván", days: cheshvan },
+    { name: "Kislev", days: kislev },
+    { name: "Tévet", days: 29 },
+    { name: "Shvat", days: 30 },
+  ];
+
+  if (leap) {
+    months.push({ name: "Adar I", days: 30 });
+    months.push({ name: "Adar II", days: 29 });
+  } else {
+    months.push({ name: "Adar", days: 29 });
+  }
+
+  months.push(
+    { name: "Nisán", days: 30 },
+    { name: "Iyar", days: 29 },
+    { name: "Siván", days: 30 },
+    { name: "Tamuz", days: 29 },
+    { name: "Av", days: 30 },
+    { name: "Elul", days: 29 },
+  );
+
+  return months;
+}
+
+// ---- Helpers ----
+
 function toISO(d: Date): string {
-  return d.toISOString().split("T")[0];
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+
+function addDays(d: Date, n: number): Date {
+  return new Date(d.getTime() + n * 86400000);
 }
 
 function formatLabel(start: Date, end: Date): string {
-  const s = `${start.getUTCDate()} ${GREGORIAN_MONTH_ABBR[start.getUTCMonth()]}`;
-  const e = `${end.getUTCDate()} ${GREGORIAN_MONTH_ABBR[end.getUTCMonth()]}`;
+  const s = `${start.getUTCDate()} ${GREG_MONTH_ABBR[start.getUTCMonth()]}`;
+  const e = `${end.getUTCDate()} ${GREG_MONTH_ABBR[end.getUTCMonth()]}`;
   return `${s} – ${e}`;
 }
 
-/**
- * Get the ordered list of Hebrew month numbers for a given year.
- * Runs Tishrei → Elul, handling leap years (Adar I + Adar II).
- */
-function getMonthOrder(hebrewYear: number): number[] {
-  const isLeap = HDate.isLeapYear(hebrewYear);
-  const order: number[] = [M.TISHREI, M.CHESHVAN, M.KISLEV, M.TEVET, M.SHVAT];
-  if (isLeap) {
-    order.push(M.ADAR_I as number, M.ADAR_II as number);
-  } else {
-    order.push(M.ADAR_II as number); // Regular Adar uses ADAR_II in hebcal
-  }
-  order.push(M.NISAN, M.IYYAR, M.SIVAN, M.TAMUZ, M.AV, M.ELUL);
-  return order;
-}
+// ---- Cache ----
+const yearCache = new Map<number, HebrewYearData>();
+let _currentYear: number | null = null;
+let _currentMonth: { from: string; to: string; name: string } | null = null;
 
-/**
- * Dynamically compute Hebrew year data using @hebcal/core.
- * Works for any year — past, present, or future.
- */
+// ---- Public API ----
+
 export function getHebrewYearData(hebrewYear: number): HebrewYearData {
-  const roshHashana = new HDate(1, M.TISHREI, hebrewYear).greg();
-  const nextRoshHashana = new HDate(1, M.TISHREI, hebrewYear + 1).greg();
-  const endDate = new Date(nextRoshHashana.getTime() - 86400000); // day before next RH
+  const cached = yearCache.get(hebrewYear);
+  if (cached) return cached;
 
-  const monthOrder = getMonthOrder(hebrewYear);
-  const hebrewMonths: HebrewMonth[] = monthOrder.map((m, i) => {
-    const firstDay = new HDate(1, m, hebrewYear).greg();
-    const daysInMonth = HDate.daysInMonth(m, hebrewYear);
-    const lastDay = new HDate(daysInMonth, m, hebrewYear).greg();
+  const rh = roshHashanaGregorian(hebrewYear);
+  const nextRh = roshHashanaGregorian(hebrewYear + 1);
+  const endDate = addDays(nextRh, -1);
 
-    let name = MONTH_NAMES_ES[m] || `Month ${m}`;
-    // For non-leap years, show "Adar" instead of "Adar II"
-    if (m === M.ADAR_II && !HDate.isLeapYear(hebrewYear)) {
-      name = "Adar";
-    }
+  const monthLengths = getMonthLengths(hebrewYear);
+  let cursor = rh;
 
+  const months: HebrewMonth[] = monthLengths.map((m) => {
+    const start = cursor;
+    const end = addDays(cursor, m.days - 1);
+    cursor = addDays(cursor, m.days);
     return {
-      name,
-      startDate: toISO(firstDay),
-      endDate: toISO(lastDay),
-      label: formatLabel(firstDay, lastDay),
+      name: m.name,
+      startDate: toISO(start),
+      endDate: toISO(end),
+      label: formatLabel(start, end),
     };
   });
 
-  return {
+  const data: HebrewYearData = {
     hebrewYear,
-    startDate: toISO(roshHashana),
+    startDate: toISO(rh),
     endDate: toISO(endDate),
-    months: hebrewMonths,
+    months,
   };
+
+  yearCache.set(hebrewYear, data);
+  return data;
 }
 
-/**
- * Get the current Hebrew year based on today's date.
- */
 export function getCurrentHebrewYear(): number {
-  return new HDate().getFullYear();
+  if (_currentYear !== null) return _currentYear;
+  const today = new Date().toISOString().split("T")[0];
+  // Check years around the expected range
+  const gYear = new Date().getFullYear();
+  const approx = gYear + 3760;
+  for (const hy of [approx + 1, approx]) {
+    const data = getHebrewYearData(hy);
+    if (today >= data.startDate && today <= data.endDate) {
+      _currentYear = hy;
+      return hy;
+    }
+  }
+  _currentYear = approx;
+  return approx;
 }
 
-/**
- * Get available Hebrew years for the year selector (range around current).
- */
 export function getAvailableHebrewYears(): number[] {
   const current = getCurrentHebrewYear();
   const years: number[] = [];
@@ -118,25 +219,18 @@ export function getAvailableHebrewYears(): number[] {
   return years;
 }
 
-/**
- * Get the current Hebrew month's Gregorian date range.
- */
 export function getCurrentHebrewMonthRange(): { from: string; to: string; name: string } {
-  const today = new HDate();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const firstDay = new HDate(1, month, year).greg();
-  const daysInMonth = HDate.daysInMonth(month, year);
-  const lastDay = new HDate(daysInMonth, month, year).greg();
-
-  let name = MONTH_NAMES_ES[month] || `Month ${month}`;
-  if (month === M.ADAR_II && !HDate.isLeapYear(year)) {
-    name = "Adar";
+  if (_currentMonth !== null) return _currentMonth;
+  const today = new Date().toISOString().split("T")[0];
+  const yearData = getHebrewYearData(getCurrentHebrewYear());
+  for (const m of yearData.months) {
+    if (today >= m.startDate && today <= m.endDate) {
+      _currentMonth = { from: m.startDate, to: m.endDate, name: m.name };
+      return _currentMonth;
+    }
   }
-
-  return {
-    from: toISO(firstDay),
-    to: toISO(lastDay),
-    name,
-  };
+  // Fallback: first month
+  const first = yearData.months[0];
+  _currentMonth = { from: first.startDate, to: first.endDate, name: first.name };
+  return _currentMonth;
 }

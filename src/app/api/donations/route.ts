@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
   let query = supabase
     .from("donations")
     .select("*")
-    .order("date", { ascending: true })
-    .order("id", { ascending: true });
+    .order("date", { ascending: false })
+    .order("id", { ascending: false });
 
   if (from && to) {
     query = query.gte("date", from).lte("date", to);

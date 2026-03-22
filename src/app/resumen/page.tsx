@@ -14,19 +14,25 @@ export default function ResumenMensual() {
   const [hebrewYear, setHebrewYear] = useState(getCurrentHebrewYear());
   const [loading, setLoading] = useState(true);
 
-  const yearData = getHebrewYearData(hebrewYear);
-  const availableYears = getAvailableHebrewYears();
+  const yearData = useMemo(() => getHebrewYearData(hebrewYear), [hebrewYear]);
+  const availableYears = useMemo(() => getAvailableHebrewYears(), []);
 
   const fetchDonations = useCallback(async () => {
-    if (!yearData) return;
     setLoading(true);
-    const res = await fetch(
-      `/api/donations?from=${yearData.startDate}&to=${yearData.endDate}`
-    );
-    const data = await res.json();
-    setDonations(data);
-    setLoading(false);
-  }, [yearData]);
+    try {
+      const res = await fetch(
+        `/api/donations?from=${yearData.startDate}&to=${yearData.endDate}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setDonations(data);
+      }
+    } catch {
+      // API error
+    } finally {
+      setLoading(false);
+    }
+  }, [yearData.startDate, yearData.endDate]);
 
   useEffect(() => {
     fetchDonations();
