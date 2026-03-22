@@ -36,6 +36,15 @@ export async function POST(request: NextRequest) {
   let success = 0;
   let errors = 0;
 
+  // Get current max receipt_number to auto-increment
+  const { data: last } = await supabase
+    .from("donations")
+    .select("receipt_number")
+    .order("receipt_number", { ascending: false })
+    .limit(1)
+    .single();
+  let nextReceipt = (last?.receipt_number ?? 0) + 1;
+
   for (const row of rows) {
     const date = normalizeDate(row.date);
     if (!date) {
@@ -44,6 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { error } = await supabase.from("donations").insert([{
+      receipt_number: nextReceipt,
       date,
       beneficiary: row.beneficiary,
       amount: row.amount,
@@ -55,6 +65,7 @@ export async function POST(request: NextRequest) {
       errors++;
     } else {
       success++;
+      nextReceipt++;
     }
   }
 

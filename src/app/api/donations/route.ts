@@ -32,9 +32,31 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
+  const row: Record<string, unknown> = {
+    date: body.date,
+    beneficiary: body.beneficiary,
+    amount: body.amount,
+    status: body.status || "valido",
+    notes: body.notes || null,
+  };
+
+  // receipt_number column may still exist in DB with NOT NULL constraint
+  if (body.receipt_number != null) {
+    row.receipt_number = body.receipt_number;
+  } else {
+    // Auto-generate: max existing + 1, or 1 if empty
+    const { data: last } = await supabase
+      .from("donations")
+      .select("receipt_number")
+      .order("receipt_number", { ascending: false })
+      .limit(1)
+      .single();
+    row.receipt_number = (last?.receipt_number ?? 0) + 1;
+  }
+
   const { data, error } = await supabase
     .from("donations")
-    .insert([body])
+    .insert([row])
     .select()
     .single();
 
@@ -47,7 +69,14 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
-  const { id, ...updates } = body;
+  const { id } = body;
+
+  const updates: Record<string, unknown> = {};
+  if (body.date !== undefined) updates.date = body.date;
+  if (body.beneficiary !== undefined) updates.beneficiary = body.beneficiary;
+  if (body.amount !== undefined) updates.amount = body.amount;
+  if (body.status !== undefined) updates.status = body.status;
+  if (body.notes !== undefined) updates.notes = body.notes || null;
 
   const { data, error } = await supabase
     .from("donations")
