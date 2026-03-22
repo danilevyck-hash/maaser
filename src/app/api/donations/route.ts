@@ -1,27 +1,7 @@
 import { supabase } from "@/lib/supabase";
-import { seedData } from "@/lib/seed-data";
 import { NextRequest, NextResponse } from "next/server";
 
-async function ensureSeeded() {
-  const { count } = await supabase
-    .from("donations")
-    .select("*", { count: "exact", head: true });
-
-  if (count === 0 || count === null) {
-    const rows = seedData.map((d) => ({
-      receipt_number: d.receipt_number,
-      date: d.date,
-      beneficiary: d.beneficiary,
-      amount: d.amount,
-      status: d.status,
-    }));
-    await supabase.from("donations").insert(rows);
-  }
-}
-
 export async function GET(request: NextRequest) {
-  await ensureSeeded();
-
   const from = request.nextUrl.searchParams.get("from");
   const to = request.nextUrl.searchParams.get("to");
   const year = request.nextUrl.searchParams.get("year");
