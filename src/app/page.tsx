@@ -6,7 +6,6 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { getCurrentHebrewYear, getHebrewYearData } from "@/lib/hebrew-year";
 import DonationModal from "@/components/DonationModal";
 import ExportModal from "@/components/ExportModal";
-import ImportModal from "@/components/ImportModal";
 
 export default function Dashboard() {
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -17,7 +16,7 @@ export default function Dashboard() {
   const [goalInput, setGoalInput] = useState("");
   const [editingGoal, setEditingGoal] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
+
 
   const hebrewYear = getCurrentHebrewYear();
   const yearData = getHebrewYearData(hebrewYear);
@@ -191,15 +190,6 @@ export default function Dashboard() {
       {/* Action Buttons */}
       <div className="flex flex-wrap justify-end gap-3">
         <button
-          onClick={() => setImportOpen(true)}
-          className="bg-white border-2 border-navy text-navy hover:bg-navy hover:text-white font-bold px-5 py-3 rounded-xl shadow-md transition-colors flex items-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-          </svg>
-          Importar
-        </button>
-        <button
           onClick={() => setExportOpen(true)}
           className="bg-white border-2 border-navy text-navy hover:bg-navy hover:text-white font-bold px-5 py-3 rounded-xl shadow-md transition-colors flex items-center gap-2"
         >
@@ -349,11 +339,6 @@ export default function Dashboard() {
         donations={donations}
       />
 
-      <ImportModal
-        isOpen={importOpen}
-        onClose={() => setImportOpen(false)}
-        onImported={fetchDonations}
-      />
     </div>
   );
 }

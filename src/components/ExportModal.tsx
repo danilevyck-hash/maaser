@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Donation } from "@/lib/supabase";
-import { formatDate, formatCurrency } from "@/lib/format";
+import { formatDate, formatDateExport, formatCurrency } from "@/lib/format";
 
 type Props = {
   isOpen: boolean;
@@ -56,7 +56,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       filtered.forEach((d, i) => {
         sheet.addRow({
           num: i + 1,
-          date: formatDate(d.date),
+          date: formatDateExport(d.date),
           beneficiary: d.beneficiary,
           amount: d.amount,
           notes: d.notes || "",
@@ -108,7 +108,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       // Table
       const tableData = filtered.map((d, i) => [
         i + 1,
-        formatDate(d.date),
+        formatDateExport(d.date),
         d.beneficiary,
         formatCurrency(d.amount),
         d.notes || "",
