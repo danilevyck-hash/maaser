@@ -1,140 +1,49 @@
-// PWA icon — Star of David above a sweeping curved road
-import { writeFileSync, mkdirSync } from "fs";
+import sharp from "sharp";
+import { mkdirSync } from "fs";
 
-function createPNG(size) {
-  const pixels = new Uint8Array(size * size * 4);
-  const navy = [0x1A, 0x3A, 0x5C];
-  const gold = [0xC9, 0xA8, 0x4C];
-  const cornerR = size * 0.1875;
-  const S = size; // shorthand
-
-  function setPixel(x, y, r, g, b, a = 255) {
-    if (x < 0 || x >= S || y < 0 || y >= S) return;
-    const idx = (Math.floor(y) * S + Math.floor(x)) * 4;
-    pixels[idx] = r; pixels[idx + 1] = g; pixels[idx + 2] = b; pixels[idx + 3] = a;
-  }
-
-  function isInRoundedRect(x, y) {
-    const cr = cornerR;
-    if (x >= cr && x <= S - cr) return y >= 0 && y <= S;
-    if (y >= cr && y <= S - cr) return x >= 0 && x <= S;
-    const corners = [[cr, cr], [S - cr, cr], [cr, S - cr], [S - cr, S - cr]];
-    for (const [cx, cy] of corners) { if ((x - cx) ** 2 + (y - cy) ** 2 <= cr * cr) return true; }
-    if (x < cr && y < cr) return false;
-    if (x > S - cr && y < cr) return false;
-    if (x < cr && y > S - cr) return false;
-    if (x > S - cr && y > S - cr) return false;
-    return true;
-  }
-
-  function distToSegment(px, py, x1, y1, x2, y2) {
-    const dx = x2 - x1, dy = y2 - y1, lenSq = dx * dx + dy * dy;
-    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
-    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
-  }
-
-  // ---- Star of David — centered, upper area ----
-  const cx = S / 2;
-  const cy = S * 0.40;
-  const r = S * 0.26;
-  const sw = S * 0.026;
-
-  const cos30 = Math.cos(Math.PI / 6), sin30 = Math.sin(Math.PI / 6);
-  const t1 = [[cx, cy - r], [cx + r * cos30, cy + r * sin30], [cx - r * cos30, cy + r * sin30]];
-  const t2 = [[cx, cy + r], [cx + r * cos30, cy - r * sin30], [cx - r * cos30, cy - r * sin30]];
-
-  function isOnTriEdge(px, py, tri) {
-    for (let i = 0; i < 3; i++) {
-      const j = (i + 1) % 3;
-      if (distToSegment(px, py, tri[i][0], tri[i][1], tri[j][0], tri[j][1]) <= sw) return true;
-    }
-    return false;
-  }
-
-  // ---- Sweeping road curve below the star ----
-  // A smooth S-curve / arc that sweeps from left to right below the star
-  // Road center follows a sine-like curve
-  const roadY = S * 0.74;        // vertical center of road
-  const roadAmp = S * 0.04;      // curve amplitude
-  const roadThick = S * 0.028;   // road stroke thickness
-  const roadDash = S * 0.012;    // center line thickness
-  const roadStart = S * 0.12;    // left edge
-  const roadEnd = S * 0.88;      // right edge
-
-  function roadCenterY(x) {
-    // Gentle S-curve
-    const t = (x - roadStart) / (roadEnd - roadStart); // 0..1
-    return roadY + Math.sin(t * Math.PI) * roadAmp;
-  }
-
-  // ---- Render ----
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      if (!isInRoundedRect(x, y)) { setPixel(x, y, 0, 0, 0, 0); continue; }
-
-      // Star edges
-      if (isOnTriEdge(x, y, t1) || isOnTriEdge(x, y, t2)) {
-        setPixel(x, y, ...gold); continue;
-      }
-
-      // Road — two parallel strokes (top and bottom edge of road)
-      if (x >= roadStart && x <= roadEnd) {
-        const rcy = roadCenterY(x);
-        const dy = Math.abs(y - rcy);
-        // Road edges
-        if (Math.abs(dy - S * 0.05) <= roadThick) {
-          setPixel(x, y, ...gold); continue;
-        }
-        // Dashed center line
-        if (dy <= roadDash) {
-          // Dashes: on for 12px, off for 8px (scaled)
-          const dashLen = S * 0.04;
-          const gapLen = S * 0.025;
-          const pos = (x - roadStart) % (dashLen + gapLen);
-          if (pos < dashLen) {
-            const mix = 0.5;
-            setPixel(x, y,
-              Math.round(navy[0] + (gold[0] - navy[0]) * mix),
-              Math.round(navy[1] + (gold[1] - navy[1]) * mix),
-              Math.round(navy[2] + (gold[2] - navy[2]) * mix),
-            );
-            continue;
-          }
-        }
-      }
-
-      // Background
-      setPixel(x, y, ...navy);
-    }
-  }
-
-  return encodePNG(S, S, pixels);
-}
-
-function encodePNG(width, height, rgba) {
-  const crcTable = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; crcTable[n] = c; }
-  function crc32(buf, s, l) { let c = 0xFFFFFFFF; for (let i = s; i < s + l; i++) c = crcTable[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
-  function adler32(buf, s, l) { let a = 1, b = 0; for (let i = s; i < s + l; i++) { a = (a + buf[i]) % 65521; b = (b + a) % 65521; } return ((b << 16) | a) >>> 0; }
-  const rawLen = height * (1 + width * 4), raw = new Uint8Array(rawLen);
-  for (let y = 0; y < height; y++) { raw[y * (1 + width * 4)] = 0; for (let x = 0; x < width * 4; x++) raw[y * (1 + width * 4) + 1 + x] = rgba[y * width * 4 + x]; }
-  const maxBlock = 65535, numBlocks = Math.ceil(rawLen / maxBlock);
-  const deflate = new Uint8Array(2 + numBlocks * 5 + rawLen + 4);
-  deflate[0] = 0x78; deflate[1] = 0x01; let dOff = 2;
-  for (let i = 0; i < numBlocks; i++) { const st = i * maxBlock, bl = Math.min(maxBlock, rawLen - st); deflate[dOff++] = i === numBlocks - 1 ? 1 : 0; deflate[dOff++] = bl & 0xFF; deflate[dOff++] = (bl >> 8) & 0xFF; deflate[dOff++] = (~bl) & 0xFF; deflate[dOff++] = ((~bl) >> 8) & 0xFF; deflate.set(raw.subarray(st, st + bl), dOff); dOff += bl; }
-  const adl = adler32(raw, 0, rawLen); deflate[dOff++] = (adl >> 24) & 0xFF; deflate[dOff++] = (adl >> 16) & 0xFF; deflate[dOff++] = (adl >> 8) & 0xFF; deflate[dOff++] = adl & 0xFF;
-  const sig = [137, 80, 78, 71, 13, 10, 26, 10];
-  function makeChunk(type, data) { const ch = new Uint8Array(4 + 4 + data.length + 4); const dv = new DataView(ch.buffer); dv.setUint32(0, data.length); for (let i = 0; i < 4; i++) ch[4 + i] = type.charCodeAt(i); ch.set(data, 8); dv.setUint32(8 + data.length, crc32(ch, 4, 4 + data.length)); return ch; }
-  const ihdr = new Uint8Array(13); const hd = new DataView(ihdr.buffer); hd.setUint32(0, width); hd.setUint32(4, height); ihdr[8] = 8; ihdr[9] = 6;
-  const c1 = makeChunk("IHDR", ihdr), c2 = makeChunk("IDAT", deflate.subarray(0, dOff)), c3 = makeChunk("IEND", new Uint8Array(0));
-  const png = new Uint8Array(sig.length + c1.length + c2.length + c3.length); let o = 0;
-  png.set(sig, o); o += sig.length; png.set(c1, o); o += c1.length; png.set(c2, o); o += c2.length; png.set(c3, o);
-  return Buffer.from(png);
-}
+const LOGO = "logo.jpeg";
+const NAVY = { r: 26, g: 58, b: 92 };
+const SIZES = [72, 96, 128, 144, 152, 180, 192, 384, 512];
 
 mkdirSync("public/icons", { recursive: true });
-for (const s of [72, 96, 128, 144, 152, 192, 384, 512]) { console.log(`${s}x${s}...`); writeFileSync(`public/icons/icon-${s}x${s}.png`, createPNG(s)); }
-console.log("180x180..."); writeFileSync("public/apple-touch-icon.png", createPNG(180));
+
+// First, trim whitespace from logo
+const trimmedLogo = await sharp(LOGO).trim().png().toBuffer();
+
+for (const size of SIZES) {
+  const cornerR = Math.round(size * 0.1875);
+  const padding = Math.round(size * 0.08);
+  const logoSize = size - padding * 2;
+
+  const resizedLogo = await sharp(trimmedLogo)
+    .resize(logoSize, logoSize, { fit: "contain", background: { r: 26, g: 58, b: 92, alpha: 1 } })
+    .png()
+    .toBuffer();
+
+  const mask = Buffer.from(
+    `<svg width="${size}" height="${size}">
+      <rect x="0" y="0" width="${size}" height="${size}" rx="${cornerR}" ry="${cornerR}" fill="white"/>
+    </svg>`
+  );
+
+  const icon = await sharp({
+    create: { width: size, height: size, channels: 4, background: NAVY },
+  })
+    .composite([{ input: resizedLogo, top: padding, left: padding }])
+    .png()
+    .toBuffer();
+
+  const final = await sharp(icon)
+    .composite([{ input: mask, blend: "dest-in" }])
+    .png()
+    .toBuffer();
+
+  const filename = size === 180
+    ? "public/apple-touch-icon.png"
+    : `public/icons/icon-${size}x${size}.png`;
+
+  await sharp(final).toFile(filename);
+  console.log(`${size}x${size} ✓`);
+}
+
 console.log("Done!");
