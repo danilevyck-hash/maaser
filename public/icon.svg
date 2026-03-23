@@ -1,10 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="96" fill="#1A3A5C"/>
-  <g transform="translate(256,256)">
-    <!-- Star of David: two overlapping triangles -->
-    <polygon points="0,-150 129.9,75 -129.9,75" fill="none" stroke="#C9A84C" stroke-width="28" stroke-linejoin="round"/>
-    <polygon points="0,150 129.9,-75 -129.9,-75" fill="none" stroke="#C9A84C" stroke-width="28" stroke-linejoin="round"/>
-    <!-- Inner glow/fill for the hexagonal center -->
-    <polygon points="0,-75 64.95,-37.5 64.95,37.5 0,75 -64.95,37.5 -64.95,-37.5" fill="#C9A84C" opacity="0.25"/>
+  <!-- Star of David - top -->
+  <g transform="translate(256,190)">
+    <polygon points="0,-100 86.6,50 -86.6,50" fill="none" stroke="#C9A84C" stroke-width="20" stroke-linejoin="round"/>
+    <polygon points="0,100 86.6,-50 -86.6,-50" fill="none" stroke="#C9A84C" stroke-width="20" stroke-linejoin="round"/>
+  </g>
+  <!-- Minimal car silhouette - bottom -->
+  <g transform="translate(256,370)" fill="none" stroke="#C9A84C" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Car body -->
+    <path d="M-60,0 L-60,-20 L-35,-20 L-20,-45 L30,-45 L50,-20 L60,-20 L60,0"/>
+    <!-- Wheels -->
+    <circle cx="-30" cy="5" r="14" fill="#C9A84C" opacity="0.3" stroke="#C9A84C" stroke-width="10"/>
+    <circle cx="35" cy="5" r="14" fill="#C9A84C" opacity="0.3" stroke="#C9A84C" stroke-width="10"/>
+    <!-- Road line -->
+    <line x1="-80" y1="25" x2="80" y2="25" stroke="#C9A84C" stroke-width="4" opacity="0.4"/>
   </g>
 </svg>
