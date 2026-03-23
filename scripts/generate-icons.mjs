@@ -1,4 +1,4 @@
-// Generate PWA icon — Star of David with wheels
+// PWA icon — Star of David above a sweeping curved road
 import { writeFileSync, mkdirSync } from "fs";
 
 function createPNG(size) {
@@ -6,57 +6,44 @@ function createPNG(size) {
   const navy = [0x1A, 0x3A, 0x5C];
   const gold = [0xC9, 0xA8, 0x4C];
   const cornerR = size * 0.1875;
+  const S = size; // shorthand
 
   function setPixel(x, y, r, g, b, a = 255) {
-    if (x < 0 || x >= size || y < 0 || y >= size) return;
-    const idx = (Math.floor(y) * size + Math.floor(x)) * 4;
+    if (x < 0 || x >= S || y < 0 || y >= S) return;
+    const idx = (Math.floor(y) * S + Math.floor(x)) * 4;
     pixels[idx] = r; pixels[idx + 1] = g; pixels[idx + 2] = b; pixels[idx + 3] = a;
   }
 
   function isInRoundedRect(x, y) {
     const cr = cornerR;
-    if (x >= cr && x <= size - cr) return y >= 0 && y <= size;
-    if (y >= cr && y <= size - cr) return x >= 0 && x <= size;
-    const corners = [[cr, cr], [size - cr, cr], [cr, size - cr], [size - cr, size - cr]];
-    for (const [cx, cy] of corners) {
-      if ((x - cx) ** 2 + (y - cy) ** 2 <= cr * cr) return true;
-    }
+    if (x >= cr && x <= S - cr) return y >= 0 && y <= S;
+    if (y >= cr && y <= S - cr) return x >= 0 && x <= S;
+    const corners = [[cr, cr], [S - cr, cr], [cr, S - cr], [S - cr, S - cr]];
+    for (const [cx, cy] of corners) { if ((x - cx) ** 2 + (y - cy) ** 2 <= cr * cr) return true; }
     if (x < cr && y < cr) return false;
-    if (x > size - cr && y < cr) return false;
-    if (x < cr && y > size - cr) return false;
-    if (x > size - cr && y > size - cr) return false;
+    if (x > S - cr && y < cr) return false;
+    if (x < cr && y > S - cr) return false;
+    if (x > S - cr && y > S - cr) return false;
     return true;
   }
 
   function distToSegment(px, py, x1, y1, x2, y2) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const lenSq = dx * dx + dy * dy;
+    const dx = x2 - x1, dy = y2 - y1, lenSq = dx * dx + dy * dy;
     if (lenSq === 0) return Math.hypot(px - x1, py - y1);
     let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
     t = Math.max(0, Math.min(1, t));
     return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
   }
 
-  // ---- Star of David centered, slightly higher to make room for wheels ----
-  const cx = size / 2;
-  const cy = size * 0.43; // shifted up a bit
-  const r = size * 0.28;
-  const sw = size * 0.028; // stroke width
+  // ---- Star of David — centered, upper area ----
+  const cx = S / 2;
+  const cy = S * 0.40;
+  const r = S * 0.26;
+  const sw = S * 0.026;
 
-  const cos30 = Math.cos(Math.PI / 6);
-  const sin30 = Math.sin(Math.PI / 6);
-  // Triangle up
-  const t1 = [
-    [cx, cy - r],
-    [cx + r * cos30, cy + r * sin30],
-    [cx - r * cos30, cy + r * sin30],
-  ];
-  // Triangle down
-  const t2 = [
-    [cx, cy + r],
-    [cx + r * cos30, cy - r * sin30],
-    [cx - r * cos30, cy - r * sin30],
-  ];
+  const cos30 = Math.cos(Math.PI / 6), sin30 = Math.sin(Math.PI / 6);
+  const t1 = [[cx, cy - r], [cx + r * cos30, cy + r * sin30], [cx - r * cos30, cy + r * sin30]];
+  const t2 = [[cx, cy + r], [cx + r * cos30, cy - r * sin30], [cx - r * cos30, cy - r * sin30]];
 
   function isOnTriEdge(px, py, tri) {
     for (let i = 0; i < 3; i++) {
@@ -66,59 +53,55 @@ function createPNG(size) {
     return false;
   }
 
-  // ---- Two wheels below the star ----
-  const wheelY = cy + r + size * 0.1; // below star bottom
-  const wheelSpacing = size * 0.18;
-  const wheelR = size * 0.055;
-  const wheelStroke = size * 0.018;
-  const w1 = [cx - wheelSpacing, wheelY];
-  const w2 = [cx + wheelSpacing, wheelY];
+  // ---- Sweeping road curve below the star ----
+  // A smooth S-curve / arc that sweeps from left to right below the star
+  // Road center follows a sine-like curve
+  const roadY = S * 0.74;        // vertical center of road
+  const roadAmp = S * 0.04;      // curve amplitude
+  const roadThick = S * 0.028;   // road stroke thickness
+  const roadDash = S * 0.012;    // center line thickness
+  const roadStart = S * 0.12;    // left edge
+  const roadEnd = S * 0.88;      // right edge
 
-  // ---- Small axle lines connecting star bottom to wheels ----
-  const starBottom = cy + r; // bottom point of star
-  const axleTop = starBottom + size * 0.02;
-  const axleBot = wheelY - wheelR;
+  function roadCenterY(x) {
+    // Gentle S-curve
+    const t = (x - roadStart) / (roadEnd - roadStart); // 0..1
+    return roadY + Math.sin(t * Math.PI) * roadAmp;
+  }
 
   // ---- Render ----
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      if (!isInRoundedRect(x, y)) {
-        setPixel(x, y, 0, 0, 0, 0);
-        continue;
-      }
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      if (!isInRoundedRect(x, y)) { setPixel(x, y, 0, 0, 0, 0); continue; }
 
       // Star edges
       if (isOnTriEdge(x, y, t1) || isOnTriEdge(x, y, t2)) {
-        setPixel(x, y, ...gold);
-        continue;
+        setPixel(x, y, ...gold); continue;
       }
 
-      // Wheel circles (ring style)
-      const w1d = Math.hypot(x - w1[0], y - w1[1]);
-      const w2d = Math.hypot(x - w2[0], y - w2[1]);
-      if (Math.abs(w1d - wheelR) <= wheelStroke || Math.abs(w2d - wheelR) <= wheelStroke) {
-        setPixel(x, y, ...gold);
-        continue;
-      }
-      // Wheel fill (subtle)
-      if (w1d < wheelR - wheelStroke || w2d < wheelR - wheelStroke) {
-        const mix = 0.2;
-        setPixel(x, y,
-          Math.round(navy[0] + (gold[0] - navy[0]) * mix),
-          Math.round(navy[1] + (gold[1] - navy[1]) * mix),
-          Math.round(navy[2] + (gold[2] - navy[2]) * mix),
-        );
-        continue;
-      }
-
-      // Axle lines (two thin lines from star to wheels)
-      const axleSw = size * 0.012;
-      if (y >= axleTop && y <= axleBot) {
-        const dl = Math.abs(x - w1[0]);
-        const dr = Math.abs(x - w2[0]);
-        if (dl <= axleSw || dr <= axleSw) {
-          setPixel(x, y, ...gold);
-          continue;
+      // Road — two parallel strokes (top and bottom edge of road)
+      if (x >= roadStart && x <= roadEnd) {
+        const rcy = roadCenterY(x);
+        const dy = Math.abs(y - rcy);
+        // Road edges
+        if (Math.abs(dy - S * 0.05) <= roadThick) {
+          setPixel(x, y, ...gold); continue;
+        }
+        // Dashed center line
+        if (dy <= roadDash) {
+          // Dashes: on for 12px, off for 8px (scaled)
+          const dashLen = S * 0.04;
+          const gapLen = S * 0.025;
+          const pos = (x - roadStart) % (dashLen + gapLen);
+          if (pos < dashLen) {
+            const mix = 0.5;
+            setPixel(x, y,
+              Math.round(navy[0] + (gold[0] - navy[0]) * mix),
+              Math.round(navy[1] + (gold[1] - navy[1]) * mix),
+              Math.round(navy[2] + (gold[2] - navy[2]) * mix),
+            );
+            continue;
+          }
         }
       }
 
@@ -127,7 +110,7 @@ function createPNG(size) {
     }
   }
 
-  return encodePNG(size, size, pixels);
+  return encodePNG(S, S, pixels);
 }
 
 function encodePNG(width, height, rgba) {
@@ -135,8 +118,7 @@ function encodePNG(width, height, rgba) {
   for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; crcTable[n] = c; }
   function crc32(buf, s, l) { let c = 0xFFFFFFFF; for (let i = s; i < s + l; i++) c = crcTable[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
   function adler32(buf, s, l) { let a = 1, b = 0; for (let i = s; i < s + l; i++) { a = (a + buf[i]) % 65521; b = (b + a) % 65521; } return ((b << 16) | a) >>> 0; }
-  const rawLen = height * (1 + width * 4);
-  const raw = new Uint8Array(rawLen);
+  const rawLen = height * (1 + width * 4), raw = new Uint8Array(rawLen);
   for (let y = 0; y < height; y++) { raw[y * (1 + width * 4)] = 0; for (let x = 0; x < width * 4; x++) raw[y * (1 + width * 4) + 1 + x] = rgba[y * width * 4 + x]; }
   const maxBlock = 65535, numBlocks = Math.ceil(rawLen / maxBlock);
   const deflate = new Uint8Array(2 + numBlocks * 5 + rawLen + 4);
