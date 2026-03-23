@@ -94,6 +94,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       sheet.columns = [
         { header: "#", key: "num", width: 6 },
         { header: "Fecha", key: "date", width: 16 },
+        { header: "Cheque", key: "check", width: 10 },
         { header: "Beneficiario", key: "beneficiary", width: 28 },
         { header: "Monto", key: "amount", width: 14 },
         { header: "Notas", key: "notes", width: 30 },
@@ -112,6 +113,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
         sheet.addRow({
           num: i + 1,
           date: formatDateExport(d.date),
+          check: d.check_number || "",
           beneficiary: d.beneficiary,
           amount: d.amount,
           notes: d.notes || "",
@@ -159,6 +161,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       const tableData = filtered.map((d, i) => [
         i + 1,
         formatDateExport(d.date),
+        d.check_number || "",
         d.beneficiary,
         formatCurrency(d.amount),
         d.notes || "",
@@ -166,7 +169,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
 
       autoTable(doc, {
         startY: 42,
-        head: [["#", "Fecha", "Beneficiario", "Monto", "Notas"]],
+        head: [["#", "Fecha", "Cheque", "Beneficiario", "Monto", "Notas"]],
         body: tableData,
         headStyles: {
           fillColor: [26, 58, 92],
@@ -175,11 +178,12 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
           halign: "center",
         },
         columnStyles: {
-          0: { halign: "center", cellWidth: 12 },
-          1: { halign: "center", cellWidth: 28 },
-          2: { cellWidth: 50 },
-          3: { halign: "right", cellWidth: 30 },
-          4: { cellWidth: 56 },
+          0: { halign: "center", cellWidth: 10 },
+          1: { halign: "center", cellWidth: 24 },
+          2: { halign: "center", cellWidth: 16 },
+          3: { cellWidth: 42 },
+          4: { halign: "right", cellWidth: 26 },
+          5: { cellWidth: 48 },
         },
         alternateRowStyles: { fillColor: [245, 240, 232] },
         styles: { fontSize: 8, cellPadding: 3 },

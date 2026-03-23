@@ -1,54 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Donation } from "@/lib/supabase";
+import { Expense } from "@/lib/supabase";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (donation: Partial<Donation>) => void;
-  editingDonation: Donation | null;
+  onSave: (expense: Partial<Expense>) => void;
+  editingExpense: Expense | null;
 };
 
-export default function DonationModal({ isOpen, onClose, onSave, editingDonation }: Props) {
+export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense }: Props) {
   const [date, setDate] = useState("");
-  const [beneficiary, setBeneficiary] = useState("");
   const [amount, setAmount] = useState("");
-  const [checkNumber, setCheckNumber] = useState("");
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    if (editingDonation) {
-      setDate(editingDonation.date);
-      setBeneficiary(editingDonation.beneficiary);
-      setAmount(editingDonation.amount.toString());
-      setCheckNumber(editingDonation.check_number || "");
-      setNotes(editingDonation.notes || "");
+    if (editingExpense) {
+      setDate(editingExpense.date);
+      setAmount(editingExpense.amount.toString());
+      setNotes(editingExpense.notes || "");
     } else {
       setDate(new Date().toISOString().split("T")[0]);
-      setBeneficiary("");
       setAmount("");
-      setCheckNumber("");
       setNotes("");
     }
-  }, [editingDonation, isOpen]);
+  }, [editingExpense, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const donation: Partial<Donation> = {
+    const expense: Partial<Expense> = {
       date,
-      beneficiary,
       amount: parseFloat(amount) || 0,
-      check_number: checkNumber.trim() || undefined,
-      status: "valido",
       notes: notes.trim() || undefined,
     };
-    if (editingDonation) {
-      donation.id = editingDonation.id;
+    if (editingExpense) {
+      expense.id = editingExpense.id;
     }
-    onSave(donation);
+    onSave(expense);
   };
 
   return (
@@ -56,42 +47,17 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
         <div className="bg-navy text-white p-4 rounded-t-xl">
           <h2 className="text-lg font-bold">
-            {editingDonation ? "Editar Donación" : "Nueva Donación"}
+            {editingExpense ? "Editar Gasto" : "Nuevo Gasto"}
           </h2>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1">Fecha</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-navy mb-1">Nº Cheque</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
-                value={checkNumber}
-                onChange={(e) => setCheckNumber(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none"
-                placeholder="0000"
-              />
-            </div>
-          </div>
           <div>
-            <label className="block text-sm font-medium text-navy mb-1">Beneficiario</label>
+            <label className="block text-sm font-medium text-navy mb-1">Fecha</label>
             <input
-              type="text"
-              value={beneficiary}
-              onChange={(e) => setBeneficiary(e.target.value)}
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none"
-              placeholder="Nombre del beneficiario"
               required
             />
           </div>
@@ -113,7 +79,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none resize-none"
-              placeholder="Notas opcionales..."
+              placeholder="Descripción del gasto..."
               rows={2}
             />
           </div>
@@ -122,7 +88,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
               type="submit"
               className="flex-1 bg-gold hover:bg-yellow-600 text-white font-bold py-2.5 rounded-lg transition-colors"
             >
-              {editingDonation ? "Guardar Cambios" : "Agregar"}
+              {editingExpense ? "Guardar Cambios" : "Agregar"}
             </button>
             <button
               type="button"

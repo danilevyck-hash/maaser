@@ -10,6 +10,7 @@ export type Donation = {
   date: string;
   beneficiary: string;
   amount: number;
+  check_number?: string;
   status: "valido" | "anulado";
   notes?: string;
   created_at?: string;
@@ -19,4 +20,12 @@ export type AnnualGoal = {
   id: number;
   year: number;
   goal_amount: number;
+};
+
+export type Expense = {
+  id: number;
+  date: string;
+  amount: number;
+  notes?: string;
+  created_at?: string;
 };

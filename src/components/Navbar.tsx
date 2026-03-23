@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const inMaaser = pathname.startsWith("/maaser");
+  const inIndriver = pathname.startsWith("/indriver");
 
   return (
     <nav className="bg-navy border-b-4 border-gold">
@@ -14,26 +16,46 @@ export default function Navbar() {
             ✡ Registro de Maaser ✡
           </Link>
           <div className="flex gap-1">
-            <Link
-              href="/"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname === "/"
-                  ? "bg-gold text-navy"
-                  : "text-cream hover:bg-navy/80 hover:text-gold"
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/resumen"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname === "/resumen"
-                  ? "bg-gold text-navy"
-                  : "text-cream hover:bg-navy/80 hover:text-gold"
-              }`}
-            >
-              Resumen Mensual
-            </Link>
+            {inMaaser && (
+              <>
+                <Link
+                  href="/maaser"
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    pathname === "/maaser"
+                      ? "bg-gold text-navy"
+                      : "text-cream hover:bg-navy/80 hover:text-gold"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/maaser/resumen"
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    pathname === "/maaser/resumen"
+                      ? "bg-gold text-navy"
+                      : "text-cream hover:bg-navy/80 hover:text-gold"
+                  }`}
+                >
+                  Resumen
+                </Link>
+              </>
+            )}
+            {inIndriver && (
+              <Link
+                href="/indriver"
+                className="bg-gold text-navy px-4 py-2 rounded-lg text-sm font-medium"
+              >
+                Gastos
+              </Link>
+            )}
+            {(inMaaser || inIndriver) && (
+              <Link
+                href="/"
+                className="text-cream hover:bg-navy/80 hover:text-gold px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Inicio
+              </Link>
+            )}
           </div>
         </div>
       </div>
