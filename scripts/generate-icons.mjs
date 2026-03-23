@@ -7,54 +7,53 @@ const SIZES = [72, 96, 128, 144, 152, 180, 192, 384, 512];
 
 mkdirSync("public/icons", { recursive: true });
 
-for (const size of SIZES) {
+function starOfDavidSVG(size) {
   const cr = Math.round(size * 0.1875);
   const cx = size / 2;
-  const cy = size * 0.46;
-  const coinR = size * 0.32;
-  const sw = size * 0.025;
+  const cy = size / 2;
+  const r = size * 0.32;
 
-  // Location pin inside the coin
-  // Pin body: a teardrop pointing down
-  const pinCx = cx;
-  const pinTopCy = cy - coinR * 0.45;
-  const pinR = coinR * 0.3;
-  const pinBottomY = cy + coinR * 0.55;
-  // Pin inner circle (hole)
-  const pinHoleR = pinR * 0.4;
+  // Two overlapping equilateral triangles
+  const h = r * Math.sqrt(3) / 2;
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  // Triangle pointing up (vertices)
+  const t1x1 = cx;
+  const t1y1 = cy - r;
+  const t1x2 = cx - h;
+  const t1y2 = cy + r / 2;
+  const t1x3 = cx + h;
+  const t1y3 = cy + r / 2;
+
+  // Triangle pointing down (vertices)
+  const t2x1 = cx;
+  const t2y1 = cy + r;
+  const t2x2 = cx - h;
+  const t2y2 = cy - r / 2;
+  const t2x3 = cx + h;
+  const t2y3 = cy - r / 2;
+
+  const sw = Math.max(size * 0.02, 1.5);
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
     <defs>
       <clipPath id="rounded">
         <rect width="${size}" height="${size}" rx="${cr}" ry="${cr}"/>
       </clipPath>
     </defs>
     <g clip-path="url(#rounded)">
-      <!-- Background -->
       <rect width="${size}" height="${size}" fill="${NAVY}"/>
-
-      <!-- Coin circle (ring) -->
-      <circle cx="${cx}" cy="${cy}" r="${coinR}" fill="none" stroke="${GOLD}" stroke-width="${sw}"/>
-      <circle cx="${cx}" cy="${cy}" r="${coinR - sw * 1.8}" fill="none" stroke="${GOLD}" stroke-width="${sw * 0.4}" opacity="0.4"/>
-
-      <!-- Location pin inside coin -->
-      <path d="
-        M ${pinCx} ${pinBottomY}
-        C ${pinCx - pinR * 0.15} ${pinBottomY - pinR * 1.2}
-          ${pinCx - pinR} ${pinTopCy + pinR * 0.6}
-          ${pinCx - pinR} ${pinTopCy}
-        A ${pinR} ${pinR} 0 1 1 ${pinCx + pinR} ${pinTopCy}
-        C ${pinCx + pinR} ${pinTopCy + pinR * 0.6}
-          ${pinCx + pinR * 0.15} ${pinBottomY - pinR * 1.2}
-          ${pinCx} ${pinBottomY}
-        Z
-      " fill="${GOLD}"/>
-
-      <!-- Pin hole -->
-      <circle cx="${pinCx}" cy="${pinTopCy}" r="${pinHoleR}" fill="${NAVY}"/>
+      <!-- Triangle up -->
+      <polygon points="${t1x1},${t1y1} ${t1x2},${t1y2} ${t1x3},${t1y3}"
+        fill="none" stroke="${GOLD}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <!-- Triangle down -->
+      <polygon points="${t2x1},${t2y1} ${t2x2},${t2y2} ${t2x3},${t2y3}"
+        fill="none" stroke="${GOLD}" stroke-width="${sw}" stroke-linejoin="round"/>
     </g>
   </svg>`;
+}
 
+for (const size of SIZES) {
+  const svg = starOfDavidSVG(size);
   const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
 
   const filename = size === 180
@@ -65,14 +64,8 @@ for (const size of SIZES) {
   console.log(`${size}x${size} ✓`);
 }
 
-// Also save SVG
-const svgFull = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="${NAVY}"/>
-  <circle cx="256" cy="236" r="164" fill="none" stroke="${GOLD}" stroke-width="13"/>
-  <circle cx="256" cy="236" r="140" fill="none" stroke="${GOLD}" stroke-width="5" opacity="0.4"/>
-  <path d="M 256 330 C 248.6 271.1 206.8 260 206.8 212.8 A 49.2 49.2 0 1 1 305.2 212.8 C 305.2 260 263.4 271.1 256 330 Z" fill="${GOLD}"/>
-  <circle cx="256" cy="212.8" r="19.7" fill="${NAVY}"/>
-</svg>`;
+// Also save icon.svg.png at 512
+const svgFull = starOfDavidSVG(512);
 await sharp(Buffer.from(svgFull)).png().toFile("public/icon.svg.png");
 
 console.log("Done!");
