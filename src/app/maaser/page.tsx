@@ -60,24 +60,6 @@ export default function Dashboard() {
   const goalProgress = goalAmount > 0 ? Math.min((totalDonated / goalAmount) * 100, 100) : 0;
   const remaining = goalAmount > 0 ? Math.max(goalAmount - totalDonated, 0) : 0;
 
-  const beneficiarySummary = useMemo(() => {
-    const map = new Map<string, { count: number; total: number }>();
-    donations.forEach((d) => {
-      const key = d.beneficiary;
-      const entry = map.get(key) || { count: 0, total: 0 };
-      entry.count += 1;
-      entry.total += d.amount;
-      map.set(key, entry);
-    });
-    return Array.from(map.entries())
-      .map(([name, data]) => ({
-        name,
-        count: data.count,
-        total: data.total,
-        pct: totalDonated > 0 ? (data.total / totalDonated) * 100 : 0,
-      }))
-      .sort((a, b) => b.total - a.total);
-  }, [donations, totalDonated]);
 
   const handleSave = async (donation: Partial<Donation>) => {
     if (donation.id) {
@@ -293,49 +275,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Summary by Beneficiary */}
-      {beneficiarySummary.length > 0 && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="bg-navy text-white px-4 py-3">
-            <h3 className="font-bold">Por Beneficiario</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-navy/10">
-                  <th className="px-4 py-3 text-left text-navy font-bold">Beneficiario</th>
-                  <th className="px-4 py-3 text-center text-navy font-bold">Nº Donaciones</th>
-                  <th className="px-4 py-3 text-right text-navy font-bold">Total Donado</th>
-                  <th className="px-4 py-3 text-right text-navy font-bold">% del Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {beneficiarySummary.map((b, i) => (
-                  <tr
-                    key={b.name}
-                    className={`border-b border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-cream/50"}`}
-                  >
-                    <td className="px-4 py-3 font-medium">{b.name}</td>
-                    <td className="px-4 py-3 text-center">{b.count}</td>
-                    <td className="px-4 py-3 text-right font-medium">{formatCurrency(b.total)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 bg-gray-200 rounded-full h-2 overflow-hidden">
-                          <div
-                            className="bg-gold h-2 rounded-full"
-                            style={{ width: `${b.pct}%` }}
-                          />
-                        </div>
-                        <span className="w-14 text-right">{b.pct.toFixed(1)}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       <DonationModal
         isOpen={modalOpen}

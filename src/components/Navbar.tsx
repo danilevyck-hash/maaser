@@ -42,6 +42,16 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <Link
+                  href="/maaser/beneficiarios"
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    pathname === "/maaser/beneficiarios"
+                      ? "bg-gold text-navy"
+                      : "text-cream hover:bg-navy/80 hover:text-gold"
+                  }`}
+                >
+                  Beneficiarios
+                </Link>
+                <Link
                   href="/maaser/resumen"
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     pathname === "/maaser/resumen"
