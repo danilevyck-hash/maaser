@@ -1,6 +1,16 @@
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
+// Normalize beneficiary name: trim extra spaces, Title Case
+function normalizeName(name: string): string {
+  return name
+    .trim()
+    .replace(/\s+/g, " ") // collapse multiple spaces
+    .split(" ")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export async function GET(request: NextRequest) {
   const from = request.nextUrl.searchParams.get("from");
   const to = request.nextUrl.searchParams.get("to");
@@ -34,7 +44,7 @@ export async function POST(request: NextRequest) {
 
   const row: Record<string, unknown> = {
     date: body.date,
-    beneficiary: body.beneficiary,
+    beneficiary: normalizeName(body.beneficiary),
     amount: body.amount,
     check_number: body.check_number || null,
     status: body.status || "valido",
@@ -74,7 +84,7 @@ export async function PUT(request: NextRequest) {
 
   const updates: Record<string, unknown> = {};
   if (body.date !== undefined) updates.date = body.date;
-  if (body.beneficiary !== undefined) updates.beneficiary = body.beneficiary;
+  if (body.beneficiary !== undefined) updates.beneficiary = normalizeName(body.beneficiary);
   if (body.amount !== undefined) updates.amount = body.amount;
   if (body.check_number !== undefined) updates.check_number = body.check_number || null;
   if (body.status !== undefined) updates.status = body.status;
