@@ -7,8 +7,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const inMaaser = pathname.startsWith("/maaser");
   const inIndriver = pathname.startsWith("/indriver");
-  const inGastos = pathname.startsWith("/gastos");
-  const inSection = inMaaser || inIndriver || inGastos;
+  const inSection = inMaaser || inIndriver;
 
   return (
     <nav className="bg-navy border-b-4 border-gold">
@@ -78,14 +77,7 @@ export default function Navbar() {
                 </Link>
               </>
             )}
-            {inGastos && (
-              <Link
-                href="/gastos"
-                className="bg-gold text-navy px-3 py-1.5 rounded-lg text-xs font-medium"
-              >
-                MiFinanzas
-              </Link>
-            )}
+
           </div>
         )}
       </div>
