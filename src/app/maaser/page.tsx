@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [exportOpen, setExportOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
 
 
   const hebrewYear = useMemo(() => getCurrentHebrewYear(), []);
@@ -86,7 +87,6 @@ export default function Dashboard() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("¿Está seguro de eliminar esta donación?")) return;
     const res = await fetch("/api/donations", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -95,8 +95,8 @@ export default function Dashboard() {
     if (!res.ok) {
       const err = await res.json().catch(() => null);
       setErrorMsg(err?.error || "Error al eliminar la donación");
-      return;
     }
+    setConfirmingDeleteId(null);
     fetchDonations();
   };
 
@@ -114,7 +114,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-navy text-lg">Cargando...</div>
+        <div className="text-navy text-xl">Cargando...</div>
       </div>
     );
   }
@@ -122,53 +122,53 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {errorMsg && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center justify-between">
-          <span className="text-sm">{errorMsg}</span>
-          <button onClick={() => setErrorMsg("")} className="text-red-400 hover:text-red-600 font-bold ml-3">&times;</button>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-xl flex items-center justify-between">
+          <span className="text-base">{errorMsg}</span>
+          <button onClick={() => setErrorMsg("")} className="text-red-400 hover:text-red-600 font-bold ml-3 text-xl">&times;</button>
         </div>
       )}
 
       {/* Hebrew Year Header */}
       <div className="text-center">
-        <p className="text-gold font-medium text-sm tracking-wide">
+        <p className="text-gold font-semibold text-base tracking-wide">
           Año Hebreo {hebrewYear}
         </p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-gold">
-          <p className="text-sm text-gray-500 uppercase tracking-wide">Total Donado</p>
-          <p className="text-2xl font-bold text-navy mt-1">{formatCurrency(totalDonated)}</p>
+        <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-gold">
+          <p className="text-base text-gray-500 uppercase tracking-wide">Total Donado</p>
+          <p className="text-3xl font-bold text-navy mt-2">{formatCurrency(totalDonated)}</p>
         </div>
-        <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-navy">
-          <p className="text-sm text-gray-500 uppercase tracking-wide">Nº Donaciones</p>
-          <p className="text-2xl font-bold text-navy mt-1">{donationCount}</p>
+        <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-navy">
+          <p className="text-base text-gray-500 uppercase tracking-wide">Nº Donaciones</p>
+          <p className="text-3xl font-bold text-navy mt-2">{donationCount}</p>
         </div>
       </div>
 
       {/* Annual Goal */}
-      <div className="bg-white rounded-xl shadow-md p-5">
+      <div className="bg-white rounded-xl shadow-md p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-navy text-lg">Meta Anual {hebrewYear}</h3>
+          <h3 className="font-bold text-navy text-xl">Meta Anual {hebrewYear}</h3>
           {editingGoal ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">$</span>
+              <span className="text-base text-gray-500">$</span>
               <input
                 type="number"
                 value={goalInput}
                 onChange={(e) => setGoalInput(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-1.5 w-32 text-sm focus:ring-2 focus:ring-gold outline-none"
+                className="border border-gray-300 rounded-lg px-3 py-2 w-36 text-base focus:ring-2 focus:ring-gold outline-none"
               />
               <button
                 onClick={saveGoal}
-                className="bg-gold text-white text-sm px-3 py-1.5 rounded-lg hover:bg-yellow-600 transition-colors"
+                className="bg-gold text-white text-base px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors font-semibold"
               >
                 Guardar
               </button>
               <button
                 onClick={() => setEditingGoal(false)}
-                className="text-gray-500 text-sm px-2 py-1.5 hover:text-gray-700"
+                className="text-gray-500 text-base px-3 py-2 hover:text-gray-700"
               >
                 Cancelar
               </button>
@@ -176,7 +176,7 @@ export default function Dashboard() {
           ) : (
             <button
               onClick={() => setEditingGoal(true)}
-              className="text-gold hover:text-yellow-600 text-sm font-medium"
+              className="text-gold hover:text-yellow-600 text-base font-semibold"
             >
               {goalAmount > 0 ? `Meta: ${formatCurrency(goalAmount)} — Editar` : "Establecer meta"}
             </button>
@@ -184,13 +184,13 @@ export default function Dashboard() {
         </div>
         {goalAmount > 0 && (
           <>
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div className="w-full bg-gray-200 rounded-full h-5 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-gold to-yellow-500 h-4 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-gold to-yellow-500 h-5 rounded-full transition-all duration-500"
                 style={{ width: `${goalProgress}%` }}
               />
             </div>
-            <div className="flex justify-between text-sm mt-2 text-gray-600">
+            <div className="flex justify-between text-base mt-2 text-gray-600">
               <span>{goalProgress.toFixed(1)}% completado</span>
               <span>Falta: {formatCurrency(remaining)}</span>
             </div>
@@ -199,10 +199,10 @@ export default function Dashboard() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap justify-end gap-3">
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
         <button
           onClick={() => setExportOpen(true)}
-          className="bg-white border-2 border-navy text-navy hover:bg-navy hover:text-white font-bold px-5 py-3 rounded-xl shadow-md transition-colors flex items-center gap-2"
+          className="bg-white border-2 border-navy text-navy hover:bg-navy hover:text-white font-bold px-6 py-4 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 text-base"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -214,49 +214,52 @@ export default function Dashboard() {
             setEditing(null);
             setModalOpen(true);
           }}
-          className="bg-gold hover:bg-yellow-600 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-colors flex items-center gap-2"
+          className="bg-gold hover:bg-yellow-600 text-white font-bold px-6 py-4 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 text-lg"
         >
-          <span className="text-xl">+</span> Nueva Donación
+          <span className="text-2xl leading-none">+</span> Nueva Donación
         </button>
       </div>
 
       {/* Donations Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead>
               <tr className="bg-navy text-white">
-                <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3 text-left">Fecha</th>
-                <th className="px-4 py-3 text-center">Cheque</th>
-                <th className="px-4 py-3 text-left">Beneficiario</th>
-                <th className="px-4 py-3 text-right">Monto</th>
-                <th className="px-4 py-3 text-left">Notas</th>
-                <th className="px-4 py-3 text-center">Acciones</th>
+                <th className="px-4 py-4 text-left font-semibold">#</th>
+                <th className="px-4 py-4 text-left font-semibold">Fecha</th>
+                <th className="px-4 py-4 text-center font-semibold">Cheque</th>
+                <th className="px-4 py-4 text-left font-semibold">Beneficiario</th>
+                <th className="px-4 py-4 text-right font-semibold">Monto</th>
+                <th className="px-4 py-4 text-left font-semibold">Notas</th>
+                <th className="px-4 py-4 text-center font-semibold">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {donations.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                    No hay donaciones registradas.<br />
-                    <span className="text-sm">Haz clic en <strong className="text-gold">Nueva Donación</strong> para comenzar.</span>
+                  <td colSpan={7} className="px-4 py-16 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-gray-500 text-xl mb-2">No hay donaciones registradas</p>
+                    <p className="text-gray-400 text-base">Haz clic en <strong className="text-gold">+ Nueva Donación</strong> para comenzar.</p>
                   </td>
                 </tr>
               ) : null}
               {donations.map((d, i) => (
                 <tr
                   key={d.id}
-                  className={`border-b border-gray-100 ${
-                    i % 2 === 0 ? "bg-white" : "bg-cream/50"
+                  className={`border-b border-gray-200 ${
+                    i % 2 === 0 ? "bg-white" : "bg-cream"
                   }`}
                 >
-                  <td className="px-4 py-3 font-medium">{donations.length - i}</td>
-                  <td className="px-4 py-3">{formatDate(d.date)}</td>
-                  <td className="px-4 py-3 text-center font-mono text-xs">{d.check_number || <span className="text-gray-300">—</span>}</td>
-                  <td className="px-4 py-3">{d.beneficiary}</td>
-                  <td className="px-4 py-3 text-right font-medium">{formatCurrency(d.amount)}</td>
-                  <td className="px-4 py-3 max-w-[150px]">
+                  <td className="px-4 py-4 font-medium text-gray-500">{donations.length - i}</td>
+                  <td className="px-4 py-4">{formatDate(d.date)}</td>
+                  <td className="px-4 py-4 text-center font-mono">{d.check_number || <span className="text-gray-300">—</span>}</td>
+                  <td className="px-4 py-4 font-medium">{d.beneficiary}</td>
+                  <td className="px-4 py-4 text-right text-lg font-bold text-navy">{formatCurrency(d.amount)}</td>
+                  <td className="px-4 py-4 max-w-[200px]">
                     {d.notes ? (
                       <span
                         className="block truncate cursor-help"
@@ -268,30 +271,50 @@ export default function Dashboard() {
                       <span className="text-gray-300">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-center">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => {
-                          setEditing(d);
-                          setModalOpen(true);
-                        }}
-                        className="text-navy hover:text-gold transition-colors"
-                        title="Editar"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(d.id)}
-                        className="text-red-400 hover:text-red-600 transition-colors"
-                        title="Eliminar"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+                  <td className="px-4 py-4 text-center">
+                    {confirmingDeleteId === d.id ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-sm text-red-600 font-medium whitespace-nowrap">¿Eliminar esta donación?</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleDelete(d.id)}
+                            className="bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-1.5 rounded-lg text-sm transition-colors"
+                          >
+                            Sí
+                          </button>
+                          <button
+                            onClick={() => setConfirmingDeleteId(null)}
+                            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-4 py-1.5 rounded-lg text-sm transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditing(d);
+                            setModalOpen(true);
+                          }}
+                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1.5 border border-emerald-200"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => setConfirmingDeleteId(d.id)}
+                          className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-3 py-2 rounded-lg transition-colors text-sm flex items-center gap-1.5 border border-red-200"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
