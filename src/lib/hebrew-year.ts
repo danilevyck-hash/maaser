@@ -219,6 +219,29 @@ export function getAvailableHebrewYears(): number[] {
   return years;
 }
 
+export function getPreviousHebrewMonth(): { from: string; to: string; name: string; hebrewYear: number } {
+  const today = new Date().toISOString().split("T")[0];
+  const currentYear = getCurrentHebrewYear();
+  const yearData = getHebrewYearData(currentYear);
+
+  for (let i = 0; i < yearData.months.length; i++) {
+    const m = yearData.months[i];
+    if (today >= m.startDate && today <= m.endDate) {
+      if (i === 0) {
+        // Current month is Tishrei — previous month is Elul of prior year
+        const prevYearData = getHebrewYearData(currentYear - 1);
+        const elul = prevYearData.months[prevYearData.months.length - 1];
+        return { from: elul.startDate, to: elul.endDate, name: elul.name, hebrewYear: currentYear - 1 };
+      }
+      const prev = yearData.months[i - 1];
+      return { from: prev.startDate, to: prev.endDate, name: prev.name, hebrewYear: currentYear };
+    }
+  }
+  // Fallback: last month of the year
+  const last = yearData.months[yearData.months.length - 1];
+  return { from: last.startDate, to: last.endDate, name: last.name, hebrewYear: currentYear };
+}
+
 export function getCurrentHebrewMonthRange(): { from: string; to: string; name: string } {
   if (_currentMonth !== null) return _currentMonth;
   const today = new Date().toISOString().split("T")[0];
