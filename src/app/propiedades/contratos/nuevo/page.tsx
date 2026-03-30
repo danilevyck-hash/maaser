@@ -1,10 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { RentProperty, RentContract } from "@/lib/propiedades-types";
 
-export default function NuevoContrato() {
+export default function NuevoContratoPage() {
+  return (
+    <Suspense fallback={
+      <div className="fixed inset-0 z-[200] bg-gray-50 flex items-center justify-center" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+        <div className="text-gray-400 text-sm">Cargando...</div>
+      </div>
+    }>
+      <NuevoContrato />
+    </Suspense>
+  );
+}
+
+function NuevoContrato() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const renewId = searchParams.get("renew"); // contract id to renew
