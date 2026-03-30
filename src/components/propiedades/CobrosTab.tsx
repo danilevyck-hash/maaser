@@ -33,6 +33,7 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
   const [payingId, setPayingId] = useState<number | null>(null);
   const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const [y, m] = currentMonth.split("-");
   const monthNames = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -43,6 +44,17 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
     const order = { pagado: 0, pendiente: 1, mora: 2 };
     return (order[a.status] || 0) - (order[b.status] || 0);
   });
+
+  async function generateCharges() {
+    setGenerating(true);
+    await fetch("/api/propiedades/charges/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ month: currentMonth }),
+    });
+    setGenerating(false);
+    onRefresh();
+  }
 
   async function markPaid(id: number) {
     setSaving(true);
@@ -83,6 +95,13 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
     <div className="p-4">
       <div className="flex justify-between items-center mb-3.5">
         <div className="text-[13px] font-semibold text-gray-800">Cobros · {monthLabel}</div>
+        <button
+          onClick={generateCharges}
+          disabled={generating}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
+        >
+          {generating ? "Generando..." : "Generar cobros"}
+        </button>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -152,8 +171,11 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
       </div>
 
       {charges.length === 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-8 text-center text-sm text-gray-400">
-          No hay cobros para este mes
+        <div className="bg-white border border-gray-200 rounded-xl px-4 py-8 text-center">
+          <div className="text-sm text-gray-400 mb-3">No hay cobros para este mes</div>
+          <div className="text-xs text-gray-400 mb-4">
+            Primero agregá propiedades y contratos activos, luego tocá &quot;Generar cobros&quot;
+          </div>
         </div>
       )}
 
@@ -168,7 +190,7 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
                 type="date"
                 value={payDate}
                 onChange={(e) => setPayDate(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex gap-2 mt-5">

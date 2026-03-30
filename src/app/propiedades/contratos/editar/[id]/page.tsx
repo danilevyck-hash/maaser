@@ -125,7 +125,7 @@ export default function EditarContrato() {
                   setForm({ ...form, property_id: e.target.value, rent_amount: prop?.rent_amount?.toString() || form.rent_amount });
                 }}
                 disabled
-                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-100"
+                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-100"
               >
                 {properties.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
@@ -139,7 +139,7 @@ export default function EditarContrato() {
                 value={form.tenant_name}
                 onChange={(e) => setForm({ ...form, tenant_name: e.target.value })}
                 placeholder="Juan Pérez"
-                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -150,7 +150,7 @@ export default function EditarContrato() {
                   value={form.tenant_phone}
                   onChange={(e) => setForm({ ...form, tenant_phone: e.target.value })}
                   placeholder="6000-0000"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -160,7 +160,7 @@ export default function EditarContrato() {
                   value={form.tenant_email}
                   onChange={(e) => setForm({ ...form, tenant_email: e.target.value })}
                   placeholder="correo@email.com"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function EditarContrato() {
                   type="date"
                   value={form.start_date}
                   onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -180,7 +180,7 @@ export default function EditarContrato() {
                   type="date"
                   value={form.end_date}
                   onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function EditarContrato() {
                 placeholder="650"
                 min="0"
                 step="0.01"
-                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
