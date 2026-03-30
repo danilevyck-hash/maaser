@@ -8,9 +8,10 @@ type Props = {
   onClose: () => void;
   onSave: (donation: Partial<Donation>) => void;
   editingDonation: Donation | null;
+  saving?: boolean;
 };
 
-export default function DonationModal({ isOpen, onClose, onSave, editingDonation }: Props) {
+export default function DonationModal({ isOpen, onClose, onSave, editingDonation, saving }: Props) {
   const [date, setDate] = useState("");
   const [beneficiary, setBeneficiary] = useState("");
   const [amount, setAmount] = useState("");
@@ -120,9 +121,10 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 bg-gold hover:bg-yellow-600 text-white font-bold py-2.5 rounded-lg transition-colors"
+              disabled={saving}
+              className="flex-1 bg-gold hover:bg-yellow-600 text-white font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {editingDonation ? "Guardar Cambios" : "Agregar"}
+              {saving ? "Guardando..." : editingDonation ? "Guardar Cambios" : "Agregar"}
             </button>
             <button
               type="button"

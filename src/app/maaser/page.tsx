@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [goalInput, setGoalInput] = useState("");
   const [editingGoal, setEditingGoal] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
 
   const hebrewYear = useMemo(() => getCurrentHebrewYear(), []);
@@ -62,22 +63,28 @@ export default function Dashboard() {
 
 
   const handleSave = async (donation: Partial<Donation>) => {
-    if (donation.id) {
-      await fetch("/api/donations", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(donation),
-      });
-    } else {
-      await fetch("/api/donations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(donation),
-      });
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (donation.id) {
+        await fetch("/api/donations", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(donation),
+        });
+      } else {
+        await fetch("/api/donations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(donation),
+        });
+      }
+      setModalOpen(false);
+      setEditing(null);
+      fetchDonations();
+    } finally {
+      setSaving(false);
     }
-    setModalOpen(false);
-    setEditing(null);
-    fetchDonations();
   };
 
   const handleDelete = async (id: number) => {
@@ -284,6 +291,7 @@ export default function Dashboard() {
         }}
         onSave={handleSave}
         editingDonation={editing}
+        saving={saving}
       />
 
       <ExportModal
