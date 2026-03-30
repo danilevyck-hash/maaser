@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import type { RentProperty, RentContract, RentCharge } from "@/lib/propiedades-types";
 import DashboardTab from "@/components/propiedades/DashboardTab";
 import PropiedadesTab from "@/components/propiedades/PropiedadesTab";
@@ -8,14 +9,25 @@ import CobrosTab from "@/components/propiedades/CobrosTab";
 import ContratosTab from "@/components/propiedades/ContratosTab";
 
 type Tab = "dashboard" | "propiedades" | "cobros" | "contratos";
+const validTabs: Tab[] = ["dashboard", "propiedades", "cobros", "contratos"];
 
 function getCurrentMonth() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export default function PropiedadesPage() {
-  const [tab, setTab] = useState<Tab>("dashboard");
+export default function PropiedadesPageWrapper() {
+  return (
+    <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50"><div className="text-gray-400 text-sm">Cargando...</div></div>}>
+      <PropiedadesPage />
+    </Suspense>
+  );
+}
+
+function PropiedadesPage() {
+  const searchParams = useSearchParams();
+  const initialTab = validTabs.includes(searchParams.get("tab") as Tab) ? (searchParams.get("tab") as Tab) : "dashboard";
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [properties, setProperties] = useState<RentProperty[]>([]);
   const [contracts, setContracts] = useState<RentContract[]>([]);
   const [charges, setCharges] = useState<RentCharge[]>([]);

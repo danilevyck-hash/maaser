@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { RentCharge } from "@/lib/propiedades-types";
 
 function fmt(n: number) {
@@ -30,8 +31,7 @@ type Props = {
 };
 
 export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
-  const [payingId, setPayingId] = useState<number | null>(null);
-  const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
 
@@ -53,18 +53,6 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
       body: JSON.stringify({ month: currentMonth }),
     });
     setGenerating(false);
-    onRefresh();
-  }
-
-  async function markPaid(id: number) {
-    setSaving(true);
-    await fetch("/api/propiedades/charges", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status: "pagado", paid_date: payDate }),
-    });
-    setSaving(false);
-    setPayingId(null);
     onRefresh();
   }
 
@@ -151,7 +139,7 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
                 </div>
                 {ch.status !== "pagado" ? (
                   <button
-                    onClick={() => { setPayingId(ch.id); setPayDate(new Date().toISOString().split("T")[0]); }}
+                    onClick={() => router.push(`/propiedades/cobros/${ch.id}/pagar`)}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 text-white border-0 cursor-pointer active:scale-95 transition-transform"
                   >
                     Registrar pago
@@ -159,7 +147,8 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
                 ) : (
                   <button
                     onClick={() => markUnpaid(ch.id)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-500 cursor-pointer active:scale-95 transition-transform"
+                    disabled={saving}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-500 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
                   >
                     Desmarcar
                   </button>
@@ -175,39 +164,6 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
           <div className="text-sm text-gray-400 mb-3">No hay cobros para este mes</div>
           <div className="text-xs text-gray-400 mb-4">
             Primero agregá propiedades y contratos activos, luego tocá &quot;Generar cobros&quot;
-          </div>
-        </div>
-      )}
-
-      {/* Pay modal */}
-      {payingId && (
-        <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/40" onClick={() => setPayingId(null)}>
-          <div className="w-full max-w-[430px] bg-white rounded-t-2xl p-5" style={{ paddingBottom: "max(20px, env(safe-area-inset-bottom))" }} onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Registrar pago</h3>
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Fecha de pago</label>
-              <input
-                type="date"
-                value={payDate}
-                onChange={(e) => setPayDate(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex gap-2 mt-5">
-              <button
-                onClick={() => setPayingId(null)}
-                className="flex-1 py-2.5 rounded-lg text-sm font-semibold border border-gray-200 bg-white text-gray-800 cursor-pointer active:scale-[0.97] transition-transform"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => markPaid(payingId)}
-                disabled={saving}
-                className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-emerald-700 text-white border-0 cursor-pointer active:scale-[0.97] transition-transform disabled:opacity-50"
-              >
-                {saving ? "Guardando..." : "Confirmar pago"}
-              </button>
-            </div>
           </div>
         </div>
       )}
