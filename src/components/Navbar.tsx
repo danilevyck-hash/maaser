@@ -7,7 +7,11 @@ export default function Navbar() {
   const pathname = usePathname();
   const inMaaser = pathname.startsWith("/maaser");
   const inIndriver = pathname.startsWith("/indriver");
+  const inPropiedades = pathname.startsWith("/propiedades");
   const inSection = inMaaser || inIndriver;
+
+  // Propiedades has its own full-screen layout
+  if (inPropiedades) return null;
 
   return (
     <nav className="bg-navy border-b-4 border-gold">
