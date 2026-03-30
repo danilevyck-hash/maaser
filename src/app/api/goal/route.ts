@@ -21,31 +21,15 @@ export async function PUT(request: NextRequest) {
   const body = await request.json();
   const { year, goal_amount } = body;
 
-  const { data: existing } = await supabase
+  const { data, error } = await supabase
     .from("annual_goals")
-    .select("*")
-    .eq("year", year)
+    .upsert({ year, goal_amount }, { onConflict: "year" })
+    .select()
     .single();
 
-  let result;
-  if (existing) {
-    result = await supabase
-      .from("annual_goals")
-      .update({ goal_amount })
-      .eq("year", year)
-      .select()
-      .single();
-  } else {
-    result = await supabase
-      .from("annual_goals")
-      .insert([{ year, goal_amount }])
-      .select()
-      .single();
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  if (result.error) {
-    return NextResponse.json({ error: result.error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(result.data);
+  return NextResponse.json(data);
 }

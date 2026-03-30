@@ -42,6 +42,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
+  if (!body.amount || body.amount <= 0) {
+    return NextResponse.json({ error: "El monto debe ser mayor a cero" }, { status: 400 });
+  }
+
   const row: Record<string, unknown> = {
     date: body.date,
     beneficiary: normalizeName(body.beneficiary),
@@ -81,6 +85,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const body = await request.json();
   const { id } = body;
+
+  if (body.amount !== undefined && body.amount <= 0) {
+    return NextResponse.json({ error: "El monto debe ser mayor a cero" }, { status: 400 });
+  }
 
   const updates: Record<string, unknown> = {};
   if (body.date !== undefined) updates.date = body.date;

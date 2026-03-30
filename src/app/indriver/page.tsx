@@ -19,6 +19,8 @@ export default function InDriverPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const dateFrom = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
   const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
@@ -62,32 +64,40 @@ export default function InDriverPage() {
   }, [fetchAllExpenses]);
 
   const handleSave = async (expense: Partial<Expense>) => {
-    if (expense.id) {
-      await fetch("/api/expenses", {
-        method: "PUT",
+    if (saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/expenses", {
+        method: expense.id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(expense),
       });
-    } else {
-      await fetch("/api/expenses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(expense),
-      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        setErrorMsg(err?.error || "Error al guardar el gasto");
+        return;
+      }
+      setModalOpen(false);
+      setEditing(null);
+      fetchExpenses();
+      fetchAllExpenses();
+    } finally {
+      setSaving(false);
     }
-    setModalOpen(false);
-    setEditing(null);
-    fetchExpenses();
-    fetchAllExpenses();
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("¿Eliminar este gasto?")) return;
-    await fetch("/api/expenses", {
+    const res = await fetch("/api/expenses", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      setErrorMsg(err?.error || "Error al eliminar el gasto");
+      return;
+    }
     fetchExpenses();
     fetchAllExpenses();
   };
@@ -99,6 +109,12 @@ export default function InDriverPage() {
 
   return (
     <div className="space-y-6">
+      {errorMsg && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center justify-between">
+          <span className="text-sm">{errorMsg}</span>
+          <button onClick={() => setErrorMsg("")} className="text-red-400 hover:text-red-600 font-bold ml-3">&times;</button>
+        </div>
+      )}
       <div className="text-center">
         <h1 className="text-2xl font-bold text-navy">Gastos InDriver</h1>
       </div>
@@ -220,6 +236,7 @@ export default function InDriverPage() {
         onClose={() => { setModalOpen(false); setEditing(null); }}
         onSave={handleSave}
         editingExpense={editing}
+        saving={saving}
       />
 
       <ExpenseExportModal

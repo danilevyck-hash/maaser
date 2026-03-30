@@ -8,12 +8,14 @@ type Props = {
   onClose: () => void;
   onSave: (expense: Partial<Expense>) => void;
   editingExpense: Expense | null;
+  saving?: boolean;
 };
 
-export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense }: Props) {
+export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, saving }: Props) {
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
+  const [amountError, setAmountError] = useState("");
 
   useEffect(() => {
     if (editingExpense) {
@@ -31,9 +33,15 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = parseFloat(amount);
+    if (!parsed || parsed <= 0) {
+      setAmountError("El monto debe ser mayor a cero");
+      return;
+    }
+    setAmountError("");
     const expense: Partial<Expense> = {
       date,
-      amount: parseFloat(amount) || 0,
+      amount: parsed,
       notes: notes.trim() || undefined,
     };
     if (editingExpense) {
@@ -66,12 +74,14 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense }
             <input
               type="number"
               step="0.01"
+              min="0.01"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none"
+              onChange={(e) => { setAmount(e.target.value); setAmountError(""); }}
+              className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none ${amountError ? "border-red-400" : "border-gray-300"}`}
               placeholder="0.00"
               required
             />
+            {amountError && <p className="text-red-500 text-xs mt-1">{amountError}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-navy mb-1">Notas</label>
@@ -86,9 +96,10 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense }
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              className="flex-1 bg-gold hover:bg-yellow-600 text-white font-bold py-2.5 rounded-lg transition-colors"
+              disabled={saving}
+              className="flex-1 bg-gold hover:bg-yellow-600 text-white font-bold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {editingExpense ? "Guardar Cambios" : "Agregar"}
+              {saving ? "Guardando..." : editingExpense ? "Guardar Cambios" : "Agregar"}
             </button>
             <button
               type="button"

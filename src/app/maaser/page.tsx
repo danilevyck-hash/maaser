@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [editingGoal, setEditingGoal] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
 
   const hebrewYear = useMemo(() => getCurrentHebrewYear(), []);
@@ -66,18 +67,15 @@ export default function Dashboard() {
     if (saving) return;
     setSaving(true);
     try {
-      if (donation.id) {
-        await fetch("/api/donations", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(donation),
-        });
-      } else {
-        await fetch("/api/donations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(donation),
-        });
+      const res = await fetch("/api/donations", {
+        method: donation.id ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(donation),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        setErrorMsg(err?.error || "Error al guardar la donación");
+        return;
       }
       setModalOpen(false);
       setEditing(null);
@@ -89,11 +87,16 @@ export default function Dashboard() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("¿Está seguro de eliminar esta donación?")) return;
-    await fetch("/api/donations", {
+    const res = await fetch("/api/donations", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      setErrorMsg(err?.error || "Error al eliminar la donación");
+      return;
+    }
     fetchDonations();
   };
 
@@ -118,6 +121,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {errorMsg && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center justify-between">
+          <span className="text-sm">{errorMsg}</span>
+          <button onClick={() => setErrorMsg("")} className="text-red-400 hover:text-red-600 font-bold ml-3">&times;</button>
+        </div>
+      )}
+
       {/* Hebrew Year Header */}
       <div className="text-center">
         <p className="text-gold font-medium text-sm tracking-wide">
@@ -226,6 +236,14 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
+              {donations.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
+                    No hay donaciones registradas.<br />
+                    <span className="text-sm">Haz clic en <strong className="text-gold">Nueva Donación</strong> para comenzar.</span>
+                  </td>
+                </tr>
+              ) : null}
               {donations.map((d, i) => (
                 <tr
                   key={d.id}

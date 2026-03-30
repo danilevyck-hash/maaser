@@ -17,6 +17,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   const [amount, setAmount] = useState("");
   const [checkNumber, setCheckNumber] = useState("");
   const [notes, setNotes] = useState("");
+  const [amountError, setAmountError] = useState("");
 
   useEffect(() => {
     if (editingDonation) {
@@ -38,10 +39,16 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = parseFloat(amount);
+    if (!parsed || parsed <= 0) {
+      setAmountError("El monto debe ser mayor a cero");
+      return;
+    }
+    setAmountError("");
     const donation: Partial<Donation> = {
       date,
       beneficiary,
-      amount: parseFloat(amount) || 0,
+      amount: parsed,
       check_number: checkNumber.trim() || undefined,
       status: "valido",
       notes: notes.trim() || undefined,
@@ -101,12 +108,14 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
             <input
               type="number"
               step="0.01"
+              min="0.01"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none"
+              onChange={(e) => { setAmount(e.target.value); setAmountError(""); }}
+              className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none ${amountError ? "border-red-400" : "border-gray-300"}`}
               placeholder="0.00"
               required
             />
+            {amountError && <p className="text-red-500 text-xs mt-1">{amountError}</p>}
           </div>
           <div>
             <label className="block text-sm font-medium text-navy mb-1">Notas</label>
