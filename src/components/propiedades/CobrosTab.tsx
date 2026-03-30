@@ -160,7 +160,7 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
       {/* Pay modal */}
       {payingId && (
         <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/40" onClick={() => setPayingId(null)}>
-          <div className="w-full max-w-[430px] bg-white rounded-t-2xl p-5 pb-8" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-[430px] bg-white rounded-t-2xl p-5" style={{ paddingBottom: "max(20px, env(safe-area-inset-bottom))" }} onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-semibold text-gray-900 mb-4">Registrar pago</h3>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Fecha de pago</label>
