@@ -5,6 +5,7 @@ import { Expense } from "@/lib/supabase";
 import { formatCurrency, formatDate } from "@/lib/format";
 import ExpenseModal from "@/components/ExpenseModal";
 import ExpenseExportModal from "@/components/ExpenseExportModal";
+import { useToast } from "@/components/Toast";
 
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -21,6 +22,7 @@ export default function InDriverPage() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const { showToast } = useToast();
 
   const dateFrom = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
   const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate();
@@ -34,10 +36,11 @@ export default function InDriverPage() {
         if (Array.isArray(data)) setExpenses(data);
       }
     } catch {
-      // error
+      showToast("Error al cargar gastos", "error");
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo]);
 
   useEffect(() => {
@@ -74,11 +77,14 @@ export default function InDriverPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        setErrorMsg(err?.error || "Error al guardar el gasto");
+        const msg = err?.error || "Error al guardar el gasto";
+        setErrorMsg(msg);
+        showToast(msg, "error");
         return;
       }
       setModalOpen(false);
       setEditing(null);
+      showToast(expense.id ? "Gasto actualizado" : "Gasto guardado");
       fetchExpenses();
       fetchAllExpenses();
     } finally {
@@ -95,9 +101,10 @@ export default function InDriverPage() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => null);
-      setErrorMsg(err?.error || "Error al eliminar el gasto");
+      showToast(err?.error || "Error al eliminar el gasto", "error");
       return;
     }
+    showToast("Gasto eliminado");
     fetchExpenses();
     fetchAllExpenses();
   };

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import type { RentProperty, RentContract, RentCharge } from "@/lib/propiedades-types";
+import { useToast } from "@/components/Toast";
 import DashboardTab from "@/components/propiedades/DashboardTab";
 import PropiedadesTab from "@/components/propiedades/PropiedadesTab";
 import CobrosTab from "@/components/propiedades/CobrosTab";
@@ -26,6 +27,8 @@ export default function PropiedadesPageWrapper() {
 
 function PropiedadesPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { showToast } = useToast();
   const initialTab = validTabs.includes(searchParams.get("tab") as Tab) ? (searchParams.get("tab") as Tab) : "dashboard";
   const [tab, setTab] = useState<Tab>(initialTab);
   const [properties, setProperties] = useState<RentProperty[]>([]);
@@ -51,9 +54,10 @@ function PropiedadesPage() {
       setContracts(Array.isArray(cData) ? cData : []);
       setCharges(Array.isArray(chData) ? chData : []);
     } catch {
-      // silent
+      showToast("Error al cargar datos", "error");
     }
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMonth]);
 
   // Generate charges for current month on load
@@ -127,12 +131,24 @@ function PropiedadesPage() {
           <div className="text-xl font-semibold text-gray-900 tracking-tight">
             Rent<span className="text-blue-700">App</span>
           </div>
-          <a
-            href="/"
-            className="text-xs text-gray-400 hover:text-blue-700 transition-colors"
-          >
-            ← Inicio
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="/"
+              className="text-xs text-gray-400 hover:text-blue-700 transition-colors"
+            >
+              ← Inicio
+            </a>
+            <button
+              onClick={async () => {
+                await fetch("/api/auth/logout", { method: "POST" });
+                router.push("/login");
+                router.refresh();
+              }}
+              className="text-xs text-gray-400 hover:text-red-500 transition-colors bg-transparent border-0 cursor-pointer"
+            >
+              Salir
+            </button>
+          </div>
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { getCurrentHebrewYear, getHebrewYearData } from "@/lib/hebrew-year";
 import DonationModal from "@/components/DonationModal";
 import ExportModal from "@/components/ExportModal";
+import { useToast } from "@/components/Toast";
 
 export default function Dashboard() {
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
+  const { showToast } = useToast();
 
 
   const hebrewYear = useMemo(() => getCurrentHebrewYear(), []);
@@ -34,10 +36,11 @@ export default function Dashboard() {
         if (Array.isArray(data)) setDonations(data);
       }
     } catch {
-      // API error — show empty state
+      showToast("Error al cargar donaciones", "error");
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yearData.startDate, yearData.endDate]);
 
   const fetchGoal = useCallback(async () => {
@@ -75,11 +78,14 @@ export default function Dashboard() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        setErrorMsg(err?.error || "Error al guardar la donación");
+        const msg = err?.error || "Error al guardar la donacion";
+        setErrorMsg(msg);
+        showToast(msg, "error");
         return;
       }
       setModalOpen(false);
       setEditing(null);
+      showToast(donation.id ? "Donacion actualizada" : "Donacion guardada");
       fetchDonations();
     } finally {
       setSaving(false);
@@ -94,9 +100,12 @@ export default function Dashboard() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => null);
-      setErrorMsg(err?.error || "Error al eliminar la donación");
+      showToast(err?.error || "Error al eliminar la donacion", "error");
+      setConfirmingDeleteId(null);
+      return;
     }
     setConfirmingDeleteId(null);
+    showToast("Donacion eliminada");
     fetchDonations();
   };
 
@@ -109,6 +118,7 @@ export default function Dashboard() {
     });
     setGoalAmount(amount);
     setEditingGoal(false);
+    showToast("Meta guardada");
   };
 
   if (loading) {

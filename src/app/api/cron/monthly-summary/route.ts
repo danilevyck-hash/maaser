@@ -4,7 +4,9 @@ import { supabase } from "@/lib/supabase";
 import { getPreviousHebrewMonth, getCurrentHebrewYear, getHebrewYearData } from "@/lib/hebrew-year";
 import { formatCurrency } from "@/lib/format";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 const TZEDAKA_QUOTES = [
   "\"Más que Israel ha guardado el Shabat, el Shabat ha guardado a Israel.\" La tzedaká sostiene al mundo.",
@@ -99,7 +101,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Send via Resend
-    const { error: sendError } = await resend.emails.send({
+    const { error: sendError } = await getResend().emails.send({
       from: "Maaser <noreply@resend.dev>",
       to: email,
       subject: `Resumen de Maaser — ${prevMonth.name} ${hebrewYear}`,

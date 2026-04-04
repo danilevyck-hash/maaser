@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import type { RentProperty, RentContract } from "@/lib/propiedades-types";
+import { useToast } from "@/components/Toast";
 
 export default function EditarContrato() {
   const router = useRouter();
   const params = useParams();
   const id = Number(params.id);
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,7 +51,7 @@ export default function EditarContrato() {
   async function handleSave() {
     if (!form.property_id || !form.tenant_name.trim() || !form.rent_amount) return;
     setSaving(true);
-    await fetch("/api/propiedades/contracts", {
+    const res = await fetch("/api/propiedades/contracts", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -63,17 +65,29 @@ export default function EditarContrato() {
         rent_amount: Number(form.rent_amount),
       }),
     });
+    if (!res.ok) {
+      showToast("Error al guardar contrato", "error");
+      setSaving(false);
+      return;
+    }
+    showToast("Contrato actualizado");
     router.push("/propiedades");
   }
 
   async function handleDelete() {
     if (!confirm("¿Eliminar este contrato?")) return;
     setDeleting(true);
-    await fetch("/api/propiedades/contracts", {
+    const res = await fetch("/api/propiedades/contracts", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
+    if (!res.ok) {
+      showToast("Error al eliminar contrato", "error");
+      setDeleting(false);
+      return;
+    }
+    showToast("Contrato eliminado");
     router.push("/propiedades");
   }
 

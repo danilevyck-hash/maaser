@@ -1,17 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const inMaaser = pathname.startsWith("/maaser");
   const inIndriver = pathname.startsWith("/indriver");
   const inPropiedades = pathname.startsWith("/propiedades");
+  const inLogin = pathname.startsWith("/login");
   const inSection = inMaaser || inIndriver;
 
-  // Propiedades has its own full-screen layout
-  if (inPropiedades) return null;
+  // Propiedades has its own full-screen layout, login has no navbar
+  if (inPropiedades || inLogin) return null;
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <nav className="bg-navy border-b-4 border-gold">
@@ -21,14 +29,22 @@ export default function Navbar() {
           <Link href="/" className="text-gold font-bold text-lg tracking-wide">
             ✡ Mis Registros 🚗
           </Link>
-          {inSection && (
-            <Link
-              href="/"
-              className="text-cream/70 hover:text-gold text-xs font-medium transition-colors"
+          <div className="flex items-center gap-3">
+            {inSection && (
+              <Link
+                href="/"
+                className="text-cream/70 hover:text-gold text-xs font-medium transition-colors"
+              >
+                ← Inicio
+              </Link>
+            )}
+            <button
+              onClick={handleLogout}
+              className="text-cream/50 hover:text-red-400 text-xs font-medium transition-colors bg-transparent border-0 cursor-pointer"
             >
-              ← Inicio
-            </Link>
-          )}
+              Salir
+            </button>
+          </div>
         </div>
         {/* Nav links row (only when in a section) */}
         {inSection && (

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import type { RentProperty } from "@/lib/propiedades-types";
+import { useToast } from "@/components/Toast";
 
 const ICONS = ["🏠", "🏢", "🏪", "🏘️", "🏗️"];
 
@@ -10,6 +11,7 @@ export default function EditarPropiedad() {
   const router = useRouter();
   const params = useParams();
   const id = Number(params.id);
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,22 +45,34 @@ export default function EditarPropiedad() {
   async function handleSave() {
     if (!form.name.trim() || !form.rent_amount) return;
     setSaving(true);
-    await fetch("/api/propiedades/properties", {
+    const res = await fetch("/api/propiedades/properties", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, ...form, rent_amount: Number(form.rent_amount) }),
     });
+    if (!res.ok) {
+      showToast("Error al guardar cambios", "error");
+      setSaving(false);
+      return;
+    }
+    showToast("Propiedad actualizada");
     router.push("/propiedades");
   }
 
   async function handleDelete() {
     if (!confirm("¿Eliminar esta propiedad? Se borrarán sus cobros y contratos.")) return;
     setDeleting(true);
-    await fetch("/api/propiedades/properties", {
+    const res = await fetch("/api/propiedades/properties", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
+    if (!res.ok) {
+      showToast("Error al eliminar propiedad", "error");
+      setDeleting(false);
+      return;
+    }
+    showToast("Propiedad eliminada");
     router.push("/propiedades");
   }
 

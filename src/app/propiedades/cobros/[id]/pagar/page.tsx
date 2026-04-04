@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import type { RentCharge } from "@/lib/propiedades-types";
+import { useToast } from "@/components/Toast";
 
 function fmt(n: number) {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -13,6 +14,7 @@ export default function PagarCobro() {
   const params = useParams();
   const id = Number(params.id);
 
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [charge, setCharge] = useState<RentCharge | null>(null);
@@ -31,11 +33,17 @@ export default function PagarCobro() {
 
   async function handlePay() {
     setSaving(true);
-    await fetch("/api/propiedades/charges", {
+    const res = await fetch("/api/propiedades/charges", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, status: "pagado", paid_date: payDate }),
     });
+    if (!res.ok) {
+      showToast("Error al registrar pago", "error");
+      setSaving(false);
+      return;
+    }
+    showToast("Pago registrado");
     router.push("/propiedades?tab=cobros");
   }
 

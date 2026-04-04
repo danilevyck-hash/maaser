@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { RentProperty, RentContract } from "@/lib/propiedades-types";
+import { useToast } from "@/components/Toast";
 
 export default function NuevoContratoPage() {
   return (
@@ -19,6 +20,7 @@ export default function NuevoContratoPage() {
 function NuevoContrato() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const renewId = searchParams.get("renew"); // contract id to renew
 
   const [saving, setSaving] = useState(false);
@@ -95,7 +97,7 @@ function NuevoContrato() {
       });
     }
 
-    await fetch("/api/propiedades/contracts", {
+    const res = await fetch("/api/propiedades/contracts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -108,6 +110,12 @@ function NuevoContrato() {
         rent_amount: Number(form.rent_amount),
       }),
     });
+    if (!res.ok) {
+      showToast("Error al crear contrato", "error");
+      setSaving(false);
+      return;
+    }
+    showToast(renewContract ? "Contrato renovado" : "Contrato creado");
     router.push("/propiedades");
   }
 

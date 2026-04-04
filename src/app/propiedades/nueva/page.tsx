@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
 
 const ICONS = ["🏠", "🏢", "🏪", "🏘️", "🏗️"];
 
 export default function NuevaPropiedad() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -19,11 +21,17 @@ export default function NuevaPropiedad() {
   async function handleSave() {
     if (!form.name.trim() || !form.rent_amount) return;
     setSaving(true);
-    await fetch("/api/propiedades/properties", {
+    const res = await fetch("/api/propiedades/properties", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...form, rent_amount: Number(form.rent_amount) }),
     });
+    if (!res.ok) {
+      showToast("Error al guardar propiedad", "error");
+      setSaving(false);
+      return;
+    }
+    showToast("Propiedad creada");
     router.push("/propiedades");
   }
 

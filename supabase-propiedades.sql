@@ -37,11 +37,32 @@ CREATE TABLE rent_charges (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Enable RLS (allow all for anon since no auth)
+-- Enable RLS
 ALTER TABLE rent_properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rent_contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rent_charges ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow all on rent_properties" ON rent_properties FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on rent_contracts" ON rent_contracts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on rent_charges" ON rent_charges FOR ALL USING (true) WITH CHECK (true);
+-- Only service_role (server-side) can access data
+-- anon key has NO access — all queries go through Next.js API routes
+CREATE POLICY "Service role full access on rent_properties" ON rent_properties
+  FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Service role full access on rent_contracts" ON rent_contracts
+  FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+
+CREATE POLICY "Service role full access on rent_charges" ON rent_charges
+  FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+
+-- IMPORTANT: Also update policies for donations, annual_goals, and expenses tables:
+--
+-- DROP POLICY IF EXISTS "Allow all on donations" ON donations;
+-- CREATE POLICY "Service role full access on donations" ON donations
+--   FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+--
+-- DROP POLICY IF EXISTS "Allow all on annual_goals" ON annual_goals;
+-- CREATE POLICY "Service role full access on annual_goals" ON annual_goals
+--   FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
+--
+-- DROP POLICY IF EXISTS "Allow all on expenses" ON expenses;
+-- CREATE POLICY "Service role full access on expenses" ON expenses
+--   FOR ALL USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');

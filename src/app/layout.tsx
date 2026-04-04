@@ -2,15 +2,16 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { ToastProvider } from "@/components/Toast";
 
 export const metadata: Metadata = {
-  title: "Registro de Maaser",
-  description: "Seguimiento de donaciones de Maaser",
+  title: "Mis Registros",
+  description: "Gestión de donaciones y propiedades",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Maaser",
+    title: "Mis Registros",
   },
   icons: {
     icon: [
@@ -28,8 +29,6 @@ export const viewport: Viewport = {
   themeColor: "#1A3A5C",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({
@@ -40,11 +39,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="bg-cream min-h-screen">
-        <Navbar />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {children}
-        </main>
-        <ServiceWorkerRegistrar />
+        <ToastProvider>
+          <Navbar />
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {children}
+          </main>
+          <ServiceWorkerRegistrar />
+        </ToastProvider>
       </body>
     </html>
   );
