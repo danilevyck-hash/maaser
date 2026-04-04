@@ -224,7 +224,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
               <button
                 key={p.key}
                 onClick={() => setPreset(p.key)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors border-2 ${
+                className={`px-3 min-h-[44px] py-2.5 rounded-lg text-base font-medium transition-colors border-2 ${
                   preset === p.key
                     ? "border-gold bg-gold/10 text-navy"
                     : "border-gray-200 text-gray-600 hover:border-gray-300"
@@ -244,7 +244,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
                   type="date"
                   value={customFrom}
                   onChange={(e) => setCustomFrom(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:ring-2 focus:ring-gold focus:border-gold outline-none text-base"
                 />
               </div>
               <div>
@@ -253,7 +253,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
                   type="date"
                   value={customTo}
                   onChange={(e) => setCustomTo(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gold focus:border-gold outline-none text-sm"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:ring-2 focus:ring-gold focus:border-gold outline-none text-base"
                 />
               </div>
             </div>
@@ -261,8 +261,8 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
 
           {/* Range display + count */}
           <div className="bg-cream/50 rounded-lg p-3 text-center space-y-1">
-            <p className="text-xs text-gray-500">{rangeLabel}</p>
-            <p className="text-navy font-medium">
+            <p className="text-sm text-gray-500">{rangeLabel}</p>
+            <p className="text-base text-navy font-medium">
               {filtered.length} donación{filtered.length !== 1 ? "es" : ""} a exportar
             </p>
             <p className="text-sm text-gray-500">
@@ -275,20 +275,20 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
             <button
               onClick={handleExportExcel}
               disabled={filtered.length === 0 || exporting}
-              className="flex-1 bg-gold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+              className="flex-1 bg-gold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors text-base"
             >
               {exporting ? "..." : "Excel"}
             </button>
             <button
               onClick={handleExportPDF}
               disabled={filtered.length === 0 || exporting}
-              className="flex-1 bg-navy hover:bg-navy/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+              className="flex-1 bg-navy hover:bg-navy/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors text-base"
             >
               {exporting ? "..." : "PDF"}
             </button>
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 rounded-lg transition-colors text-sm"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-lg transition-colors text-base"
             >
               Cancelar
             </button>

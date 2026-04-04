@@ -82,11 +82,11 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-3.5">
-        <div className="text-[13px] font-semibold text-gray-800">Cobros · {monthLabel}</div>
+        <div className="text-base font-semibold text-gray-800">Cobros · {monthLabel}</div>
         <button
           onClick={generateCharges}
           disabled={generating}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
+          className="min-h-[44px] px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
         >
           {generating ? "Generando..." : "Generar cobros"}
         </button>
@@ -119,19 +119,19 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
           return (
             <div key={ch.id} className={`bg-white border ${borderColor} rounded-xl px-4 py-3.5`}>
               <div className="flex items-center gap-2.5 mb-2">
-                <div className={`w-[38px] h-[38px] rounded-full ${initialsColors[ch.status]} text-xs font-semibold flex items-center justify-center shrink-0`}>
+                <div className={`w-[44px] h-[44px] rounded-full ${initialsColors[ch.status]} text-sm font-semibold flex items-center justify-center shrink-0`}>
                   {initials}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">{ch.tenant_name}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{subText}</div>
+                  <div className="text-base font-medium">{ch.tenant_name}</div>
+                  <div className="text-sm text-gray-400 mt-0.5">{subText}</div>
                 </div>
-                <span className={`inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${badge.bg} shrink-0`}>
+                <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full ${badge.bg} shrink-0`}>
                   {badgeLabel}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <div className={`text-lg font-semibold tracking-tight ${
+                <div className={`text-xl font-semibold tracking-tight ${
                   ch.status === "pagado" ? "text-gray-900" :
                   ch.status === "pendiente" ? "text-red-700" : ""
                 }`} style={ch.status === "mora" ? { color: "#B45309" } : undefined}>
@@ -140,7 +140,7 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
                 {ch.status !== "pagado" ? (
                   <button
                     onClick={() => router.push(`/propiedades/cobros/${ch.id}/pagar`)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 text-white border-0 cursor-pointer active:scale-95 transition-transform"
+                    className="min-h-[44px] px-4 py-2.5 rounded-lg text-sm font-semibold bg-emerald-700 text-white border-0 cursor-pointer active:scale-95 transition-transform"
                   >
                     Registrar pago
                   </button>
@@ -148,7 +148,7 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
                   <button
                     onClick={() => markUnpaid(ch.id)}
                     disabled={saving}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white text-gray-500 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
+                    className="min-h-[44px] px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-500 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
                   >
                     Desmarcar
                   </button>

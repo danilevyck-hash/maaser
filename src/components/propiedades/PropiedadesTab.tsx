@@ -48,10 +48,10 @@ export default function PropiedadesTab({ properties, contracts, charges }: Props
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-3.5">
-        <div className="text-[13px] font-semibold text-gray-800">{properties.length} propiedades</div>
+        <div className="text-base font-semibold text-gray-800">{properties.length} propiedades</div>
         <button
           onClick={() => router.push("/propiedades/nueva")}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-95 transition-transform"
+          className="min-h-[44px] px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-95 transition-transform"
         >
           + Agregar
         </button>
@@ -63,7 +63,7 @@ export default function PropiedadesTab({ properties, contracts, charges }: Props
         return (
           <div
             key={p.id}
-            className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2 cursor-pointer active:bg-gray-50"
+            className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2 min-h-[60px] cursor-pointer active:bg-gray-50"
             onClick={() => router.push(`/propiedades/editar/${p.id}`)}
           >
             <div className="flex gap-3 items-center">
@@ -72,15 +72,15 @@ export default function PropiedadesTab({ properties, contracts, charges }: Props
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-gray-900 truncate">{p.name}</div>
-                  <span className={`inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${badgeColors[status.color]} shrink-0 ml-2`}>
+                  <div className="text-base font-medium text-gray-900 truncate">{p.name}</div>
+                  <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full ${badgeColors[status.color]} shrink-0 ml-2`}>
                     {status.label}
                   </span>
                 </div>
-                <div className="text-xs text-gray-400 mt-0.5">
+                <div className="text-sm text-gray-400 mt-0.5">
                   {p.location}{p.location && " · "}{p.type === "comercial" ? "Comercial" : "Residencial"} · {shortTenant}
                 </div>
-                <div className="text-[13px] font-semibold text-gray-800 mt-1">{fmt(Number(p.rent_amount))}/mes</div>
+                <div className="text-base font-semibold text-gray-800 mt-1">{fmt(Number(p.rent_amount))}/mes</div>
               </div>
             </div>
           </div>

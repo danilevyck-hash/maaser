@@ -73,7 +73,7 @@ export default function BeneficiariosPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-navy text-lg">Cargando...</div>
+        <div className="text-[#1A3A5C] text-lg">Cargando...</div>
       </div>
     );
   }
@@ -81,8 +81,8 @@ export default function BeneficiariosPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-navy">Por Beneficiario</h2>
-        <p className="text-gold text-sm font-medium mt-0.5">Año Hebreo {hebrewYear}</p>
+        <h2 className="text-2xl font-bold text-[#1A3A5C]">Por Beneficiario</h2>
+        <p className="text-[#C9A84C] text-sm font-medium mt-0.5">Año Hebreo {hebrewYear}</p>
       </div>
 
       {/* Search bar */}
@@ -106,12 +106,12 @@ export default function BeneficiariosPage() {
           placeholder="Buscar beneficiario..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-gold focus:border-gold outline-none bg-white shadow-sm"
+          className="w-full pl-10 pr-10 h-12 border border-gray-300 rounded-xl text-base focus:ring-2 focus:ring-[#C9A84C] focus:border-[#C9A84C] outline-none bg-white shadow-sm"
         />
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
           >
             ✕
           </button>
@@ -125,22 +125,22 @@ export default function BeneficiariosPage() {
 
       {/* Beneficiary cards */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-400">
+        <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-400 text-base">
           {search ? "No se encontraron beneficiarios" : "Sin donaciones aún"}
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((b) => (
             <div key={b.key} className="bg-white rounded-xl shadow-md overflow-hidden">
-              {/* Beneficiary header — tappable */}
+              {/* Beneficiary header — tappable, min 44px tall */}
               <button
                 onClick={() => toggleExpand(b.key)}
-                className="w-full px-4 py-4 flex items-center justify-between text-left hover:bg-cream/30 transition-colors"
+                className="w-full px-4 py-3 min-h-[56px] flex items-center justify-between text-left hover:bg-[#F5F0E8]/30 active:bg-[#F5F0E8]/50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-navy truncate">{b.name}</span>
-                    <span className="text-xs text-gray-400 shrink-0">
+                    <span className="font-bold text-[#1A3A5C] text-base truncate">{b.name}</span>
+                    <span className="text-sm text-gray-400 shrink-0">
                       {b.count} donación{b.count !== 1 ? "es" : ""}
                     </span>
                   </div>
@@ -148,17 +148,17 @@ export default function BeneficiariosPage() {
                   <div className="flex items-center gap-2 mt-1.5">
                     <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
                       <div
-                        className="bg-gold h-2 rounded-full transition-all duration-300"
+                        className="bg-[#C9A84C] h-2 rounded-full transition-all duration-300"
                         style={{ width: `${b.pct}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-500 shrink-0 w-12 text-right">
+                    <span className="text-sm text-gray-500 shrink-0 w-14 text-right">
                       {b.pct.toFixed(1)}%
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 ml-4">
-                  <span className="font-bold text-navy text-lg whitespace-nowrap">
+                  <span className="font-bold text-[#1A3A5C] text-lg whitespace-nowrap">
                     {formatCurrency(b.total)}
                   </span>
                   <svg
@@ -175,42 +175,38 @@ export default function BeneficiariosPage() {
                 </div>
               </button>
 
-              {/* Expanded donation history */}
+              {/* Expanded donation history — card list instead of table */}
               {expanded === b.key && (
-                <div className="border-t border-gray-100">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-navy/5">
-                        <th className="px-4 py-2 text-left text-xs text-navy font-semibold">Fecha</th>
-                        <th className="px-4 py-2 text-center text-xs text-navy font-semibold">Cheque</th>
-                        <th className="px-4 py-2 text-right text-xs text-navy font-semibold">Monto</th>
-                        <th className="px-4 py-2 text-left text-xs text-navy font-semibold">Notas</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {b.donations.map((d, i) => (
-                        <tr
-                          key={d.id}
-                          className={`border-b border-gray-50 ${i % 2 === 0 ? "bg-white" : "bg-cream/30"}`}
-                        >
-                          <td className="px-4 py-2.5">{formatDate(d.date)}</td>
-                          <td className="px-4 py-2.5 text-center font-mono text-xs">
-                            {d.check_number || <span className="text-gray-300">—</span>}
-                          </td>
-                          <td className="px-4 py-2.5 text-right font-medium">{formatCurrency(d.amount)}</td>
-                          <td className="px-4 py-2.5 max-w-[120px]">
-                            {d.notes ? (
-                              <span className="block truncate text-xs text-gray-500" title={d.notes}>
-                                {d.notes}
-                              </span>
-                            ) : (
-                              <span className="text-gray-300">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="border-t border-gray-100 px-4 py-3 space-y-2 bg-[#F5F0E8]/20">
+                  {b.donations.map((d, i) => (
+                    <div
+                      key={d.id}
+                      className={`rounded-lg px-4 py-3 ${
+                        i % 2 === 0 ? "bg-white" : "bg-[#F5F0E8]/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm text-[#1A3A5C]">
+                            {formatDate(d.date)}
+                          </span>
+                          {d.check_number && (
+                            <span className="text-sm text-gray-400">
+                              Cheque #{d.check_number}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-base font-bold text-[#1A3A5C]">
+                          {formatCurrency(d.amount)}
+                        </span>
+                      </div>
+                      {d.notes && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          {d.notes}
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

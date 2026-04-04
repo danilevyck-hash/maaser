@@ -65,7 +65,7 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
     <div className="p-4 pt-4">
       {/* Alert */}
       {unpaidCount > 0 && (
-        <div className="bg-amber-50 border border-yellow-300 rounded-lg px-3.5 py-3 text-[13px] text-amber-800 flex items-center gap-2 mb-4">
+        <div className="bg-amber-50 border border-yellow-300 rounded-lg px-3.5 py-3 text-sm text-amber-800 flex items-center gap-2 mb-4">
           <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
           {unpaidCount} inquilino{unpaidCount > 1 ? "s" : ""} con pago pendiente este mes
         </div>
@@ -74,27 +74,27 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-2.5 mb-5">
         <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-xs text-gray-400 mb-1.5 font-medium">Ingreso este mes</div>
+          <div className="text-sm text-gray-400 mb-1.5 font-medium">Ingreso este mes</div>
           <div className="text-2xl font-semibold text-emerald-700 tracking-tight">{fmt(totalCollected)}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-xs text-gray-400 mb-1.5 font-medium">Por cobrar</div>
+          <div className="text-sm text-gray-400 mb-1.5 font-medium">Por cobrar</div>
           <div className="text-2xl font-semibold tracking-tight" style={{ color: "#B45309" }}>{fmt(totalPending)}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-xs text-gray-400 mb-1.5 font-medium">Ocupación</div>
+          <div className="text-sm text-gray-400 mb-1.5 font-medium">Ocupación</div>
           <div className="text-2xl font-semibold text-gray-900 tracking-tight">{occupiedCount}/{totalProps}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-xs text-gray-400 mb-1.5 font-medium">Contratos vencen</div>
+          <div className="text-sm text-gray-400 mb-1.5 font-medium">Contratos vencen</div>
           <div className="text-2xl font-semibold text-red-700 tracking-tight">{expiringContracts.length}</div>
         </div>
       </div>
 
       {/* Monthly progress */}
-      <div className="text-[13px] font-semibold text-gray-800 mb-2.5">Cobros del mes</div>
+      <div className="text-base font-semibold text-gray-800 mb-2.5">Cobros del mes</div>
       <div className="bg-white border border-gray-200 rounded-xl p-3.5 mb-5">
-        <div className="text-xs text-gray-400 mb-1.5">
+        <div className="text-sm text-gray-400 mb-1.5">
           {fmt(totalCollected)} de {fmt(totalExpected)} cobrados · {monthLabel}
         </div>
         <div className="h-1.5 bg-gray-100 rounded-full my-2.5 overflow-hidden">
@@ -102,9 +102,9 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
         </div>
         <div className="flex flex-col gap-2.5">
           {paidCharges.map((ch) => (
-            <div key={ch.id} className="flex justify-between items-center text-[13px]">
+            <div key={ch.id} className="flex justify-between items-center text-sm">
               <span>{ch.tenant_name}</span>
-              <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
                 {fmt(Number(ch.amount))}
               </span>
             </div>
@@ -113,17 +113,17 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
             <div className="h-px bg-gray-100 my-0.5" />
           )}
           {pendingCharges.map((ch) => (
-            <div key={ch.id} className="flex justify-between items-center text-[13px]">
+            <div key={ch.id} className="flex justify-between items-center text-sm">
               <span>{ch.tenant_name}</span>
-              <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700">
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700">
                 {fmt(Number(ch.amount))} pendiente
               </span>
             </div>
           ))}
           {moraCharges.map((ch) => (
-            <div key={ch.id} className="flex justify-between items-center text-[13px]">
+            <div key={ch.id} className="flex justify-between items-center text-sm">
               <span>{ch.tenant_name}</span>
-              <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800">
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800">
                 {fmt(Number(ch.amount))} mora
               </span>
             </div>
@@ -132,7 +132,7 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
       </div>
 
       {/* Recent activity */}
-      <div className="text-[13px] font-semibold text-gray-800 mb-2.5">Actividad reciente</div>
+      <div className="text-base font-semibold text-gray-800 mb-2.5">Actividad reciente</div>
       {recentPaid.map((ch) => {
         const prop = ch.property;
         const d = ch.paid_date ? daysSince(ch.paid_date) : 0;
@@ -140,10 +140,10 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
         return (
           <div key={ch.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2">
             <div className="flex items-center justify-between">
-              <div className="text-sm font-medium text-gray-900">{ch.tenant_name} pagó {fmt(Number(ch.amount))}</div>
-              <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Pagado</span>
+              <div className="text-base font-medium text-gray-900">{ch.tenant_name} pagó {fmt(Number(ch.amount))}</div>
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Pagado</span>
             </div>
-            <div className="text-xs text-gray-400 mt-1">{prop?.name || ""} · {ago}</div>
+            <div className="text-sm text-gray-400 mt-1">{prop?.name || ""} · {ago}</div>
           </div>
         );
       })}
@@ -152,22 +152,22 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
         return (
           <div key={ct.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2">
             <div className="flex items-center justify-between">
-              <div className="text-sm font-medium text-gray-900">Contrato {ct.property?.name || ""}</div>
-              <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800">
+              <div className="text-base font-medium text-gray-900">Contrato {ct.property?.name || ""}</div>
+              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800">
                 Vence en {d}d
               </span>
             </div>
-            <div className="text-xs text-gray-400 mt-1">{ct.tenant_name} · requiere renovación</div>
+            <div className="text-sm text-gray-400 mt-1">{ct.tenant_name} · requiere renovación</div>
           </div>
         );
       })}
       {vacantProps.map((p) => (
         <div key={p.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-medium text-gray-900">{p.name} vacía</div>
-            <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700">Sin inquilino</span>
+            <div className="text-base font-medium text-gray-900">{p.name} vacía</div>
+            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700">Sin inquilino</span>
           </div>
-          <div className="text-xs text-gray-400 mt-1">Desocupada · {fmt(Number(p.rent_amount))}/mes</div>
+          <div className="text-sm text-gray-400 mt-1">Desocupada · {fmt(Number(p.rent_amount))}/mes</div>
         </div>
       ))}
       {recentPaid.length === 0 && expiringContracts.length === 0 && vacantProps.length === 0 && (

@@ -52,62 +52,87 @@ export default function InDriverResumen() {
 
   return (
     <div className="space-y-6">
+      {/* Header with year selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-navy">Resumen Mensual</h2>
-          <p className="text-gold text-sm font-medium mt-0.5">Gastos InDriver</p>
+          <h2 className="text-2xl font-bold text-[#1A3A5C]">Resumen Mensual</h2>
+          <p className="text-[#C9A84C] text-sm font-medium mt-0.5">
+            Gastos InDriver
+          </p>
         </div>
         <select
           value={year}
           onChange={(e) => setYear(parseInt(e.target.value))}
-          className="border border-gray-300 rounded-lg px-4 py-2 text-navy font-medium focus:ring-2 focus:ring-gold outline-none bg-white"
+          className="border border-gray-300 rounded-lg px-4 py-3 text-base text-[#1A3A5C] font-medium focus:ring-2 focus:ring-[#C9A84C] outline-none bg-white min-h-[44px]"
         >
           {years.map((y) => (
-            <option key={y} value={y}>{y}</option>
+            <option key={y} value={y}>
+              {y}
+            </option>
           ))}
         </select>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="text-navy text-lg">Cargando...</div>
+          <div className="text-[#1A3A5C] text-lg">Cargando...</div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-navy text-white">
-                  <th className="px-4 py-3 text-left">Mes</th>
-                  <th className="px-4 py-3 text-center">Nº Gastos</th>
-                  <th className="px-4 py-3 text-right">Total</th>
-                  <th className="px-4 py-3 text-right">% del Total Anual</th>
-                </tr>
-              </thead>
-              <tbody>
-                {monthlyData.map((m, i) => (
-                  <tr
-                    key={m.name}
-                    className={`border-b border-gray-100 ${
-                      i % 2 === 0 ? "bg-white" : "bg-cream/50"
-                    } ${m.total > 0 ? "" : "text-gray-400"}`}
-                  >
-                    <td className="px-4 py-3 font-medium">{m.name}</td>
-                    <td className="px-4 py-3 text-center">{m.count}</td>
-                    <td className="px-4 py-3 text-right font-medium">{formatCurrency(m.total)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {m.pct > 0 ? `${m.pct.toFixed(1)}%` : "-"}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="bg-navy text-white font-bold">
-                  <td className="px-4 py-3">Total Anual</td>
-                  <td className="px-4 py-3 text-center">{expenses.length}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(annualTotal)}</td>
-                  <td className="px-4 py-3 text-right">100%</td>
-                </tr>
-              </tbody>
-            </table>
+        <div className="space-y-3">
+          {/* Month cards */}
+          {monthlyData.map((m) => (
+            <div
+              key={m.name}
+              className={`bg-white rounded-xl shadow-sm border p-4 flex items-center justify-between min-h-[44px] ${
+                m.total > 0
+                  ? "border-gray-200"
+                  : "border-gray-100 opacity-50"
+              }`}
+            >
+              {/* Left: month name */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className={`text-base font-bold ${
+                    m.total > 0 ? "text-[#1A3A5C]" : "text-gray-400"
+                  }`}
+                >
+                  {m.name}
+                </p>
+              </div>
+
+              {/* Right: count + total */}
+              <div className="text-right ml-4 flex-shrink-0">
+                <p
+                  className={`text-lg font-bold ${
+                    m.total > 0 ? "text-[#1A3A5C]" : "text-gray-400"
+                  }`}
+                >
+                  {formatCurrency(m.total)}
+                </p>
+                <p className="text-sm text-gray-400">
+                  {m.count} {m.count === 1 ? "gasto" : "gastos"}
+                  {m.pct > 0 && (
+                    <span className="ml-1 text-[#C9A84C] font-medium">
+                      · {m.pct.toFixed(1)}%
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          ))}
+
+          {/* Annual total summary card */}
+          <div className="bg-[#1A3A5C] rounded-xl shadow-md p-5 flex items-center justify-between">
+            <div>
+              <p className="text-lg font-bold text-white">Total Anual</p>
+              <p className="text-sm text-[#C9A84C]">
+                {expenses.length}{" "}
+                {expenses.length === 1 ? "gasto" : "gastos"}
+              </p>
+            </div>
+            <p className="text-lg font-bold text-white">
+              {formatCurrency(annualTotal)}
+            </p>
           </div>
         </div>
       )}

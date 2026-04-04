@@ -47,11 +47,11 @@ export default function ContratosTab({ contracts, properties }: Props) {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-3.5">
-        <div className="text-[13px] font-semibold text-gray-800">{contracts.length} contratos activos</div>
+        <div className="text-base font-semibold text-gray-800">{contracts.length} contratos activos</div>
         <button
           onClick={() => router.push("/propiedades/contratos/nuevo")}
           disabled={!hasAvailableProps}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
+          className="min-h-[44px] px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-95 transition-transform disabled:opacity-50"
         >
           + Nuevo
         </button>
@@ -74,29 +74,29 @@ export default function ContratosTab({ contracts, properties }: Props) {
               className="flex gap-3 items-center cursor-pointer"
               onClick={() => router.push(`/propiedades/contratos/editar/${c.id}`)}
             >
-              <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-lg shrink-0">
+              <div className="w-11 h-11 rounded-lg bg-indigo-50 flex items-center justify-center text-lg shrink-0">
                 📄
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-gray-900">{c.tenant_name}</div>
+                  <div className="text-base font-medium text-gray-900">{c.tenant_name}</div>
                   {expiring ? (
-                    <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 shrink-0 ml-2">
+                    <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 shrink-0 ml-2">
                       Vence en {d} días
                     </span>
                   ) : (
-                    <span className="inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 shrink-0 ml-2">
+                    <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 shrink-0 ml-2">
                       Activo
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-gray-400 mt-0.5">{propName} · {propType}</div>
+                <div className="text-sm text-gray-400 mt-0.5">{propName} · {propType}</div>
                 {expiring ? (
-                  <div className="text-xs font-medium mt-1" style={{ color: "#92400E" }}>
+                  <div className="text-sm font-medium mt-1" style={{ color: "#92400E" }}>
                     Vence {formatDateShort(c.end_date)}{d <= 7 ? " · renovar urgente" : ""}
                   </div>
                 ) : (
-                  <div className="text-xs text-gray-400 mt-1">
+                  <div className="text-sm text-gray-400 mt-1">
                     Vence {formatDateShort(c.end_date)} · {monthsLeft} meses restantes
                   </div>
                 )}
@@ -107,7 +107,7 @@ export default function ContratosTab({ contracts, properties }: Props) {
                 <div className="h-px bg-gray-100 my-3" />
                 <button
                   onClick={() => router.push(`/propiedades/contratos/nuevo?renew=${c.id}`)}
-                  className="w-full py-2 rounded-lg text-xs font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-[0.97] transition-transform"
+                  className="w-full min-h-[44px] py-2.5 rounded-lg text-sm font-semibold bg-blue-700 text-white border-0 cursor-pointer active:scale-[0.97] transition-transform"
                 >
                   Renovar contrato
                 </button>
