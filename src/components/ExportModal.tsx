@@ -35,52 +35,30 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
   const { dateFrom, dateTo, rangeLabel } = useMemo(() => {
     switch (preset) {
       case "current_year":
-        return {
-          dateFrom: currentYearData.startDate,
-          dateTo: todayISO(),
-          rangeLabel: `${formatDate(currentYearData.startDate)} — Hoy`,
-        };
+        return { dateFrom: currentYearData.startDate, dateTo: todayISO(), rangeLabel: `${formatDate(currentYearData.startDate)} — Hoy` };
       case "prev_year":
-        return {
-          dateFrom: prevYearData.startDate,
-          dateTo: prevYearData.endDate,
-          rangeLabel: `${formatDate(prevYearData.startDate)} — ${formatDate(prevYearData.endDate)}`,
-        };
+        return { dateFrom: prevYearData.startDate, dateTo: prevYearData.endDate, rangeLabel: `${formatDate(prevYearData.startDate)} — ${formatDate(prevYearData.endDate)}` };
       case "current_month":
-        return {
-          dateFrom: currentMonth.from,
-          dateTo: currentMonth.to,
-          rangeLabel: `${currentMonth.name}: ${formatDate(currentMonth.from)} — ${formatDate(currentMonth.to)}`,
-        };
+        return { dateFrom: currentMonth.from, dateTo: currentMonth.to, rangeLabel: `${currentMonth.name}: ${formatDate(currentMonth.from)} — ${formatDate(currentMonth.to)}` };
       case "custom":
-        return {
-          dateFrom: customFrom,
-          dateTo: customTo,
-          rangeLabel: customFrom || customTo
-            ? `${customFrom ? formatDate(customFrom) : "Inicio"} — ${customTo ? formatDate(customTo) : "Fin"}`
-            : "Seleccione fechas",
-        };
+        return { dateFrom: customFrom, dateTo: customTo, rangeLabel: customFrom || customTo ? `${customFrom ? formatDate(customFrom) : "Inicio"} — ${customTo ? formatDate(customTo) : "Fin"}` : "Seleccione fechas" };
     }
   }, [preset, customFrom, customTo, currentYearData, prevYearData, currentMonth]);
 
-  const filtered = useMemo(() => {
-    return donations.filter((d) => {
-      if (dateFrom && d.date < dateFrom) return false;
-      if (dateTo && d.date > dateTo) return false;
-      return true;
-    });
-  }, [donations, dateFrom, dateTo]);
+  const filtered = useMemo(() => donations.filter((d) => {
+    if (dateFrom && d.date < dateFrom) return false;
+    if (dateTo && d.date > dateTo) return false;
+    return true;
+  }), [donations, dateFrom, dateTo]);
 
-  const totalAmount = useMemo(() => {
-    return filtered.reduce((s, d) => s + d.amount, 0);
-  }, [filtered]);
+  const totalAmount = useMemo(() => filtered.reduce((s, d) => s + d.amount, 0), [filtered]);
 
   if (!isOpen) return null;
 
   const presets: { key: FilterPreset; label: string }[] = [
-    { key: "current_year", label: `Este año (${hebrewYear})` },
-    { key: "prev_year", label: `Año anterior (${hebrewYear - 1})` },
-    { key: "current_month", label: `Este mes (${currentMonth.name})` },
+    { key: "current_year", label: `Este ano (${hebrewYear})` },
+    { key: "prev_year", label: `Anterior (${hebrewYear - 1})` },
+    { key: "current_month", label: `Este mes` },
     { key: "custom", label: "Personalizado" },
   ];
 
@@ -90,7 +68,6 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       const ExcelJS = (await import("exceljs")).default;
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet("Donaciones");
-
       sheet.columns = [
         { header: "#", key: "num", width: 6 },
         { header: "Fecha", key: "date", width: 16 },
@@ -99,33 +76,16 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
         { header: "Monto", key: "amount", width: 14 },
         { header: "Notas", key: "notes", width: 30 },
       ];
-
       const headerRow = sheet.getRow(1);
       headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
-      headerRow.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FF1A3A5C" },
-      };
+      headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF007AFF" } };
       headerRow.alignment = { horizontal: "center" };
-
       filtered.forEach((d, i) => {
-        sheet.addRow({
-          num: i + 1,
-          date: formatDateExport(d.date),
-          check: d.check_number || "",
-          beneficiary: d.beneficiary,
-          amount: d.amount,
-          notes: d.notes || "",
-        });
+        sheet.addRow({ num: i + 1, date: formatDateExport(d.date), check: d.check_number || "", beneficiary: d.beneficiary, amount: d.amount, notes: d.notes || "" });
       });
-
       sheet.getColumn("amount").numFmt = "$#,##0.00";
-
       const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -133,9 +93,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       a.click();
       URL.revokeObjectURL(url);
       onClose();
-    } finally {
-      setExporting(false);
-    }
+    } finally { setExporting(false); }
   };
 
   const handleExportPDF = async () => {
@@ -143,154 +101,80 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
     try {
       const { default: jsPDF } = await import("jspdf");
       const { default: autoTable } = await import("jspdf-autotable");
-
       const doc = new jsPDF();
-
       doc.setFontSize(18);
-      doc.setTextColor(26, 58, 92);
+      doc.setTextColor(0, 122, 255);
       doc.text("Registro de Maaser", 105, 20, { align: "center" });
-
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
       doc.text(rangeLabel, 105, 28, { align: "center" });
-
       doc.setFontSize(12);
-      doc.setTextColor(201, 168, 76);
+      doc.setTextColor(0, 122, 255);
       doc.text(`Total: ${formatCurrency(totalAmount)}`, 105, 36, { align: "center" });
-
-      const tableData = filtered.map((d, i) => [
-        i + 1,
-        formatDateExport(d.date),
-        d.check_number || "",
-        d.beneficiary,
-        formatCurrency(d.amount),
-        d.notes || "",
-      ]);
-
+      const tableData = filtered.map((d, i) => [i + 1, formatDateExport(d.date), d.check_number || "", d.beneficiary, formatCurrency(d.amount), d.notes || ""]);
       autoTable(doc, {
         startY: 42,
         head: [["#", "Fecha", "Cheque", "Beneficiario", "Monto", "Notas"]],
         body: tableData,
-        headStyles: {
-          fillColor: [26, 58, 92],
-          textColor: [255, 255, 255],
-          fontStyle: "bold",
-          halign: "center",
-        },
-        columnStyles: {
-          0: { halign: "center", cellWidth: 10 },
-          1: { halign: "center", cellWidth: 24 },
-          2: { halign: "center", cellWidth: 16 },
-          3: { cellWidth: 42 },
-          4: { halign: "right", cellWidth: 26 },
-          5: { cellWidth: 48 },
-        },
-        alternateRowStyles: { fillColor: [245, 240, 232] },
+        headStyles: { fillColor: [0, 122, 255], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+        columnStyles: { 0: { halign: "center", cellWidth: 10 }, 1: { halign: "center", cellWidth: 24 }, 2: { halign: "center", cellWidth: 16 }, 3: { cellWidth: 42 }, 4: { halign: "right", cellWidth: 26 }, 5: { cellWidth: 48 } },
+        alternateRowStyles: { fillColor: [242, 242, 247] },
         styles: { fontSize: 8, cellPadding: 3 },
         didDrawPage: (data) => {
-          if (data.pageNumber === 1) {
-            doc.setDrawColor(201, 168, 76);
-            doc.setLineWidth(0.5);
-            doc.line(14, 39, 196, 39);
-          }
+          if (data.pageNumber === 1) { doc.setDrawColor(0, 122, 255); doc.setLineWidth(0.5); doc.line(14, 39, 196, 39); }
           doc.setFontSize(8);
           doc.setTextColor(150, 150, 150);
-          doc.text(
-            `Página ${data.pageNumber}`,
-            105,
-            doc.internal.pageSize.height - 10,
-            { align: "center" }
-          );
+          doc.text(`Pagina ${data.pageNumber}`, 105, doc.internal.pageSize.height - 10, { align: "center" });
         },
       });
-
       doc.save(`donaciones_${dateFrom || "inicio"}_${dateTo || "fin"}.pdf`);
       onClose();
-    } finally {
-      setExporting(false);
-    }
+    } finally { setExporting(false); }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-        <div className="bg-navy text-white p-4 rounded-t-xl">
-          <h2 className="text-lg font-bold">Exportar Donaciones</h2>
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 animate-fade-in" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl shadow-sm w-full max-w-[430px] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#C6C6C8]">
+          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer">Cancelar</button>
+          <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Exportar</h2>
+          <div className="w-16" />
         </div>
-        <div className="p-6 space-y-4">
-          {/* Preset buttons */}
+        <div className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-2">
             {presets.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPreset(p.key)}
-                className={`px-3 min-h-[44px] py-2.5 rounded-lg text-base font-medium transition-colors border-2 ${
-                  preset === p.key
-                    ? "border-gold bg-gold/10 text-navy"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
+              <button key={p.key} onClick={() => setPreset(p.key)}
+                className={`px-3 min-h-[44px] py-2.5 rounded-xl text-[15px] font-medium transition-colors border ${
+                  preset === p.key ? "border-[#007AFF] bg-[#007AFF]/10 text-[#007AFF]" : "border-[#C6C6C8] text-[#8E8E93]"
                 }`}
-              >
-                {p.label}
-              </button>
+              >{p.label}</button>
             ))}
           </div>
-
-          {/* Custom date pickers */}
           {preset === "custom" && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-navy mb-1">Desde</label>
-                <input
-                  type="date"
-                  value={customFrom}
-                  onChange={(e) => setCustomFrom(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:ring-2 focus:ring-gold focus:border-gold outline-none text-base"
-                />
+                <label className="block text-[13px] font-medium text-[#8E8E93] mb-1">Desde</label>
+                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[15px]" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy mb-1">Hasta</label>
-                <input
-                  type="date"
-                  value={customTo}
-                  onChange={(e) => setCustomTo(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:ring-2 focus:ring-gold focus:border-gold outline-none text-base"
-                />
+                <label className="block text-[13px] font-medium text-[#8E8E93] mb-1">Hasta</label>
+                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[15px]" />
               </div>
             </div>
           )}
-
-          {/* Range display + count */}
-          <div className="bg-cream/50 rounded-lg p-3 text-center space-y-1">
-            <p className="text-sm text-gray-500">{rangeLabel}</p>
-            <p className="text-base text-navy font-medium">
-              {filtered.length} donación{filtered.length !== 1 ? "es" : ""} a exportar
-            </p>
-            <p className="text-sm text-gray-500">
-              Total: {formatCurrency(totalAmount)}
-            </p>
+          <div className="bg-[#F2F2F7] rounded-xl p-3 text-center space-y-1">
+            <p className="text-[13px] text-[#8E8E93]">{rangeLabel}</p>
+            <p className="text-[15px] text-[#1C1C1E] font-medium">{filtered.length} donacion{filtered.length !== 1 ? "es" : ""}</p>
+            <p className="text-[13px] text-[#8E8E93]">Total: {formatCurrency(totalAmount)}</p>
           </div>
-
-          {/* Export buttons */}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={handleExportExcel}
-              disabled={filtered.length === 0 || exporting}
-              className="flex-1 bg-gold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors text-base"
-            >
+          <div className="flex gap-3">
+            <button onClick={handleExportExcel} disabled={filtered.length === 0 || exporting}
+              className="flex-1 h-12 rounded-xl bg-[#34C759] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
               {exporting ? "..." : "Excel"}
             </button>
-            <button
-              onClick={handleExportPDF}
-              disabled={filtered.length === 0 || exporting}
-              className="flex-1 bg-navy hover:bg-navy/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-colors text-base"
-            >
+            <button onClick={handleExportPDF} disabled={filtered.length === 0 || exporting}
+              className="flex-1 h-12 rounded-xl bg-[#007AFF] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
               {exporting ? "..." : "PDF"}
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-lg transition-colors text-base"
-            >
-              Cancelar
             </button>
           </div>
         </div>

@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none max-w-[400px] w-full px-4">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onDone={() => removeToast(toast.id)} />
         ))}
@@ -60,8 +60,8 @@ function ToastItem({ toast, onDone }: { toast: Toast; onDone: () => void }) {
   }, [onDone]);
 
   const bgColor = toast.type === "success"
-    ? "bg-emerald-600"
-    : "bg-red-600";
+    ? "bg-[#34C759]"
+    : "bg-[#FF3B30]";
 
   const icon = toast.type === "success"
     ? (
@@ -77,7 +77,7 @@ function ToastItem({ toast, onDone }: { toast: Toast; onDone: () => void }) {
 
   return (
     <div
-      className={`${bgColor} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium transition-all duration-300 pointer-events-auto ${
+      className={`${bgColor} text-white px-5 py-3 rounded-2xl shadow-sm flex items-center gap-2 text-[15px] font-medium transition-all duration-300 pointer-events-auto ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
     >

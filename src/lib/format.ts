@@ -16,6 +16,11 @@ export function toISODate(ddmmyyyy: string): string {
   return `${year}-${month}-${day}`;
 }
 
+export const MONTH_NAMES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
 const MONTH_ABBR_ES = [
   "ene", "feb", "mar", "abr", "may", "jun",
   "jul", "ago", "sep", "oct", "nov", "dic",

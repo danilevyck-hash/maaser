@@ -5,6 +5,7 @@ import { Expense } from "@/lib/supabase";
 import { formatCurrency, formatDate } from "@/lib/format";
 import ExpenseModal from "@/components/ExpenseModal";
 import ExpenseExportModal from "@/components/ExpenseExportModal";
+import ModuleLayout from "@/components/ModuleLayout";
 import { useToast } from "@/components/Toast";
 
 const MONTHS = [
@@ -12,7 +13,35 @@ const MONTHS = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
+type Tab = "gastos" | "resumen";
+
+const tabItems = [
+  {
+    id: "gastos",
+    label: "Gastos",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="16" />
+        <line x1="8" y1="12" x2="16" y2="12" />
+      </svg>
+    ),
+  },
+  {
+    id: "resumen",
+    label: "Resumen",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+  },
+];
+
 export default function InDriverPage() {
+  const [tab, setTab] = useState<Tab>("gastos");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -21,7 +50,6 @@ export default function InDriverPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [saving, setSaving] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
   const { showToast } = useToast();
@@ -52,7 +80,6 @@ export default function InDriverPage() {
 
   const totalMonth = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  // For export, fetch ALL expenses (no date filter)
   const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
   const fetchAllExpenses = useCallback(async () => {
     try {
@@ -64,9 +91,7 @@ export default function InDriverPage() {
     } catch { /* */ }
   }, []);
 
-  useEffect(() => {
-    fetchAllExpenses();
-  }, [fetchAllExpenses]);
+  useEffect(() => { fetchAllExpenses(); }, [fetchAllExpenses]);
 
   const handleSave = async (expense: Partial<Expense>) => {
     if (saving) return;
@@ -79,9 +104,7 @@ export default function InDriverPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        const msg = err?.error || "Error al guardar el gasto";
-        setErrorMsg(msg);
-        showToast(msg, "error");
+        showToast(err?.error || "Error al guardar", "error");
         return;
       }
       setModalOpen(false);
@@ -102,7 +125,7 @@ export default function InDriverPage() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => null);
-      showToast(err?.error || "Error al eliminar el gasto", "error");
+      showToast(err?.error || "Error al eliminar", "error");
       setConfirmingDeleteId(null);
       return;
     }
@@ -124,166 +147,125 @@ export default function InDriverPage() {
   }, [expenses, searchQuery]);
 
   return (
-    <div className="space-y-5">
-      {/* Error banner */}
-      {errorMsg && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center justify-between">
-          <span className="text-sm">{errorMsg}</span>
-          <button onClick={() => setErrorMsg("")} className="text-red-400 hover:text-red-600 font-bold ml-3">&times;</button>
+    <ModuleLayout
+      title="InDriver"
+      tabs={tabItems}
+      activeTab={tab}
+      onTabChange={(id) => setTab(id as Tab)}
+    >
+      {tab === "gastos" && (
+        <div className="p-4 space-y-4">
+          {/* Month/Year selector */}
+          <div className="flex items-center justify-center gap-3">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="border border-[#C6C6C8] rounded-lg px-3 py-2.5 h-11 text-[15px] text-[#1C1C1E] font-medium focus:ring-2 focus:ring-[#007AFF] outline-none bg-white"
+            >
+              {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="border border-[#C6C6C8] rounded-lg px-3 py-2.5 h-11 text-[15px] text-[#1C1C1E] font-medium focus:ring-2 focus:ring-[#007AFF] outline-none bg-white"
+            >
+              {years.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+
+          {/* KPI */}
+          <div className="bg-white rounded-2xl shadow-sm p-4 text-center">
+            <p className="text-[13px] text-[#8E8E93] font-medium">Total {MONTHS[selectedMonth]}</p>
+            <p className="text-[22px] font-bold text-[#1C1C1E] mt-1">{formatCurrency(totalMonth)}</p>
+            <p className="text-[13px] text-[#8E8E93] mt-0.5">{expenses.length} gasto{expenses.length !== 1 ? "s" : ""}</p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setExportOpen(true)}
+              className="flex-1 h-11 rounded-xl border border-[#007AFF] text-[#007AFF] font-semibold text-[15px] bg-transparent cursor-pointer active:bg-[#007AFF]/10 transition-colors"
+            >
+              Exportar
+            </button>
+            <button
+              onClick={() => { setEditing(null); setModalOpen(true); }}
+              className="flex-1 h-11 rounded-xl bg-[#007AFF] text-white font-semibold text-[15px] border-0 cursor-pointer active:bg-[#0056b3] transition-colors"
+            >
+              + Nuevo Gasto
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8E8E93] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar por nota..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-11 pl-10 pr-4 border border-[#C6C6C8] rounded-xl text-[15px] text-[#1C1C1E] focus:ring-2 focus:ring-[#007AFF] outline-none bg-white"
+            />
+          </div>
+
+          {/* Expense cards */}
+          <div className="space-y-2">
+            {loading ? (
+              <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-[#8E8E93] text-[15px]">Cargando...</div>
+            ) : filteredExpenses.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-[#8E8E93] text-[15px]">
+                {searchQuery.trim() ? "Sin resultados" : "Sin gastos este mes"}
+              </div>
+            ) : (
+              filteredExpenses.map((e) => (
+                <div key={e.id} className="bg-white rounded-2xl shadow-sm p-4">
+                  {confirmingDeleteId === e.id ? (
+                    <div className="flex flex-col items-center gap-3 py-2">
+                      <span className="text-[15px] text-[#FF3B30] font-medium">Eliminar este gasto?</span>
+                      <div className="flex gap-3 w-full">
+                        <button onClick={() => handleDelete(e.id)} className="flex-1 h-11 rounded-lg bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer">Si</button>
+                        <button onClick={() => setConfirmingDeleteId(null)} className="flex-1 h-11 rounded-lg bg-[#E5E5EA] text-[#1C1C1E] font-semibold text-[15px] border-0 cursor-pointer">No</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] text-[#8E8E93]">{formatDate(e.date)}</p>
+                        {e.notes && <p className="text-[15px] text-[#1C1C1E] mt-1 break-words">{e.notes}</p>}
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <p className="text-[17px] font-bold text-[#1C1C1E]">{formatCurrency(e.amount)}</p>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => { setEditing(e); setModalOpen(true); }}
+                            className="h-11 w-11 flex items-center justify-center rounded-lg text-[#007AFF] active:bg-[#007AFF]/10 transition-colors bg-transparent border-0 cursor-pointer"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setConfirmingDeleteId(e.id)}
+                            className="h-11 w-11 flex items-center justify-center rounded-lg text-[#FF3B30] active:bg-[#FF3B30]/10 transition-colors bg-transparent border-0 cursor-pointer"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-navy">Gastos InDriver</h1>
-      </div>
-
-      {/* Month/Year selector */}
-      <div className="flex items-center justify-center gap-3">
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-          className="border border-gray-300 rounded-lg px-4 py-2 h-11 text-base text-navy font-medium focus:ring-2 focus:ring-gold outline-none bg-white"
-        >
-          {MONTHS.map((m, i) => (
-            <option key={i} value={i}>{m}</option>
-          ))}
-        </select>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-          className="border border-gray-300 rounded-lg px-4 py-2 h-11 text-base text-navy font-medium focus:ring-2 focus:ring-gold outline-none bg-white"
-        >
-          {years.map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* KPI */}
-      <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-gold text-center">
-        <p className="text-base text-gray-500 uppercase tracking-wide">Total {MONTHS[selectedMonth]}</p>
-        <p className="text-2xl font-bold text-navy mt-1">{formatCurrency(totalMonth)}</p>
-        <p className="text-sm text-gray-400 mt-1">{expenses.length} gasto{expenses.length !== 1 ? "s" : ""}</p>
-      </div>
-
-      {/* Action buttons */}
-      <div className="flex flex-wrap justify-end gap-3">
-        <button
-          onClick={() => setExportOpen(true)}
-          className="bg-white border-2 border-navy text-navy hover:bg-navy hover:text-white font-bold px-5 h-11 rounded-xl shadow-md transition-colors flex items-center gap-2 text-base"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Exportar
-        </button>
-        <button
-          onClick={() => { setEditing(null); setModalOpen(true); }}
-          className="bg-gold hover:bg-yellow-600 text-white font-bold px-6 h-11 rounded-xl shadow-md transition-colors flex items-center gap-2 text-base"
-        >
-          <span className="text-xl leading-none">+</span> Nuevo Gasto
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          type="text"
-          placeholder="Buscar por nota..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-xl text-base text-navy focus:ring-2 focus:ring-gold outline-none bg-white"
-        />
-      </div>
-
-      {/* Expense cards */}
-      <div className="space-y-3">
-        {loading ? (
-          <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-400 text-base">
-            Cargando...
-          </div>
-        ) : filteredExpenses.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-400 text-base">
-            {searchQuery.trim() ? "Sin resultados" : "Sin gastos este mes"}
-          </div>
-        ) : (
-          filteredExpenses.map((e) => (
-            <div
-              key={e.id}
-              className="bg-white rounded-xl shadow-md p-4 border-l-4 border-cream"
-            >
-              {confirmingDeleteId === e.id ? (
-                /* Inline delete confirmation */
-                <div className="flex flex-col items-center gap-3 py-2">
-                  <span className="text-base text-red-600 font-medium">
-                    ¿Eliminar este gasto?
-                  </span>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleDelete(e.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 h-11 rounded-xl text-base transition-colors"
-                    >
-                      Sí
-                    </button>
-                    <button
-                      onClick={() => setConfirmingDeleteId(null)}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-6 h-11 rounded-xl text-base transition-colors"
-                    >
-                      No
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Normal card content */
-                <div className="flex items-start justify-between gap-3">
-                  {/* Left side: date + notes */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-500">{formatDate(e.date)}</p>
-                    {e.notes && (
-                      <p className="text-sm text-gray-600 mt-1 break-words">{e.notes}</p>
-                    )}
-                  </div>
-
-                  {/* Right side: amount + actions */}
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <p className="text-lg font-bold text-navy">{formatCurrency(e.amount)}</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => { setEditing(e); setModalOpen(true); }}
-                        className="h-11 w-11 flex items-center justify-center rounded-lg text-navy hover:bg-cream transition-colors"
-                        title="Editar"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setConfirmingDeleteId(e.id)}
-                        className="h-11 w-11 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        title="Eliminar"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
+      {tab === "resumen" && <ResumenTab />}
 
       <ExpenseModal
         isOpen={modalOpen}
@@ -292,12 +274,94 @@ export default function InDriverPage() {
         editingExpense={editing}
         saving={saving}
       />
-
       <ExpenseExportModal
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
         expenses={allExpenses}
       />
+    </ModuleLayout>
+  );
+}
+
+/* ─── Resumen Tab ─── */
+function ResumenTab() {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [loading, setLoading] = useState(true);
+
+  const fetchExpenses = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/expenses?from=${year}-01-01&to=${year}-12-31`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setExpenses(data);
+      }
+    } catch { /* */ }
+    finally { setLoading(false); }
+  }, [year]);
+
+  useEffect(() => { fetchExpenses(); }, [fetchExpenses]);
+
+  const annualTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  const monthlyData = useMemo(() => {
+    return MONTHS.map((name, i) => {
+      const monthNum = String(i + 1).padStart(2, "0");
+      const monthExpenses = expenses.filter((e) => e.date.split("-")[1] === monthNum);
+      const total = monthExpenses.reduce((sum, e) => sum + e.amount, 0);
+      const pct = annualTotal > 0 ? (total / annualTotal) * 100 : 0;
+      return { name, count: monthExpenses.length, total, pct };
+    });
+  }, [expenses, annualTotal]);
+
+  const years = useMemo(() => {
+    const curr = new Date().getFullYear();
+    return [curr, curr - 1, curr - 2];
+  }, []);
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Resumen Anual</h2>
+        <select
+          value={year}
+          onChange={(e) => setYear(parseInt(e.target.value))}
+          className="border border-[#C6C6C8] rounded-lg px-3 py-2.5 text-[15px] text-[#1C1C1E] font-medium focus:ring-2 focus:ring-[#007AFF] outline-none bg-white min-h-[44px]"
+        >
+          {years.map((y) => <option key={y} value={y}>{y}</option>)}
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-40">
+          <div className="text-[#8E8E93] text-[15px]">Cargando...</div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {monthlyData.map((m) => (
+            <div key={m.name} className={`bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between min-h-[44px] ${m.total === 0 ? "opacity-50" : ""}`}>
+              <div className="flex-1 min-w-0">
+                <p className={`text-[15px] font-semibold ${m.total > 0 ? "text-[#1C1C1E]" : "text-[#8E8E93]"}`}>{m.name}</p>
+              </div>
+              <div className="text-right ml-4 shrink-0">
+                <p className={`text-[17px] font-bold ${m.total > 0 ? "text-[#1C1C1E]" : "text-[#8E8E93]"}`}>{formatCurrency(m.total)}</p>
+                <p className="text-[13px] text-[#8E8E93]">
+                  {m.count} {m.count === 1 ? "gasto" : "gastos"}
+                  {m.pct > 0 && <span className="ml-1 text-[#007AFF] font-medium">· {m.pct.toFixed(1)}%</span>}
+                </p>
+              </div>
+            </div>
+          ))}
+          <div className="bg-[#007AFF] rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <p className="text-[17px] font-bold text-white">Total Anual</p>
+              <p className="text-[13px] text-white/70">{expenses.length} {expenses.length === 1 ? "gasto" : "gastos"}</p>
+            </div>
+            <p className="text-[17px] font-bold text-white">{formatCurrency(annualTotal)}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -47,7 +47,6 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
   const unpaidCount = pendingCharges.length + moraCharges.length;
   const progressPct = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
-  // Recent activity: paid charges + expiring contracts + vacant properties
   const recentPaid = paidCharges
     .filter((c) => c.paid_date)
     .sort((a, b) => (b.paid_date! > a.paid_date! ? 1 : -1))
@@ -62,68 +61,66 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
   const monthLabel = `${monthNames[Number(m)]} ${y}`;
 
   return (
-    <div className="p-4 pt-4">
+    <div className="p-4 space-y-4">
       {/* Alert */}
       {unpaidCount > 0 && (
-        <div className="bg-amber-50 border border-yellow-300 rounded-lg px-3.5 py-3 text-sm text-amber-800 flex items-center gap-2 mb-4">
-          <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
-          {unpaidCount} inquilino{unpaidCount > 1 ? "s" : ""} con pago pendiente este mes
+        <div className="bg-[#FF9500]/10 border border-[#FF9500]/30 rounded-2xl px-4 py-3 text-[15px] text-[#FF9500] flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-[#FF9500] shrink-0" />
+          {unpaidCount} inquilino{unpaidCount > 1 ? "s" : ""} con pago pendiente
         </div>
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-2.5 mb-5">
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-sm text-gray-400 mb-1.5 font-medium">Ingreso este mes</div>
-          <div className="text-2xl font-semibold text-emerald-700 tracking-tight">{fmt(totalCollected)}</div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="text-[13px] text-[#8E8E93] font-medium mb-1">Ingreso mes</div>
+          <div className="text-[22px] font-bold text-[#34C759] tracking-tight">{fmt(totalCollected)}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-sm text-gray-400 mb-1.5 font-medium">Por cobrar</div>
-          <div className="text-2xl font-semibold tracking-tight" style={{ color: "#B45309" }}>{fmt(totalPending)}</div>
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="text-[13px] text-[#8E8E93] font-medium mb-1">Por cobrar</div>
+          <div className="text-[22px] font-bold text-[#FF9500] tracking-tight">{fmt(totalPending)}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-sm text-gray-400 mb-1.5 font-medium">Ocupación</div>
-          <div className="text-2xl font-semibold text-gray-900 tracking-tight">{occupiedCount}/{totalProps}</div>
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="text-[13px] text-[#8E8E93] font-medium mb-1">Ocupacion</div>
+          <div className="text-[22px] font-bold text-[#1C1C1E] tracking-tight">{occupiedCount}/{totalProps}</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5">
-          <div className="text-sm text-gray-400 mb-1.5 font-medium">Contratos vencen</div>
-          <div className="text-2xl font-semibold text-red-700 tracking-tight">{expiringContracts.length}</div>
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="text-[13px] text-[#8E8E93] font-medium mb-1">Contratos vencen</div>
+          <div className="text-[22px] font-bold text-[#FF3B30] tracking-tight">{expiringContracts.length}</div>
         </div>
       </div>
 
       {/* Monthly progress */}
-      <div className="text-base font-semibold text-gray-800 mb-2.5">Cobros del mes</div>
-      <div className="bg-white border border-gray-200 rounded-xl p-3.5 mb-5">
-        <div className="text-sm text-gray-400 mb-1.5">
-          {fmt(totalCollected)} de {fmt(totalExpected)} cobrados · {monthLabel}
+      <div className="text-[15px] font-semibold text-[#1C1C1E] mb-1">Cobros del mes</div>
+      <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="text-[13px] text-[#8E8E93] mb-2">
+          {fmt(totalCollected)} de {fmt(totalExpected)} · {monthLabel}
         </div>
-        <div className="h-1.5 bg-gray-100 rounded-full my-2.5 overflow-hidden">
-          <div className="h-full rounded-full bg-emerald-700 transition-all" style={{ width: `${progressPct}%` }} />
+        <div className="h-2 bg-[#E5E5EA] rounded-full overflow-hidden mb-3">
+          <div className="h-full rounded-full bg-[#34C759] transition-all" style={{ width: `${progressPct}%` }} />
         </div>
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2">
           {paidCharges.map((ch) => (
-            <div key={ch.id} className="flex justify-between items-center text-sm">
-              <span>{ch.tenant_name}</span>
-              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+            <div key={ch.id} className="flex justify-between items-center text-[15px]">
+              <span className="text-[#1C1C1E]">{ch.tenant_name}</span>
+              <span className="text-[13px] font-semibold px-2.5 py-0.5 rounded-full bg-[#34C759]/10 text-[#34C759]">
                 {fmt(Number(ch.amount))}
               </span>
             </div>
           ))}
-          {(pendingCharges.length > 0 || moraCharges.length > 0) && (
-            <div className="h-px bg-gray-100 my-0.5" />
-          )}
+          {(pendingCharges.length > 0 || moraCharges.length > 0) && <div className="h-px bg-[#F2F2F7]" />}
           {pendingCharges.map((ch) => (
-            <div key={ch.id} className="flex justify-between items-center text-sm">
-              <span>{ch.tenant_name}</span>
-              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700">
+            <div key={ch.id} className="flex justify-between items-center text-[15px]">
+              <span className="text-[#1C1C1E]">{ch.tenant_name}</span>
+              <span className="text-[13px] font-semibold px-2.5 py-0.5 rounded-full bg-[#FF3B30]/10 text-[#FF3B30]">
                 {fmt(Number(ch.amount))} pendiente
               </span>
             </div>
           ))}
           {moraCharges.map((ch) => (
-            <div key={ch.id} className="flex justify-between items-center text-sm">
-              <span>{ch.tenant_name}</span>
-              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800">
+            <div key={ch.id} className="flex justify-between items-center text-[15px]">
+              <span className="text-[#1C1C1E]">{ch.tenant_name}</span>
+              <span className="text-[13px] font-semibold px-2.5 py-0.5 rounded-full bg-[#FF9500]/10 text-[#FF9500]">
                 {fmt(Number(ch.amount))} mora
               </span>
             </div>
@@ -132,46 +129,46 @@ export default function DashboardTab({ properties, contracts, charges, currentMo
       </div>
 
       {/* Recent activity */}
-      <div className="text-base font-semibold text-gray-800 mb-2.5">Actividad reciente</div>
+      <div className="text-[15px] font-semibold text-[#1C1C1E] mb-1">Actividad reciente</div>
       {recentPaid.map((ch) => {
         const prop = ch.property;
         const d = ch.paid_date ? daysSince(ch.paid_date) : 0;
-        const ago = d === 0 ? "hoy" : d === 1 ? "hace 1 día" : `hace ${d} días`;
+        const ago = d === 0 ? "hoy" : d === 1 ? "hace 1 dia" : `hace ${d} dias`;
         return (
-          <div key={ch.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2">
+          <div key={ch.id} className="bg-white rounded-2xl shadow-sm px-4 py-3.5 mb-2">
             <div className="flex items-center justify-between">
-              <div className="text-base font-medium text-gray-900">{ch.tenant_name} pagó {fmt(Number(ch.amount))}</div>
-              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Pagado</span>
+              <div className="text-[15px] font-medium text-[#1C1C1E]">{ch.tenant_name} pago {fmt(Number(ch.amount))}</div>
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#34C759]/10 text-[#34C759]">Pagado</span>
             </div>
-            <div className="text-sm text-gray-400 mt-1">{prop?.name || ""} · {ago}</div>
+            <div className="text-[13px] text-[#8E8E93] mt-1">{prop?.name || ""} · {ago}</div>
           </div>
         );
       })}
       {expiringContracts.map((ct) => {
         const d = daysUntil(ct.end_date);
         return (
-          <div key={ct.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2">
+          <div key={ct.id} className="bg-white rounded-2xl shadow-sm px-4 py-3.5 mb-2">
             <div className="flex items-center justify-between">
-              <div className="text-base font-medium text-gray-900">Contrato {ct.property?.name || ""}</div>
-              <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800">
+              <div className="text-[15px] font-medium text-[#1C1C1E]">Contrato {ct.property?.name || ""}</div>
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#FF9500]/10 text-[#FF9500]">
                 Vence en {d}d
               </span>
             </div>
-            <div className="text-sm text-gray-400 mt-1">{ct.tenant_name} · requiere renovación</div>
+            <div className="text-[13px] text-[#8E8E93] mt-1">{ct.tenant_name} · requiere renovacion</div>
           </div>
         );
       })}
       {vacantProps.map((p) => (
-        <div key={p.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3.5 mb-2">
+        <div key={p.id} className="bg-white rounded-2xl shadow-sm px-4 py-3.5 mb-2">
           <div className="flex items-center justify-between">
-            <div className="text-base font-medium text-gray-900">{p.name} vacía</div>
-            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700">Sin inquilino</span>
+            <div className="text-[15px] font-medium text-[#1C1C1E]">{p.name} vacia</div>
+            <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#007AFF]/10 text-[#007AFF]">Sin inquilino</span>
           </div>
-          <div className="text-sm text-gray-400 mt-1">Desocupada · {fmt(Number(p.rent_amount))}/mes</div>
+          <div className="text-[13px] text-[#8E8E93] mt-1">Desocupada · {fmt(Number(p.rent_amount))}/mes</div>
         </div>
       ))}
       {recentPaid.length === 0 && expiringContracts.length === 0 && vacantProps.length === 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-6 mb-2 text-center text-sm text-gray-400">
+        <div className="bg-white rounded-2xl shadow-sm px-4 py-6 text-center text-[13px] text-[#8E8E93]">
           Sin actividad reciente
         </div>
       )}

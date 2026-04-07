@@ -1,46 +1,84 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+const modules = [
+  {
+    href: "/maaser",
+    icon: "✡",
+    name: "Maaser",
+    desc: "Registro de donaciones",
+  },
+  {
+    href: "/indriver",
+    icon: "🚗",
+    name: "InDriver",
+    desc: "Gastos mensuales",
+  },
+  {
+    href: "/propiedades",
+    icon: "🏠",
+    name: "Propiedades",
+    desc: "Gestión de alquileres",
+  },
+  {
+    href: "/finanzas",
+    icon: "💰",
+    name: "Finanzas",
+    desc: "Finanzas personales",
+  },
+];
 
 export default function Home() {
+  const router = useRouter();
+
   return (
-    <div className="flex items-center justify-center min-h-[70vh]">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-4xl">
-        <Link
-          href="/maaser"
-          className="bg-white rounded-2xl shadow-lg border-2 border-transparent hover:border-gold transition-all p-8 text-center group"
-        >
-          <div className="text-5xl mb-4">✡</div>
-          <h2 className="text-2xl font-bold text-navy mb-2">Maaser</h2>
-          <p className="text-gray-500 text-sm">Registro de donaciones</p>
-          <div className="mt-4 text-gold font-medium text-sm group-hover:underline">
-            Entrar →
-          </div>
-        </Link>
+    <div className="fixed inset-0 flex flex-col bg-[#F2F2F7]">
+      {/* Top bar */}
+      <div className="bg-white/80 backdrop-blur-xl border-b border-[#C6C6C8] px-5 pt-14 pb-3 shrink-0">
+        <div className="flex items-center justify-between max-w-[430px] mx-auto">
+          <h1 className="text-[17px] font-semibold text-[#1C1C1E]">Mis Registros</h1>
+          <button
+            onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" });
+              router.push("/login");
+              router.refresh();
+            }}
+            className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer"
+          >
+            Salir
+          </button>
+        </div>
+      </div>
 
-        <Link
-          href="/indriver"
-          className="bg-white rounded-2xl shadow-lg border-2 border-transparent hover:border-gold transition-all p-8 text-center group"
-        >
-          <div className="text-5xl mb-4">🚗</div>
-          <h2 className="text-2xl font-bold text-navy mb-2">InDriver</h2>
-          <p className="text-gray-500 text-sm">Gastos mensuales</p>
-          <div className="mt-4 text-gold font-medium text-sm group-hover:underline">
-            Entrar →
-          </div>
-        </Link>
-
-        <Link
-          href="/propiedades"
-          className="bg-white rounded-2xl shadow-lg border-2 border-transparent hover:border-gold transition-all p-8 text-center group"
-        >
-          <div className="text-5xl mb-4">🏠</div>
-          <h2 className="text-2xl font-bold text-navy mb-2">Propiedades</h2>
-          <p className="text-gray-500 text-sm">Gestión de alquileres</p>
-          <div className="mt-4 text-gold font-medium text-sm group-hover:underline">
-            Entrar →
-          </div>
-        </Link>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="max-w-[430px] mx-auto p-4 space-y-3">
+          {modules.map((m) => (
+            <Link
+              key={m.href}
+              href={m.href}
+              className="bg-white rounded-2xl shadow-sm flex items-center px-4 py-4 no-underline active:bg-gray-50 transition-colors"
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#F2F2F7] flex items-center justify-center text-2xl shrink-0">
+                {m.icon}
+              </div>
+              <div className="flex-1 ml-4 min-w-0">
+                <div className="text-[17px] font-semibold text-[#1C1C1E]">{m.name}</div>
+                <div className="text-[15px] text-[#8E8E93] mt-0.5">{m.desc}</div>
+              </div>
+              <svg
+                className="w-5 h-5 text-[#C6C6C8] shrink-0 ml-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

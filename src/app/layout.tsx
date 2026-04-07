@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { ToastProvider } from "@/components/Toast";
 
@@ -26,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1A3A5C",
+  themeColor: "#F2F2F7",
   width: "device-width",
   initialScale: 1,
 };
@@ -38,12 +37,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="bg-cream min-h-screen">
+      <body className="bg-[#F2F2F7] min-h-screen">
         <ToastProvider>
-          <Navbar />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {children}
-          </main>
+          {children}
           <ServiceWorkerRegistrar />
         </ToastProvider>
       </body>

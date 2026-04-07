@@ -54,98 +54,69 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
       status: "valido",
       notes: notes.trim() || undefined,
     };
-    if (editingDonation) {
-      donation.id = editingDonation.id;
-    }
+    if (editingDonation) donation.id = editingDonation.id;
     onSave(donation);
   };
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:ring-2 focus:ring-gold focus:border-gold outline-none";
+  const inputClass = "w-full border border-[#C6C6C8] rounded-xl px-4 py-3 text-[15px] focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white";
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
-        <div className="bg-navy text-white p-5 rounded-t-xl">
-          <h2 className="text-xl font-bold">
-            {editingDonation ? "Editar Donación" : "Nueva Donación"}
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 animate-fade-in" onClick={onClose}>
+      <div
+        className="bg-white rounded-t-2xl shadow-sm w-full max-w-[430px] animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#C6C6C8]">
+          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer">
+            Cancelar
+          </button>
+          <h2 className="text-[17px] font-semibold text-[#1C1C1E]">
+            {editingDonation ? "Editar Donacion" : "Nueva Donacion"}
           </h2>
+          <div className="w-16" />
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-base font-semibold text-navy mb-2">Fecha</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className={inputClass}
-                required
-              />
+              <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Fecha</label>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} required />
             </div>
             <div>
-              <label className="block text-base font-semibold text-navy mb-2">Nº Cheque</label>
+              <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">No. Cheque</label>
               <input
-                type="text"
-                inputMode="numeric"
-                maxLength={4}
+                type="text" inputMode="numeric" maxLength={4}
                 value={checkNumber}
                 onChange={(e) => setCheckNumber(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                className={inputClass}
-                placeholder="Opcional"
+                className={inputClass} placeholder="Opcional"
               />
             </div>
           </div>
           <div>
-            <label className="block text-base font-semibold text-navy mb-2">Beneficiario</label>
-            <input
-              type="text"
-              value={beneficiary}
-              onChange={(e) => setBeneficiary(e.target.value)}
-              className={inputClass}
-              placeholder="Nombre del beneficiario"
-              required
-            />
+            <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Beneficiario</label>
+            <input type="text" value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} className={inputClass} placeholder="Nombre del beneficiario" required />
           </div>
           <div>
-            <label className="block text-base font-semibold text-navy mb-2">Monto ($)</label>
+            <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Monto ($)</label>
             <input
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={amount}
+              type="number" step="0.01" min="0.01" value={amount}
               onChange={(e) => { setAmount(e.target.value); setAmountError(""); }}
-              className={`${inputClass} ${amountError ? "!border-red-400 ring-2 ring-red-100" : ""}`}
-              placeholder="Ejemplo: 100.00"
-              required
+              className={`${inputClass} ${amountError ? "!border-[#FF3B30] ring-2 ring-[#FF3B30]/20" : ""}`}
+              placeholder="100.00" required
             />
-            {amountError && <p className="text-red-500 text-sm mt-1.5 font-medium">{amountError}</p>}
+            {amountError && <p className="text-[#FF3B30] text-[13px] mt-1 font-medium">{amountError}</p>}
           </div>
           <div>
-            <label className="block text-base font-semibold text-navy mb-2">Notas</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className={`${inputClass} resize-none`}
-              placeholder="Notas opcionales..."
-              rows={2}
-            />
+            <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Notas</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={`${inputClass} resize-none`} placeholder="Opcional..." rows={2} />
           </div>
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 bg-gold hover:bg-yellow-600 text-white font-bold py-3.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-            >
-              {saving ? "Guardando..." : editingDonation ? "Guardar Cambios" : "Agregar"}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3.5 rounded-lg transition-colors text-lg"
-            >
-              Cancelar
-            </button>
-          </div>
+          <button
+            type="submit" disabled={saving}
+            className="w-full h-12 rounded-xl bg-[#007AFF] text-white font-semibold text-[17px] border-0 cursor-pointer active:bg-[#0056b3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? "Guardando..." : editingDonation ? "Guardar Cambios" : "Agregar"}
+          </button>
         </form>
       </div>
     </div>

@@ -31,3 +31,45 @@ export type Expense = {
   created_at?: string;
 };
 
+export type FinanceExpense = {
+  id: number;
+  date: string;
+  amount: number;
+  category: string;
+  notes?: string;
+  payment_method: string;
+  receipt_url?: string;
+  subcategory?: string;
+  created_at?: string;
+};
+
+export type FinanceCategory = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  is_enabled: boolean;
+};
+
+export type FinanceBudget = {
+  id: string;
+  category: string;
+  budget_amount: number;
+  month: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type FinanceRecurring = {
+  id: string;
+  amount: number;
+  category: string;
+  notes?: string;
+  payment_method: string;
+  day_of_month: number;
+  is_active: boolean;
+  created_at?: string;
+};
+
+export const PAYMENT_METHODS = ["Yappy", "ACH", "Tarjeta de Crédito"] as const;
+

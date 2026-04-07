@@ -13,7 +13,6 @@ export default function PagarCobro() {
   const router = useRouter();
   const params = useParams();
   const id = Number(params.id);
-
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -21,95 +20,46 @@ export default function PagarCobro() {
   const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
-    // Fetch all charges to find this one (no single-charge endpoint)
-    fetch("/api/propiedades/charges")
-      .then((r) => r.json())
-      .then((data: RentCharge[]) => {
-        const found = data.find((c) => c.id === id);
-        if (found) setCharge(found);
-        setLoading(false);
-      });
+    fetch("/api/propiedades/charges").then((r) => r.json()).then((data: RentCharge[]) => {
+      const found = data.find((c) => c.id === id);
+      if (found) setCharge(found);
+      setLoading(false);
+    });
   }, [id]);
 
   async function handlePay() {
     setSaving(true);
-    const res = await fetch("/api/propiedades/charges", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status: "pagado", paid_date: payDate }),
-    });
-    if (!res.ok) {
-      showToast("Error al registrar pago", "error");
-      setSaving(false);
-      return;
-    }
+    const res = await fetch("/api/propiedades/charges", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status: "pagado", paid_date: payDate }) });
+    if (!res.ok) { showToast("Error al registrar pago", "error"); setSaving(false); return; }
     showToast("Pago registrado");
     router.push("/propiedades?tab=cobros");
   }
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-[200] bg-gray-50 flex items-center justify-center" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-        <div className="text-gray-400 text-sm">Cargando...</div>
-      </div>
-    );
-  }
-
-  if (!charge) {
-    return (
-      <div className="fixed inset-0 z-[200] bg-gray-50 flex items-center justify-center" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-        <div className="text-gray-400 text-sm">Cobro no encontrado</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="fixed inset-0 z-[200] bg-[#F2F2F7] flex items-center justify-center"><div className="text-[#8E8E93] text-[15px]">Cargando...</div></div>;
+  if (!charge) return <div className="fixed inset-0 z-[200] bg-[#F2F2F7] flex items-center justify-center"><div className="text-[#8E8E93] text-[15px]">Cobro no encontrado</div></div>;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] bg-gray-50 flex flex-col"
-      style={{ height: "100dvh", fontFamily: "'DM Sans', system-ui, sans-serif" }}
-    >
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-5 py-4 shrink-0">
+    <div className="fixed inset-0 z-[200] bg-[#F2F2F7] flex flex-col" style={{ height: "100dvh" }}>
+      <div className="bg-white/80 backdrop-blur-xl border-b border-[#C6C6C8] px-5 pt-14 pb-3 shrink-0">
         <div className="flex items-center gap-3 max-w-[430px] mx-auto">
-          <button
-            onClick={() => router.push("/propiedades?tab=cobros")}
-            className="text-sm text-blue-700 font-medium bg-transparent border-0 cursor-pointer"
-          >
-            ← Volver
-          </button>
-          <h1 className="text-base font-semibold text-gray-900">Registrar pago</h1>
+          <button onClick={() => router.push("/propiedades?tab=cobros")} className="text-[15px] text-[#007AFF] font-medium bg-transparent border-0 cursor-pointer">&larr; Volver</button>
+          <h1 className="text-[17px] font-semibold text-[#1C1C1E]">Registrar pago</h1>
         </div>
       </div>
-
-      {/* Form */}
       <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
-        <div className="max-w-[430px] mx-auto px-5 py-5">
-          <div className="flex flex-col gap-5">
-            {/* Charge info card */}
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <div className="text-sm font-medium text-gray-900">{charge.tenant_name}</div>
-              <div className="text-xs text-gray-400 mt-1">{charge.property?.name || ""}</div>
-              <div className="text-2xl font-semibold text-gray-900 mt-3 tracking-tight">{fmt(Number(charge.amount))}</div>
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500 mb-1.5 block font-medium">Fecha de pago</label>
-              <input
-                type="date"
-                value={payDate}
-                onChange={(e) => setPayDate(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <button
-              onClick={handlePay}
-              disabled={saving}
-              className="w-full py-3.5 rounded-lg text-sm font-semibold bg-emerald-700 text-white border-0 cursor-pointer active:scale-[0.97] transition-transform disabled:opacity-50 mt-2"
-            >
-              {saving ? "Guardando..." : "Confirmar pago"}
-            </button>
+        <div className="max-w-[430px] mx-auto px-5 py-5 flex flex-col gap-5">
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <div className="text-[15px] font-medium text-[#1C1C1E]">{charge.tenant_name}</div>
+            <div className="text-[13px] text-[#8E8E93] mt-1">{charge.property?.name || ""}</div>
+            <div className="text-[22px] font-bold text-[#1C1C1E] mt-3">{fmt(Number(charge.amount))}</div>
           </div>
+          <div>
+            <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Fecha de pago</label>
+            <input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="w-full border border-[#C6C6C8] rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-[#007AFF] bg-white" />
+          </div>
+          <button onClick={handlePay} disabled={saving} className="w-full h-12 rounded-xl text-[15px] font-semibold bg-[#34C759] text-white border-0 cursor-pointer active:bg-[#2da44e] transition-colors disabled:opacity-50 mt-2">
+            {saving ? "Guardando..." : "Confirmar pago"}
+          </button>
         </div>
       </div>
     </div>
