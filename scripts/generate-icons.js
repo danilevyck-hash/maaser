@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+const sharp = require('sharp');
+const fs = require('fs');
+const path = require('path');
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#007AFF"/>
@@ -38,4 +42,50 @@
     <line x1="-30" y1="-5" x2="30" y2="-5" stroke="white" stroke-width="6"/>
     <circle cx="18" cy="10" r="7" fill="white"/>
   </g>
-</svg>
+</svg>`;
+
+const sizes = [
+  { name: 'icon-512x512.png', size: 512, dir: 'icons' },
+  { name: 'icon-384x384.png', size: 384, dir: 'icons' },
+  { name: 'icon-192x192.png', size: 192, dir: 'icons' },
+  { name: 'icon-152x152.png', size: 152, dir: 'icons' },
+  { name: 'icon-144x144.png', size: 144, dir: 'icons' },
+  { name: 'icon-128x128.png', size: 128, dir: 'icons' },
+  { name: 'icon-96x96.png', size: 96, dir: 'icons' },
+  { name: 'icon-72x72.png', size: 72, dir: 'icons' },
+  { name: 'apple-touch-icon.png', size: 180, dir: '' },
+  { name: 'favicon-32x32.png', size: 32, dir: '' },
+  { name: 'favicon-16x16.png', size: 16, dir: '' },
+];
+
+const publicDir = path.join(__dirname, '..', 'public');
+const iconsDir = path.join(publicDir, 'icons');
+
+async function generate() {
+  // Ensure icons directory exists
+  if (!fs.existsSync(iconsDir)) {
+    fs.mkdirSync(iconsDir, { recursive: true });
+  }
+
+  const svgBuffer = Buffer.from(svg);
+
+  for (const { name, size, dir } of sizes) {
+    const outputDir = dir ? path.join(publicDir, dir) : publicDir;
+    const outputPath = path.join(outputDir, name);
+
+    await sharp(svgBuffer)
+      .resize(size, size)
+      .png()
+      .toFile(outputPath);
+
+    console.log(`Generated: ${dir ? dir + '/' : ''}${name} (${size}x${size})`);
+  }
+
+  // Also save the SVG itself
+  fs.writeFileSync(path.join(publicDir, 'icon.svg'), svg);
+  console.log('Generated: icon.svg');
+
+  console.log('\nAll icons generated successfully!');
+}
+
+generate().catch(console.error);
