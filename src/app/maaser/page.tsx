@@ -61,6 +61,7 @@ export default function MaaserPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [search, setSearch] = useState("");
   const { showToast } = useToast();
 
@@ -90,7 +91,10 @@ export default function MaaserPage() {
         setGoalAmount(data.goal_amount || 0);
         setGoalInput((data.goal_amount || 0).toString());
       }
-    } catch { /* */ }
+    } catch {
+      showToast("Error al cargar meta", "error");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hebrewYear]);
 
   useEffect(() => {
@@ -133,32 +137,47 @@ export default function MaaserPage() {
   };
 
   const handleDelete = async (id: number) => {
-    const res = await fetch("/api/donations", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      showToast(err?.error || "Error al eliminar", "error");
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/donations", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        showToast(err?.error || "Error al eliminar", "error");
+        setConfirmingDeleteId(null);
+        return;
+      }
       setConfirmingDeleteId(null);
-      return;
+      showToast("Donacion eliminada");
+      fetchDonations();
+    } catch {
+      showToast("Error al eliminar", "error");
+    } finally {
+      setDeleting(false);
     }
-    setConfirmingDeleteId(null);
-    showToast("Donacion eliminada");
-    fetchDonations();
   };
 
   const saveGoal = async () => {
     const amount = parseFloat(goalInput) || 0;
-    await fetch("/api/goal", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ year: hebrewYear, goal_amount: amount }),
-    });
-    setGoalAmount(amount);
-    setEditingGoal(false);
-    showToast("Meta guardada");
+    try {
+      const res = await fetch("/api/goal", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ year: hebrewYear, goal_amount: amount }),
+      });
+      if (!res.ok) {
+        showToast("Error al guardar meta", "error");
+        return;
+      }
+      setGoalAmount(amount);
+      setEditingGoal(false);
+      showToast("Meta guardada");
+    } catch {
+      showToast("Error al guardar meta", "error");
+    }
   };
 
   return (
@@ -176,7 +195,6 @@ export default function MaaserPage() {
         <>
           {tab === "dashboard" && (
             <DashboardContent
-              donations={donations}
               filteredDonations={filteredDonations}
               totalDonated={totalDonated}
               donationCount={donationCount}
@@ -197,6 +215,7 @@ export default function MaaserPage() {
               setEditing={setEditing}
               setConfirmingDeleteId={setConfirmingDeleteId}
               handleDelete={handleDelete}
+              deleting={deleting}
             />
           )}
           {tab === "beneficiarios" && (
@@ -229,9 +248,8 @@ function DashboardContent({
   filteredDonations, totalDonated, donationCount, goalAmount, goalInput,
   goalProgress, remaining, editingGoal, hebrewYear, search, confirmingDeleteId,
   setGoalInput, setEditingGoal, saveGoal, setSearch, setExportOpen, setModalOpen,
-  setEditing, setConfirmingDeleteId, handleDelete,
+  setEditing, setConfirmingDeleteId, handleDelete, deleting,
 }: {
-  donations: Donation[];
   filteredDonations: Donation[];
   totalDonated: number;
   donationCount: number;
@@ -252,6 +270,7 @@ function DashboardContent({
   setEditing: (v: Donation | null) => void;
   setConfirmingDeleteId: (v: number | null) => void;
   handleDelete: (id: number) => void;
+  deleting: boolean;
 }) {
   return (
     <div className="p-4 space-y-4">
@@ -382,7 +401,7 @@ function DashboardContent({
                 <div className="mt-3 pt-3 border-t border-[#C6C6C8]">
                   <p className="text-[13px] text-[#FF3B30] font-medium mb-2">Eliminar esta donacion?</p>
                   <div className="flex gap-2">
-                    <button onClick={() => handleDelete(d.id)} className="flex-1 h-11 rounded-lg bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer">Si</button>
+                    <button onClick={() => handleDelete(d.id)} disabled={deleting} className="flex-1 h-11 rounded-lg bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50">{deleting ? "..." : "Si"}</button>
                     <button onClick={() => setConfirmingDeleteId(null)} className="flex-1 h-11 rounded-lg bg-[#E5E5EA] text-[#1C1C1E] font-semibold text-[15px] border-0 cursor-pointer">No</button>
                   </div>
                 </div>
@@ -533,6 +552,7 @@ function BeneficiariosContent({ donations, hebrewYear, totalDonated }: { donatio
 
 /* ─── Resumen Tab ─── */
 function ResumenContent() {
+  const { showToast } = useToast();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [hebrewYear, setHebrewYear] = useState(getCurrentHebrewYear());
   const [loading, setLoading] = useState(true);
@@ -548,8 +568,10 @@ function ResumenContent() {
         const data = await res.json();
         if (Array.isArray(data)) setDonations(data);
       }
-    } catch { /* */ }
-    finally { setLoading(false); }
+    } catch {
+      showToast("Error al cargar donaciones", "error");
+    } finally { setLoading(false); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yearData.startDate, yearData.endDate]);
 
   useEffect(() => { fetchDonations(); }, [fetchDonations]);

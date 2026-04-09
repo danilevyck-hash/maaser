@@ -24,7 +24,6 @@ function formatDateShort(dateStr: string) {
 type Props = {
   contracts: RentContract[];
   properties: RentProperty[];
-  onRefresh: () => void;
 };
 
 export default function ContratosTab({ contracts, properties }: Props) {

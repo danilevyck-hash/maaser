@@ -118,7 +118,9 @@ function PropiedadesPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ month: currentMonth }),
-    }).then(() => fetchAll());
+    }).then(() => fetchAll()).catch(() => {
+      showToast("Error al generar cobros", "error");
+    });
   }, [currentMonth, fetchAll]);
 
   const activeContracts = contracts.filter((c) => c.active);
@@ -149,7 +151,6 @@ function PropiedadesPage() {
               properties={properties}
               contracts={activeContracts}
               charges={charges}
-              onRefresh={fetchAll}
             />
           )}
           {tab === "cobros" && (
@@ -163,7 +164,6 @@ function PropiedadesPage() {
             <ContratosTab
               contracts={activeContracts}
               properties={properties}
-              onRefresh={fetchAll}
             />
           )}
         </>

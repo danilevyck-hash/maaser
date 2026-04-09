@@ -18,7 +18,6 @@ type Props = {
   properties: RentProperty[];
   contracts: RentContract[];
   charges: RentCharge[];
-  onRefresh: () => void;
 };
 
 export default function PropiedadesTab({ properties, contracts, charges }: Props) {

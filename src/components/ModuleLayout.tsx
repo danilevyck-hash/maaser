@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export type TabItem = {
   id: string;
@@ -23,9 +24,9 @@ export default function ModuleLayout({ title, tabs, activeTab, onTabChange, chil
       {/* iOS-style top bar */}
       <div className="bg-white/80 backdrop-blur-xl border-b border-[#C6C6C8] px-5 pt-14 pb-3 shrink-0">
         <div className="flex items-center justify-between max-w-[430px] mx-auto">
-          <a href="/" className="text-[#007AFF] text-[15px] font-medium no-underline">
+          <Link href="/" className="text-[#007AFF] text-[15px] font-medium no-underline">
             &larr; Inicio
-          </a>
+          </Link>
           <h1 className="text-[17px] font-semibold text-[#1C1C1E]">{title}</h1>
           <button
             onClick={async () => {

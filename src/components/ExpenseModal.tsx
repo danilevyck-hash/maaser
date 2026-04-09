@@ -18,6 +18,13 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
   const [amountError, setAmountError] = useState("");
 
   useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (editingExpense) {
       setDate(editingExpense.date);
       setAmount(editingExpense.amount.toString());

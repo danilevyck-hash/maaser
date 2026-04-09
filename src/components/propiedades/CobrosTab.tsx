@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RentCharge } from "@/lib/propiedades-types";
+import { useToast } from "@/components/Toast";
 
 function fmt(n: number) {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -27,6 +28,7 @@ type Props = {
 
 export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
 
@@ -41,22 +43,40 @@ export default function CobrosTab({ charges, currentMonth, onRefresh }: Props) {
 
   async function generateCharges() {
     setGenerating(true);
-    await fetch("/api/propiedades/charges/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ month: currentMonth }),
-    });
+    try {
+      const res = await fetch("/api/propiedades/charges/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month: currentMonth }),
+      });
+      if (!res.ok) {
+        showToast("Error al generar cobros", "error");
+      } else {
+        showToast("Cobros generados");
+      }
+    } catch {
+      showToast("Error de conexion", "error");
+    }
     setGenerating(false);
     onRefresh();
   }
 
   async function markUnpaid(id: number) {
     setSaving(true);
-    await fetch("/api/propiedades/charges", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status: "pendiente", paid_date: null }),
-    });
+    try {
+      const res = await fetch("/api/propiedades/charges", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "pendiente", paid_date: null }),
+      });
+      if (!res.ok) {
+        showToast("Error al marcar como pendiente", "error");
+      } else {
+        showToast("Marcado como pendiente");
+      }
+    } catch {
+      showToast("Error de conexion", "error");
+    }
     setSaving(false);
     onRefresh();
   }

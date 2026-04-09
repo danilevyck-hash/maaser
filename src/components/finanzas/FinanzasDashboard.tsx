@@ -98,7 +98,7 @@ export default function FinanzasDashboard() {
           }
         }
       } catch {
-        // silent
+        showToast("Error al aplicar recurrentes", "error");
       }
     })();
   }, [isCurrentMonth, viewMonthStr, fetchExpenses, showToast]);
@@ -111,7 +111,10 @@ export default function FinanzasDashboard() {
     try {
       const res = await fetch(`/api/finanzas/expenses`);
       if (res.ok) { const data = await res.json(); if (Array.isArray(data)) setAllExpenses(data); }
-    } catch {}
+    } catch {
+      showToast("Error de conexion", "error");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { fetchAllExpenses(); }, [fetchAllExpenses]);
 

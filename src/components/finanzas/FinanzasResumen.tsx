@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { FinanceExpense, FinanceCategory } from "@/lib/supabase";
 import { formatCurrency, MONTH_NAMES } from "@/lib/format";
+import { useToast } from "@/components/Toast";
 
 const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), { ssr: false });
 const BarChart = dynamic(() => import("recharts").then((m) => m.BarChart), { ssr: false });
@@ -15,6 +16,7 @@ const Tooltip = dynamic(() => import("recharts").then((m) => m.Tooltip), { ssr: 
 const MONTH_ABBR = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
 export default function FinanzasResumen() {
+  const { showToast } = useToast();
   const [expenses, setExpenses] = useState<FinanceExpense[]>([]);
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,8 +32,10 @@ export default function FinanzasResumen() {
       ]);
       if (expRes.ok) { const d = await expRes.json(); if (Array.isArray(d)) setExpenses(d); }
       if (catRes.ok) { const d = await catRes.json(); if (Array.isArray(d)) setCategories(d); }
-    } catch {}
-    finally { setLoading(false); }
+    } catch {
+      showToast("Error al cargar datos", "error");
+    } finally { setLoading(false); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -68,14 +72,14 @@ export default function FinanzasResumen() {
       {/* Year nav */}
       <div className="flex items-center justify-center gap-4">
         <button onClick={() => { setYear((y) => y - 1); setExpandedMonth(null); }}
-          className="w-9 h-9 flex items-center justify-center rounded-full text-[#007AFF] bg-transparent border-0">
+          className="w-11 h-11 flex items-center justify-center rounded-full text-[#007AFF] bg-transparent border-0">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <span className="text-[17px] font-semibold text-[#1C1C1E]">{year}</span>
         <button onClick={() => { setYear((y) => y + 1); setExpandedMonth(null); }}
-          className="w-9 h-9 flex items-center justify-center rounded-full text-[#007AFF] bg-transparent border-0">
+          className="w-11 h-11 flex items-center justify-center rounded-full text-[#007AFF] bg-transparent border-0">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>

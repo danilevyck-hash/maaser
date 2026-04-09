@@ -20,6 +20,13 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   const [amountError, setAmountError] = useState("");
 
   useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (editingDonation) {
       setDate(editingDonation.date);
       setBeneficiary(editingDonation.beneficiary);

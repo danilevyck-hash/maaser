@@ -52,6 +52,7 @@ export default function InDriverPage() {
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { showToast } = useToast();
 
   const dateFrom = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}-01`;
@@ -88,7 +89,10 @@ export default function InDriverPage() {
         const data = await res.json();
         if (Array.isArray(data)) setAllExpenses(data);
       }
-    } catch { /* */ }
+    } catch {
+      showToast("Error al cargar gastos", "error");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchAllExpenses(); }, [fetchAllExpenses]);
@@ -118,21 +122,28 @@ export default function InDriverPage() {
   };
 
   const handleDelete = async (id: number) => {
-    const res = await fetch("/api/expenses", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      showToast(err?.error || "Error al eliminar", "error");
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        showToast(err?.error || "Error al eliminar", "error");
+        setConfirmingDeleteId(null);
+        return;
+      }
       setConfirmingDeleteId(null);
-      return;
+      showToast("Gasto eliminado");
+      fetchExpenses();
+      fetchAllExpenses();
+    } catch {
+      showToast("Error al eliminar", "error");
+    } finally {
+      setDeleting(false);
     }
-    setConfirmingDeleteId(null);
-    showToast("Gasto eliminado");
-    fetchExpenses();
-    fetchAllExpenses();
   };
 
   const years = useMemo(() => {
@@ -225,7 +236,7 @@ export default function InDriverPage() {
                     <div className="flex flex-col items-center gap-3 py-2">
                       <span className="text-[15px] text-[#FF3B30] font-medium">Eliminar este gasto?</span>
                       <div className="flex gap-3 w-full">
-                        <button onClick={() => handleDelete(e.id)} className="flex-1 h-11 rounded-lg bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer">Si</button>
+                        <button onClick={() => handleDelete(e.id)} disabled={deleting} className="flex-1 h-11 rounded-lg bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50">{deleting ? "..." : "Si"}</button>
                         <button onClick={() => setConfirmingDeleteId(null)} className="flex-1 h-11 rounded-lg bg-[#E5E5EA] text-[#1C1C1E] font-semibold text-[15px] border-0 cursor-pointer">No</button>
                       </div>
                     </div>
@@ -285,6 +296,7 @@ export default function InDriverPage() {
 
 /* ─── Resumen Tab ─── */
 function ResumenTab() {
+  const { showToast } = useToast();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
@@ -297,8 +309,10 @@ function ResumenTab() {
         const data = await res.json();
         if (Array.isArray(data)) setExpenses(data);
       }
-    } catch { /* */ }
-    finally { setLoading(false); }
+    } catch {
+      showToast("Error al cargar gastos", "error");
+    } finally { setLoading(false); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year]);
 
   useEffect(() => { fetchExpenses(); }, [fetchExpenses]);

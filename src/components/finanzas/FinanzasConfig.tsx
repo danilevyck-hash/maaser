@@ -39,7 +39,7 @@ export default function FinanzasConfig() {
       try {
         const p = JSON.parse(stored);
         if (p.budgetAlerts !== undefined) setBudgetAlerts(p.budgetAlerts);
-      } catch {}
+      } catch { /* localStorage parse error, ignore */ }
     }
   }, []);
 
@@ -47,14 +47,20 @@ export default function FinanzasConfig() {
     try {
       const res = await fetch("/api/finanzas/categories");
       if (res.ok) { const data = await res.json(); if (Array.isArray(data)) setCategories(data); }
-    } catch {}
+    } catch {
+      showToast("Error al cargar categorias", "error");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchBudgets = useCallback(async () => {
     try {
       const res = await fetch(`/api/finanzas/budgets?month=${currentMonth}`);
       if (res.ok) { const data = await res.json(); if (Array.isArray(data)) setBudgets(data); }
-    } catch {}
+    } catch {
+      showToast("Error al cargar presupuestos", "error");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMonth]);
 
   useEffect(() => { fetchCategories(); fetchBudgets(); }, [fetchCategories, fetchBudgets]);
@@ -195,6 +201,7 @@ export default function FinanzasConfig() {
   };
 
   const handleDeleteRecurring = async (id: string) => {
+    if (!confirm("¿Eliminar este gasto recurrente?")) return;
     try {
       const res = await fetch("/api/finanzas/recurring", {
         method: "DELETE",
@@ -245,7 +252,7 @@ export default function FinanzasConfig() {
       {/* Finanzas settings */}
       <SectionHeader>Finanzas</SectionHeader>
       <div className="bg-white rounded-2xl overflow-hidden">
-        <Cell label="Categorias" value={`${categories.length}`} onClick={() => {}} />
+        <Cell label="Categorias" value={`${categories.length}`} />
         <Divider />
         <Cell label="Presupuestos" value={`${budgets.length} de ${categories.length}`} onClick={openBulkBudget} />
         <Divider />
