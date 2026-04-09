@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 type Phase = "login" | "prompt-faceid" | "registering";
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [phase, setPhase] = useState<Phase>("login");
   const [webauthnAvailable, setWebauthnAvailable] = useState(false);
   const [faceIdLoading, setFaceIdLoading] = useState(false);
+  const autoTriggered = useRef(false);
 
   // Check if WebAuthn is available on mount
   useEffect(() => {
@@ -154,6 +155,18 @@ export default function LoginPage() {
       setFaceIdLoading(false);
     }
   }
+
+  // Auto-trigger Face ID on page load
+  useEffect(() => {
+    if (webauthnAvailable && !autoTriggered.current) {
+      autoTriggered.current = true;
+      const timer = setTimeout(() => {
+        handleFaceIdLogin();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [webauthnAvailable]);
 
   // ─── Face ID Registration ───
   async function handleRegisterFaceId() {
