@@ -20,11 +20,14 @@ export default function PagarCobro() {
   const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
 
   useEffect(() => {
-    fetch("/api/propiedades/charges").then((r) => r.json()).then((data: RentCharge[]) => {
-      const found = data.find((c) => c.id === id);
-      if (found) setCharge(found);
-      setLoading(false);
-    });
+    fetch("/api/propiedades/charges")
+      .then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.json(); })
+      .then((data: RentCharge[]) => {
+        const found = data.find((c) => c.id === id);
+        if (found) setCharge(found);
+        setLoading(false);
+      })
+      .catch(() => { showToast("Error al cargar cobro", "error"); setLoading(false); });
   }, [id]);
 
   async function handlePay() {

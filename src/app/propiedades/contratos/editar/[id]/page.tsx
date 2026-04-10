@@ -22,8 +22,8 @@ export default function EditarContrato() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/propiedades/properties").then((r) => r.json()),
-      fetch("/api/propiedades/contracts").then((r) => r.json()),
+      fetch("/api/propiedades/properties").then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.json(); }),
+      fetch("/api/propiedades/contracts").then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.json(); }),
     ]).then(([props, contracts]: [RentProperty[], RentContract[]]) => {
       setProperties(props);
       const contract = contracts.find((c: RentContract) => c.id === id);
@@ -39,7 +39,7 @@ export default function EditarContrato() {
         });
       }
       setLoading(false);
-    });
+    }).catch(() => { showToast("Error al cargar contrato", "error"); setLoading(false); });
   }, [id]);
 
   async function handleSave() {

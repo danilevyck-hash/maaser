@@ -40,8 +40,8 @@ function NuevoContrato() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/propiedades/properties").then((r) => r.json()),
-      fetch("/api/propiedades/contracts").then((r) => r.json()),
+      fetch("/api/propiedades/properties").then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.json(); }),
+      fetch("/api/propiedades/contracts").then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.json(); }),
     ]).then(([props, contracts]: [RentProperty[], RentContract[]]) => {
       setProperties(props);
       const activeContracts = (contracts || []).filter((c: RentContract) => c.active);
@@ -70,7 +70,7 @@ function NuevoContrato() {
         setForm((f) => ({ ...f, property_id: String(avail[0].id), rent_amount: String(avail[0].rent_amount) }));
       }
       setLoading(false);
-    });
+    }).catch(() => { showToast("Error al cargar datos", "error"); setLoading(false); });
   }, [renewId]);
 
   async function handleSave() {

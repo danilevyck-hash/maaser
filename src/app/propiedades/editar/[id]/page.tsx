@@ -19,11 +19,14 @@ export default function EditarPropiedad() {
   const [form, setForm] = useState({ name: "", location: "", type: "residencial", icon: "🏠", rent_amount: "" });
 
   useEffect(() => {
-    fetch("/api/propiedades/properties").then((r) => r.json()).then((data: RentProperty[]) => {
-      const p = data.find((x) => x.id === id);
-      if (p) setForm({ name: p.name, location: p.location, type: p.type, icon: p.icon, rent_amount: String(p.rent_amount) });
-      setLoading(false);
-    });
+    fetch("/api/propiedades/properties")
+      .then((r) => { if (!r.ok) throw new Error("fetch failed"); return r.json(); })
+      .then((data: RentProperty[]) => {
+        const p = data.find((x) => x.id === id);
+        if (p) setForm({ name: p.name, location: p.location, type: p.type, icon: p.icon, rent_amount: String(p.rent_amount) });
+        setLoading(false);
+      })
+      .catch(() => { showToast("Error al cargar propiedad", "error"); setLoading(false); });
   }, [id]);
 
   async function handleSave() {

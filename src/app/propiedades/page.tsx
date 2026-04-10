@@ -114,13 +114,20 @@ function PropiedadesPage() {
   }, [currentMonth]);
 
   useEffect(() => {
-    fetch("/api/propiedades/charges/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ month: currentMonth }),
-    }).then(() => fetchAll()).catch(() => {
-      showToast("Error al generar cobros", "error");
-    });
+    (async () => {
+      try {
+        const res = await fetch("/api/propiedades/charges/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ month: currentMonth }),
+        });
+        if (!res.ok) showToast("Error al generar cobros", "error");
+        await fetchAll();
+      } catch {
+        showToast("Error al generar cobros", "error");
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMonth, fetchAll]);
 
   const activeContracts = contracts.filter((c) => c.active);
