@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 import { DEFAULT_CATEGORIES } from "@/lib/finance-categories";
 
+export const dynamic = "force-dynamic";
 export async function GET() {
   const { data, error } = await supabase
     .from("finance_categories")

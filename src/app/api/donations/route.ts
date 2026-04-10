@@ -11,6 +11,7 @@ function normalizeName(name: string): string {
     .join(" ");
 }
 
+export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const from = request.nextUrl.searchParams.get("from");
   const to = request.nextUrl.searchParams.get("to");

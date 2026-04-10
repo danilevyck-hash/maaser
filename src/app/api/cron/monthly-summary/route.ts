@@ -17,6 +17,7 @@ const TZEDAKA_QUOTES = [
   "\"El mundo se sostiene sobre tres cosas: la Torá, el servicio a Dios y los actos de bondad.\" — Pirkei Avot 1:2",
 ];
 
+export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   // Verify cron secret
   const authHeader = request.headers.get("authorization");
