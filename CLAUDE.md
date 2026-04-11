@@ -72,6 +72,23 @@ App para gestionar donaciones (maaser/tzedaká), gastos de InDriver y apartament
 2. Copiar/adaptar en mifinanzas agregando user_id, authFetch, y dark mode
 3. Verificar build en ambos proyectos
 
+## Changes — April 2026 Session
+
+### UX Audit (10 fixes)
+- Catch blocks added to all async operations
+- Loading states added where missing
+- Touch targets enlarged to 44px minimum
+- Scroll lock on modals (body overflow hidden)
+- Dead/unused props removed
+
+### API & Reliability
+- All API routes have `export const dynamic = 'force-dynamic'`
+- Propiedades: charge generate now awaited with error handling
+- All fetch calls have try/catch with user-friendly messages
+
+### Attempted & Reverted
+- Face ID (WebAuthn): implemented and removed — too unstable on serverless
+
 ## Deploy
 ```bash
 git push origin main   # Auto-deploy via Vercel
