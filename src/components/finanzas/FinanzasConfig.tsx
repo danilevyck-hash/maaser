@@ -306,7 +306,7 @@ export default function FinanzasConfig() {
 
       {/* Bulk Budget Modal */}
       {bulkBudgetOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50" onClick={() => setBulkBudgetOpen(false)}>
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[110]" onClick={() => setBulkBudgetOpen(false)}>
           <form
             onSubmit={handleBudgetSubmit}
             className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto"
@@ -347,7 +347,7 @@ export default function FinanzasConfig() {
 
       {/* Recurring Expenses Modal */}
       {recurringOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50" onClick={() => setRecurringOpen(false)}>
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[110]" onClick={() => setRecurringOpen(false)}>
           <div
             className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}

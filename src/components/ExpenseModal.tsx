@@ -55,7 +55,7 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
   const inputClass = "w-full border border-[#C6C6C8] rounded-xl px-4 py-3 text-[15px] focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white";
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-[110] animate-fade-in" onClick={onClose}>
       <div className="bg-white rounded-t-2xl shadow-sm w-full max-w-[430px] animate-slide-up max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#C6C6C8] shrink-0">

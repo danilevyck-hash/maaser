@@ -133,7 +133,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-[110] animate-fade-in" onClick={onClose}>
       <div className="bg-white rounded-t-2xl shadow-sm w-full max-w-[430px] animate-slide-up" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#C6C6C8]">
           <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer">Cancelar</button>

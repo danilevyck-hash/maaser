@@ -625,7 +625,7 @@ export default function FinanzasDashboard() {
 
       {/* Delete confirmation */}
       {confirmDeleteId !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50" onClick={() => setConfirmDeleteId(null)}>
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-[110]" onClick={() => setConfirmDeleteId(null)}>
           <div className="bg-white rounded-t-2xl w-full max-w-[430px] mb-0 overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 text-center">
               <h3 className="text-[17px] font-semibold text-[#1C1C1E]">Eliminar gasto</h3>

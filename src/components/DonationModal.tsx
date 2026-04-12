@@ -68,7 +68,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   const inputClass = "w-full border border-[#C6C6C8] rounded-xl px-4 py-3 text-[15px] focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white";
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-[110] animate-fade-in" onClick={onClose}>
       <div
         className="bg-white rounded-t-2xl shadow-sm w-full max-w-[430px] animate-slide-up"
         onClick={(e) => e.stopPropagation()}
