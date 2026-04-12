@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Donation } from "@/lib/supabase";
 import { formatDate, formatDateExport, formatCurrency } from "@/lib/format";
 import {
@@ -26,6 +26,13 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
   const hebrewYear = getCurrentHebrewYear();
   const currentYearData = getHebrewYearData(hebrewYear);
@@ -133,14 +140,16 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-[110] animate-fade-in" onClick={onClose}>
-      <div className="bg-white rounded-t-2xl shadow-sm w-full max-w-[430px] animate-slide-up" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#C6C6C8]">
-          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer">Cancelar</button>
+    <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">
+            Cancelar
+          </button>
           <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Exportar</h2>
           <div className="w-16" />
         </div>
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="grid grid-cols-2 gap-2">
             {presets.map((p) => (
               <button key={p.key} onClick={() => setPreset(p.key)}
@@ -162,7 +171,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
               </div>
             </div>
           )}
-          <div className="bg-[#F2F2F7] rounded-xl p-3 text-center space-y-1">
+          <div className="bg-white rounded-xl p-3 text-center space-y-1">
             <p className="text-[13px] text-[#8E8E93]">{rangeLabel}</p>
             <p className="text-[15px] text-[#1C1C1E] font-medium">{filtered.length} donacion{filtered.length !== 1 ? "es" : ""}</p>
             <p className="text-[13px] text-[#8E8E93]">Total: {formatCurrency(totalAmount)}</p>

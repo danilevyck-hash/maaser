@@ -26,6 +26,13 @@ const MONTH_ABBR_ES = [
   "jul", "ago", "sep", "oct", "nov", "dic",
 ];
 
+export function formatDateShort(dateStr: string): string {
+  if (!dateStr) return "-";
+  const [year, month, day] = dateStr.split("-");
+  const monthIdx = parseInt(month, 10) - 1;
+  return `${parseInt(day, 10)} ${MONTH_ABBR_ES[monthIdx]} ${year}`;
+}
+
 export function formatDateExport(dateStr: string): string {
   if (!dateStr) return "-";
   const [year, month, day] = dateStr.split("-");

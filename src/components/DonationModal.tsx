@@ -68,23 +68,23 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   const inputClass = "w-full border border-[#C6C6C8] rounded-xl px-4 py-3 text-[15px] focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white";
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-[110] animate-fade-in" onClick={onClose}>
-      <div
-        className="bg-white rounded-t-2xl shadow-sm w-full max-w-[430px] animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#C6C6C8]">
-          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer">
+    <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">
             Cancelar
           </button>
           <h2 className="text-[17px] font-semibold text-[#1C1C1E]">
             {editingDonation ? "Editar Donacion" : "Nueva Donacion"}
           </h2>
-          <div className="w-16" />
+          <button
+            type="submit" disabled={saving}
+            className="text-[#007AFF] text-[15px] font-bold bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]"
+          >
+            {saving ? "..." : editingDonation ? "Guardar" : "Agregar"}
+          </button>
         </div>
-
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Fecha</label>
@@ -118,14 +118,8 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
             <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Notas</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={`${inputClass} resize-none`} placeholder="Opcional..." rows={2} />
           </div>
-          <button
-            type="submit" disabled={saving}
-            className="w-full h-12 rounded-xl bg-[#007AFF] text-white font-semibold text-[17px] border-0 cursor-pointer active:bg-[#0056b3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {saving ? "Guardando..." : editingDonation ? "Guardar Cambios" : "Agregar"}
-          </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

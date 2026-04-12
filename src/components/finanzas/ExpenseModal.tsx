@@ -174,23 +174,21 @@ export default function ExpenseModal({
     }`;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[110]" onClick={onClose}>
+    <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-        style={{ animation: "slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}
+        className="flex flex-col h-full"
       >
-        <div className="flex items-center justify-between p-4 border-b border-[#C6C6C8]/30">
-          <button type="button" onClick={onClose} className="text-[17px] text-[#007AFF] min-w-[70px] text-left bg-transparent border-0">Cancelar</button>
+        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">Cancelar</button>
           <h2 className="text-[17px] font-semibold text-[#1C1C1E]">
             {editingExpense ? "Editar Gasto" : "Nuevo Gasto"}
           </h2>
-          <button type="submit" disabled={saving} className="text-[17px] text-[#007AFF] font-semibold min-w-[70px] text-right disabled:opacity-50 bg-transparent border-0">
+          <button type="submit" disabled={saving} className="text-[#007AFF] text-[15px] font-bold bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]">
             {saving ? "..." : "Guardar"}
           </button>
         </div>
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           {/* Monto */}
           <div>
             <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Monto ($)</label>
@@ -310,3 +308,4 @@ export default function ExpenseModal({
     </div>
   );
 }
+
