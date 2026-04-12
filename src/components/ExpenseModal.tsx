@@ -74,10 +74,10 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
           <div>
             <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Monto ($)</label>
             <input
-              type="number" step="0.01" min="0.01" value={amount}
-              onChange={(e) => { setAmount(e.target.value); setAmountError(""); }}
+              type="text" inputMode="decimal" value={amount}
+              onChange={(e) => { const v = e.target.value.replace(/[^0-9.]/g, ""); setAmount(v); setAmountError(""); }}
               className={`${inputClass} ${amountError ? "!border-[#FF3B30] ring-2 ring-[#FF3B30]/20" : ""}`}
-              placeholder="0.00" required
+              placeholder="Monto" required
             />
             {amountError && <p className="text-[#FF3B30] text-[13px] mt-1">{amountError}</p>}
           </div>
