@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Expense } from "@/lib/supabase";
 
 type Props = {
@@ -37,7 +38,10 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
     setAmountError("");
   }, [editingExpense, isOpen]);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,8 +58,12 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
 
   const inputClass = "w-full border border-[#C6C6C8] rounded-xl px-4 py-3 text-[15px] focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white";
 
-  return (
-    <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+  return createPortal(
+    <div
+      className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[110] animate-slide-up"
+      style={{ height: "100dvh" }}
+      onClick={(e) => e.stopPropagation()}
+    >
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
           <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">
@@ -92,6 +100,7 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
           </div>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body
   );
 }
