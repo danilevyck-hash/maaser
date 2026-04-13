@@ -43,13 +43,19 @@ export default function ModuleLayout({ title, tabs, activeTab, onTabChange, chil
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
-        <div className="max-w-[430px] mx-auto pb-24">
+        <div
+          className="max-w-[430px] mx-auto"
+          style={{ paddingBottom: "calc(96px + env(safe-area-inset-bottom))" }}
+        >
           {children}
         </div>
       </div>
 
       {/* iOS-style bottom tab bar */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/80 backdrop-blur-xl border-t border-[#C6C6C8] flex pb-8 pt-2 z-[100]">
+      <div
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/80 backdrop-blur-xl border-t border-[#C6C6C8] flex pt-2 z-[100]"
+        style={{ paddingBottom: "calc(8px + env(safe-area-inset-bottom))" }}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Donation } from "@/lib/supabase";
 import { formatDate, formatDateExport, formatCurrency } from "@/lib/format";
 import {
@@ -60,7 +61,10 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
 
   const totalAmount = useMemo(() => filtered.reduce((s, d) => s + d.amount, 0), [filtered]);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const presets: { key: FilterPreset; label: string }[] = [
     { key: "current_year", label: `Este ano (${hebrewYear})` },
@@ -139,8 +143,12 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
     } finally { setExporting(false); }
   };
 
-  return (
-    <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+  return createPortal(
+    <div
+      className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[110] animate-slide-up"
+      style={{ height: "100dvh" }}
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
           <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">
@@ -188,6 +196,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

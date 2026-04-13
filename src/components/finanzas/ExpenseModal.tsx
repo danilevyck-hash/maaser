@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { FinanceExpense, FinanceCategory, PAYMENT_METHODS } from "@/lib/supabase";
 import { detectCategory } from "@/lib/finance-categories";
 import { useToast } from "@/components/Toast";
@@ -133,7 +134,10 @@ export default function ExpenseModal({
     }
   }, [editingExpense, isOpen, categories, defaultCategory, defaultPaymentMethod, todayStr]);
 
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,8 +177,12 @@ export default function ExpenseModal({
         : "bg-[#E5E5EA] text-[#8E8E93]"
     }`;
 
-  return (
-    <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+  return createPortal(
+    <div
+      className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[110] animate-slide-up"
+      style={{ height: "100dvh" }}
+      onClick={(e) => e.stopPropagation()}
+    >
       <form
         onSubmit={handleSubmit}
         className="flex flex-col h-full"
@@ -305,7 +313,8 @@ export default function ExpenseModal({
           )}
         </div>
       </form>
-    </div>
+    </div>,
+    document.body
   );
 }
 

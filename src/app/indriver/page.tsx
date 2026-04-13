@@ -81,6 +81,7 @@ export default function InDriverPage() {
 
   const totalMonth = expenses.reduce((sum, e) => sum + e.amount, 0);
 
+  // Full-history fetch — only when export modal opens (lazy)
   const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
   const fetchAllExpenses = useCallback(async () => {
     try {
@@ -95,7 +96,10 @@ export default function InDriverPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { fetchAllExpenses(); }, [fetchAllExpenses]);
+  // Only fetch all expenses when the user actually opens the export modal
+  useEffect(() => {
+    if (exportOpen) fetchAllExpenses();
+  }, [exportOpen, fetchAllExpenses]);
 
   const handleSave = async (expense: Partial<Expense>) => {
     if (saving) return;
@@ -115,7 +119,8 @@ export default function InDriverPage() {
       setEditing(null);
       showToast(expense.id ? "Gasto actualizado" : "Gasto guardado");
       fetchExpenses();
-      fetchAllExpenses();
+      // Invalidate the full-history cache so next export reload reflects the change
+      if (exportOpen) fetchAllExpenses();
     } finally {
       setSaving(false);
     }
@@ -138,7 +143,8 @@ export default function InDriverPage() {
       setConfirmingDeleteId(null);
       showToast("Gasto eliminado");
       fetchExpenses();
-      fetchAllExpenses();
+      // Invalidate the full-history cache so next export reload reflects the change
+      if (exportOpen) fetchAllExpenses();
     } catch {
       showToast("Error al eliminar", "error");
     } finally {
