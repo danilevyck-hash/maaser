@@ -145,7 +145,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
 
   return createPortal(
     <div
-      className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[110] animate-slide-up"
+      className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[9999] animate-slide-up"
       style={{ height: "100dvh" }}
       onClick={(e) => e.stopPropagation()}
     >

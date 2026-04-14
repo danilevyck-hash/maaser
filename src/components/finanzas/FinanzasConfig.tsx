@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { FinanceCategory, FinanceBudget, FinanceRecurring, PAYMENT_METHODS } from "@/lib/supabase";
 import { DEFAULT_CATEGORIES } from "@/lib/finance-categories";
 import { useToast } from "@/components/Toast";
@@ -8,6 +9,9 @@ import { formatCurrency } from "@/lib/format";
 
 export default function FinanzasConfig() {
   const { showToast } = useToast();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
   const [budgets, setBudgets] = useState<FinanceBudget[]>([]);
@@ -305,8 +309,12 @@ export default function FinanzasConfig() {
       </div>
 
       {/* Bulk Budget Modal */}
-      {bulkBudgetOpen && (
-        <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+      {bulkBudgetOpen && mounted && createPortal(
+        <div
+          className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[9999] animate-slide-up"
+          style={{ height: "100dvh" }}
+          onClick={(e) => e.stopPropagation()}
+        >
           <form
             onSubmit={handleBudgetSubmit}
             className="flex flex-col h-full"
@@ -340,12 +348,17 @@ export default function FinanzasConfig() {
               ))}
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Recurring Expenses Modal */}
-      {recurringOpen && (
-        <div className="fixed inset-0 bg-[#F2F2F7] z-[110] animate-slide-up" onClick={(e) => e.stopPropagation()}>
+      {recurringOpen && mounted && createPortal(
+        <div
+          className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[9999] animate-slide-up"
+          style={{ height: "100dvh" }}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div
             className="flex flex-col h-full"
           >
@@ -500,7 +513,8 @@ export default function FinanzasConfig() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
