@@ -129,7 +129,7 @@ export default function MaaserPage() {
       }
       setModalOpen(false);
       setEditing(null);
-      showToast(donation.id ? "Donacion actualizada" : "Donacion guardada");
+      showToast(donation.id ? "Donación actualizada" : "Donación guardada");
       fetchDonations();
     } finally {
       setSaving(false);
@@ -151,7 +151,7 @@ export default function MaaserPage() {
         return;
       }
       setConfirmingDeleteId(null);
-      showToast("Donacion eliminada");
+      showToast("Donación eliminada");
       fetchDonations();
     } catch {
       showToast("Error al eliminar", "error");
@@ -343,7 +343,7 @@ function DashboardContent({
           onClick={() => { setEditing(null); setModalOpen(true); }}
           className="flex-1 h-12 rounded-xl bg-[#007AFF] text-white font-semibold text-[15px] border-0 cursor-pointer active:bg-[#0056b3] transition-colors"
         >
-          + Nueva Donacion
+          + Nueva Donación
         </button>
       </div>
 
@@ -399,7 +399,7 @@ function DashboardContent({
               )}
               {confirmingDeleteId === d.id ? (
                 <div className="mt-3 pt-3 border-t border-[#C6C6C8]">
-                  <p className="text-[13px] text-[#FF3B30] font-medium mb-2">Eliminar esta donacion?</p>
+                  <p className="text-[13px] text-[#FF3B30] font-medium mb-2">¿Eliminar esta donación?</p>
                   <div className="flex gap-2">
                     <button onClick={() => handleDelete(d.id)} disabled={deleting} className="flex-1 h-11 rounded-lg bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50">{deleting ? "..." : "Si"}</button>
                     <button onClick={() => setConfirmingDeleteId(null)} className="flex-1 h-11 rounded-lg bg-[#E5E5EA] text-[#1C1C1E] font-semibold text-[15px] border-0 cursor-pointer">No</button>
@@ -619,7 +619,7 @@ function ResumenContent() {
               <div className="text-right ml-4 shrink-0">
                 <p className={`text-[17px] font-bold ${m.total > 0 ? "text-[#1C1C1E]" : "text-[#8E8E93]"}`}>{formatCurrency(m.total)}</p>
                 <p className="text-[13px] text-[#8E8E93]">
-                  {m.count} {m.count === 1 ? "donacion" : "donaciones"}
+                  {m.count} {m.count === 1 ? "donación" : "donaciones"}
                   {m.pct > 0 && <span className="ml-1 text-[#007AFF] font-medium">· {m.pct.toFixed(1)}%</span>}
                 </p>
               </div>
@@ -629,7 +629,7 @@ function ResumenContent() {
           <div className="bg-[#007AFF] rounded-2xl p-4 flex items-center justify-between">
             <div>
               <p className="text-[17px] font-bold text-white">Total Anual</p>
-              <p className="text-[13px] text-white/70">{donations.length} {donations.length === 1 ? "donacion" : "donaciones"}</p>
+              <p className="text-[13px] text-white/70">{donations.length} {donations.length === 1 ? "donación" : "donaciones"}</p>
             </div>
             <p className="text-[17px] font-bold text-white">{formatCurrency(annualTotal)}</p>
           </div>

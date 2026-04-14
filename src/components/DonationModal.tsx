@@ -83,7 +83,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
             Cancelar
           </button>
           <h2 className="text-[17px] font-semibold text-[#1C1C1E]">
-            {editingDonation ? "Editar Donacion" : "Nueva Donacion"}
+            {editingDonation ? "Editar Donación" : "Nueva Donación"}
           </h2>
           <button
             type="submit" disabled={saving}

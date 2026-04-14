@@ -181,7 +181,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
           )}
           <div className="bg-white rounded-xl p-3 text-center space-y-1">
             <p className="text-[13px] text-[#8E8E93]">{rangeLabel}</p>
-            <p className="text-[15px] text-[#1C1C1E] font-medium">{filtered.length} donacion{filtered.length !== 1 ? "es" : ""}</p>
+            <p className="text-[15px] text-[#1C1C1E] font-medium">{filtered.length} donaci{filtered.length !== 1 ? "ones" : "ón"}</p>
             <p className="text-[13px] text-[#8E8E93]">Total: {formatCurrency(totalAmount)}</p>
           </div>
           <div className="flex gap-3">
