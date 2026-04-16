@@ -77,22 +77,22 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
         </div>
         <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           <div>
-            <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Fecha</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} required />
-          </div>
-          <div>
             <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Monto ($)</label>
             <input
               type="text" inputMode="decimal" value={amount}
               onChange={(e) => { const v = e.target.value.replace(/[^0-9.]/g, ""); setAmount(v); setAmountError(""); }}
               className={`${inputClass} ${amountError ? "!border-[#FF3B30] ring-2 ring-[#FF3B30]/20" : ""}`}
-              placeholder="Monto" required
+              placeholder="Monto" autoFocus required
             />
             {amountError && <p className="text-[#FF3B30] text-[13px] mt-1">{amountError}</p>}
           </div>
           <div>
+            <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Fecha</label>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} required />
+          </div>
+          <div>
             <label className="block text-[13px] font-medium text-[#8E8E93] mb-1.5">Notas</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={`${inputClass} resize-none`} placeholder="Descripcion del gasto..." rows={3} />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={`${inputClass} resize-none`} placeholder="Descripción del gasto..." rows={3} />
           </div>
         </div>
       </form>
