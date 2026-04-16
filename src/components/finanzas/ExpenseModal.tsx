@@ -31,7 +31,6 @@ export default function ExpenseModal({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const notesRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const [showDetails, setShowDetails] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
   const [manualCategoryChange, setManualCategoryChange] = useState(false);
 
@@ -127,11 +126,6 @@ export default function ExpenseModal({
     setShowSuggestions(false);
     setAutoDetected(false);
     setManualCategoryChange(false);
-    if (editingExpense) {
-      setShowDetails(true);
-    } else {
-      setShowDetails(false);
-    }
   }, [editingExpense, isOpen, categories, defaultCategory, defaultPaymentMethod, todayStr]);
 
   const [mounted, setMounted] = useState(false);
@@ -237,80 +231,74 @@ export default function ExpenseModal({
             )}
           </div>
 
-          {/* Toggle for more details */}
-          <button type="button" onClick={() => setShowDetails(!showDetails)}
-            className="w-full py-2 text-[15px] text-[#007AFF] font-medium bg-transparent border-0">
-            {showDetails ? "Menos detalles" : "Mas detalles"}
-          </button>
-
-          {/* Expandable details section */}
-          {showDetails && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Fecha</label>
-                <div className="flex gap-2 mb-1.5">
-                  <button type="button" onClick={() => setDate(todayStr)} className={dateShortcutClass(todayStr)}>
-                    Hoy
-                  </button>
-                  <button type="button" onClick={() => setDate(yesterdayStr)} className={dateShortcutClass(yesterdayStr)}>
-                    Ayer
-                  </button>
-                  <button type="button" onClick={() => setDate(dayBeforeStr)} className={dateShortcutClass(dayBeforeStr)}>
-                    Anteayer
-                  </button>
-                </div>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
-                  required
-                />
-              </div>
-              <div className="relative">
-                <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Notas</label>
-                <input
-                  ref={notesRef}
-                  type="text"
-                  value={notes}
-                  onChange={(e) => { setNotes(e.target.value); setShowSuggestions(true); }}
-                  onFocus={() => setShowSuggestions(true)}
-                  className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
-                  placeholder="Descripcion del gasto..."
-                />
-                {showSuggestions && filteredSuggestions.length > 0 && (
-                  <div
-                    ref={suggestionsRef}
-                    className="flex flex-wrap gap-1.5 mt-1.5"
-                  >
-                    {filteredSuggestions.map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => { setNotes(s); setShowSuggestions(false); }}
-                        className="text-xs px-2.5 py-1 rounded-lg bg-[#E5E5EA] text-[#8E8E93] hover:bg-[#007AFF] hover:text-white transition-colors truncate max-w-[200px]"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Metodo de Pago</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
-                  required
-                >
-                  {PAYMENT_METHODS.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
+          {/* Fecha */}
+          <div>
+            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Fecha</label>
+            <div className="flex gap-2 mb-1.5">
+              <button type="button" onClick={() => setDate(todayStr)} className={dateShortcutClass(todayStr)}>
+                Hoy
+              </button>
+              <button type="button" onClick={() => setDate(yesterdayStr)} className={dateShortcutClass(yesterdayStr)}>
+                Ayer
+              </button>
+              <button type="button" onClick={() => setDate(dayBeforeStr)} className={dateShortcutClass(dayBeforeStr)}>
+                Anteayer
+              </button>
             </div>
-          )}
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+              required
+            />
+          </div>
+
+          {/* Metodo de Pago */}
+          <div>
+            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Método de Pago</label>
+            <select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
+              required
+            >
+              {PAYMENT_METHODS.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Notas */}
+          <div className="relative">
+            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Notas</label>
+            <input
+              ref={notesRef}
+              type="text"
+              value={notes}
+              onChange={(e) => { setNotes(e.target.value); setShowSuggestions(true); }}
+              onFocus={() => setShowSuggestions(true)}
+              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+              placeholder="Descripción del gasto..."
+            />
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className="flex flex-wrap gap-1.5 mt-1.5"
+              >
+                {filteredSuggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => { setNotes(s); setShowSuggestions(false); }}
+                    className="text-xs px-2.5 py-1 rounded-lg bg-[#E5E5EA] text-[#8E8E93] hover:bg-[#007AFF] hover:text-white transition-colors truncate max-w-[200px]"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </form>
     </div>,

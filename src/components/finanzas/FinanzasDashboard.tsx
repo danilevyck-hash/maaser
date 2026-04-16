@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { FinanceExpense, FinanceCategory, FinanceBudget } from "@/lib/supabase";
 import { formatCurrency, formatDate, MONTH_NAMES } from "@/lib/format";
 import { useToast } from "@/components/Toast";
@@ -9,6 +10,9 @@ import React from "react";
 
 export default function FinanzasDashboard() {
   const { showToast } = useToast();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const now = new Date();
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -624,25 +628,30 @@ export default function FinanzasDashboard() {
       </div>
 
       {/* Delete confirmation */}
-      {confirmDeleteId !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-[110]" onClick={() => setConfirmDeleteId(null)}>
-          <div className="bg-white rounded-t-2xl w-full max-w-[430px] mb-0 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      {confirmDeleteId !== null && mounted && createPortal(
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
+          onClick={() => setConfirmDeleteId(null)}
+        >
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 text-center">
               <h3 className="text-[17px] font-semibold text-[#1C1C1E]">Eliminar gasto</h3>
-              <p className="text-[13px] text-[#8E8E93] mt-2">Esta accion no se puede deshacer.</p>
+              <p className="text-[13px] text-[#8E8E93] mt-2">Esta acción no se puede deshacer.</p>
             </div>
             <div className="border-t border-[#C6C6C8]/30">
               <button onClick={handleDeleteConfirm}
-                className="w-full py-3 text-[17px] text-red-500 font-medium border-b border-[#C6C6C8]/30 bg-transparent">
+                className="w-full py-3 text-[17px] text-red-500 font-medium border-b border-[#C6C6C8]/30 bg-transparent min-h-[44px]">
                 Eliminar
               </button>
               <button onClick={() => setConfirmDeleteId(null)}
-                className="w-full py-3 text-[17px] text-[#007AFF] font-semibold bg-transparent border-0">
+                className="w-full py-3 text-[17px] text-[#007AFF] font-semibold bg-transparent border-0 min-h-[44px]">
                 Cancelar
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <ExpenseModal
