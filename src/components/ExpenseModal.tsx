@@ -82,7 +82,7 @@ export default function ExpenseModal({ isOpen, onClose, onSave, editingExpense, 
               type="text" inputMode="decimal" value={amount}
               onChange={(e) => { const v = e.target.value.replace(/[^0-9.]/g, ""); setAmount(v); setAmountError(""); }}
               className={`${inputClass} ${amountError ? "!border-[#FF3B30] ring-2 ring-[#FF3B30]/20" : ""}`}
-              placeholder="Monto" autoFocus required
+              placeholder="Monto" required
             />
             {amountError && <p className="text-[#FF3B30] text-[13px] mt-1">{amountError}</p>}
           </div>

@@ -198,7 +198,6 @@ export default function ExpenseModal({
               onChange={(e) => setAmount(e.target.value)}
               className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
               placeholder="0.00"
-              autoFocus
               required
             />
           </div>
