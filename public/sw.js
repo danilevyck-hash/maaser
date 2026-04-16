@@ -1,4 +1,4 @@
-const CACHE_NAME = "maaser-v2";
+const CACHE_NAME = "maaser-v3";
 const PRECACHE_URLS = [
   "/",
   "/resumen",
