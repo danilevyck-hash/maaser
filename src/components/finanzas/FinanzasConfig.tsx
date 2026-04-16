@@ -6,6 +6,7 @@ import { FinanceCategory, FinanceBudget, FinanceRecurring, PAYMENT_METHODS } fro
 import { DEFAULT_CATEGORIES } from "@/lib/finance-categories";
 import { useToast } from "@/components/Toast";
 import { formatCurrency } from "@/lib/format";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 export default function FinanzasConfig() {
   const { showToast } = useToast();
@@ -24,6 +25,10 @@ export default function FinanzasConfig() {
 
   // Recurring state
   const [recurringOpen, setRecurringOpen] = useState(false);
+
+  // Lock body scroll when any modal is open (prevents iOS keyboard bug)
+  useBodyScrollLock(bulkBudgetOpen || recurringOpen);
+
   const [recurringItems, setRecurringItems] = useState<FinanceRecurring[]>([]);
   const [recurringLoading, setRecurringLoading] = useState(false);
   const [showRecurringForm, setShowRecurringForm] = useState(false);

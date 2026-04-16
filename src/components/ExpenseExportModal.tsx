@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Expense } from "@/lib/supabase";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { formatDate, formatDateExport, formatCurrency } from "@/lib/format";
 
 type Props = {
@@ -24,12 +25,7 @@ export default function ExpenseExportModal({ isOpen, onClose, expenses }: Props)
   const [customTo, setCustomTo] = useState("");
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   const today = new Date();
   const thisYear = today.getFullYear();

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { FinanceExpense, FinanceCategory, PAYMENT_METHODS } from "@/lib/supabase";
 import { detectCategory } from "@/lib/finance-categories";
 import { useToast } from "@/components/Toast";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 type Props = {
   isOpen: boolean;
@@ -42,12 +43,7 @@ export default function ExpenseModal({
   dayBeforeDate.setDate(dayBeforeDate.getDate() - 2);
   const dayBeforeStr = dayBeforeDate.toISOString().split("T")[0];
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   // Fetch note suggestions when category changes
   useEffect(() => {

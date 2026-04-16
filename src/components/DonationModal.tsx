@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Donation } from "@/lib/supabase";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 type Props = {
   isOpen: boolean;
@@ -20,12 +21,7 @@ export default function DonationModal({ isOpen, onClose, onSave, editingDonation
   const [notes, setNotes] = useState("");
   const [amountError, setAmountError] = useState("");
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
     if (editingDonation) {
