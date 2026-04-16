@@ -316,7 +316,7 @@ export default function FinanzasConfig() {
       {/* Bulk Budget Modal */}
       {bulkBudgetOpen && mounted && createPortal(
         <div
-          className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[9999] animate-slide-up"
+          className="fixed inset-0 bg-[#F2F2F7] z-[9999] animate-fade-in"
           style={{ height: "100dvh" }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -360,7 +360,7 @@ export default function FinanzasConfig() {
       {/* Recurring Expenses Modal */}
       {recurringOpen && mounted && createPortal(
         <div
-          className="fixed top-0 left-0 right-0 bg-[#F2F2F7] z-[9999] animate-slide-up"
+          className="fixed inset-0 bg-[#F2F2F7] z-[9999] animate-fade-in"
           style={{ height: "100dvh" }}
           onClick={(e) => e.stopPropagation()}
         >
