@@ -5,38 +5,51 @@ export const dynamic = "force-dynamic";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const id = params?.id?.trim();
-  console.log("[por-cobrar/clientes/[id]] GET", { id });
+  console.log("[por-cobrar/clientes/[id]] GET", { id, rawParams: params });
 
   if (!id) {
     return NextResponse.json({ error: "ID requerido" }, { status: 400 });
   }
 
-  const { data: cliente, error: errCliente } = await supabase
+  // Use same pattern as the working list endpoint: select * then filter in JS.
+  // Avoids any .eq() / UUID / column-type surprises.
+  const { data: clientes, error: errClientes } = await supabase
     .from("cxc_clientes")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+    .select("*");
 
-  if (errCliente) {
-    console.error("[por-cobrar/clientes/[id]] cliente error", errCliente);
-    return NextResponse.json({ error: errCliente.message }, { status: 500 });
+  if (errClientes) {
+    console.error("[por-cobrar/clientes/[id]] clientes error", errClientes);
+    return NextResponse.json({ error: errClientes.message }, { status: 500 });
   }
+
+  const cliente = (clientes || []).find((c) => String(c.id) === id);
+  console.log("[por-cobrar/clientes/[id]] cliente found?", !!cliente, "of", clientes?.length);
 
   if (!cliente) {
     return NextResponse.json({ error: `Cliente ${id} no existe` }, { status: 404 });
   }
 
-  const { data: movimientos, error: errMovs } = await supabase
+  const { data: allMovs, error: errMovs } = await supabase
     .from("cxc_movimientos")
-    .select("*")
-    .eq("cliente_id", id)
-    .order("fecha", { ascending: true })
-    .order("id", { ascending: true });
+    .select("*");
 
   if (errMovs) {
     console.error("[por-cobrar/clientes/[id]] movs error", errMovs);
     return NextResponse.json({ error: errMovs.message }, { status: 500 });
   }
 
-  return NextResponse.json({ cliente, movimientos: movimientos || [] });
+  const movimientos = (allMovs || [])
+    .filter((m) => String(m.cliente_id) === id)
+    .sort((a, b) => {
+      if (a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha);
+      return String(a.id).localeCompare(String(b.id));
+    });
+
+  console.log("[por-cobrar/clientes/[id]] movimientos", {
+    totalMovs: allMovs?.length,
+    filtered: movimientos.length,
+    sampleCliente: allMovs?.[0]?.cliente_id,
+  });
+
+  return NextResponse.json({ cliente, movimientos });
 }
