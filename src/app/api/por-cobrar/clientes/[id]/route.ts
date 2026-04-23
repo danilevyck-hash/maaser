@@ -4,19 +4,27 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const id = parseInt(params.id, 10);
-  if (!id) {
-    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  const rawId = params?.id;
+  const id = parseInt(rawId, 10);
+  console.log("[por-cobrar/clientes/[id]] GET", { rawId, id });
+
+  if (!id || isNaN(id)) {
+    return NextResponse.json({ error: `ID inválido: ${rawId}` }, { status: 400 });
   }
 
   const { data: cliente, error: errCliente } = await supabase
     .from("cxc_clientes")
     .select("*")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (errCliente) {
-    return NextResponse.json({ error: errCliente.message }, { status: 404 });
+    console.error("[por-cobrar/clientes/[id]] cliente error", errCliente);
+    return NextResponse.json({ error: errCliente.message }, { status: 500 });
+  }
+
+  if (!cliente) {
+    return NextResponse.json({ error: `Cliente ${id} no existe` }, { status: 404 });
   }
 
   const { data: movimientos, error: errMovs } = await supabase
@@ -27,6 +35,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     .order("id", { ascending: true });
 
   if (errMovs) {
+    console.error("[por-cobrar/clientes/[id]] movs error", errMovs);
     return NextResponse.json({ error: errMovs.message }, { status: 500 });
   }
 

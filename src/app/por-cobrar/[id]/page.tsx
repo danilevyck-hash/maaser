@@ -18,8 +18,9 @@ import MovimientoModal from "@/components/por-cobrar/MovimientoModal";
 
 export default function ClienteDetallePage() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const clienteId = parseInt(params.id, 10);
+  const params = useParams();
+  const rawId = params?.id;
+  const clienteId = Number(Array.isArray(rawId) ? rawId[0] : rawId);
   const { showToast } = useToast();
 
   const [cliente, setCliente] = useState<CxcCliente | null>(null);
@@ -32,16 +33,25 @@ export default function ClienteDetallePage() {
   const [savingMov, setSavingMov] = useState(false);
 
   const fetchData = useCallback(async () => {
+    const url = `/api/por-cobrar/clientes/${clienteId}`;
     try {
-      const res = await fetch(`/api/por-cobrar/clientes/${clienteId}`);
+      const res = await fetch(url, { cache: "no-store" });
+      const text = await res.text();
+      console.log("[por-cobrar detalle] fetch", { url, status: res.status, body: text });
       if (!res.ok) {
-        showToast("No se pudo cargar el cliente", "error");
+        let msg = `HTTP ${res.status}`;
+        try {
+          const j = JSON.parse(text);
+          if (j?.error) msg = j.error;
+        } catch {}
+        showToast(`No se pudo cargar el cliente: ${msg}`, "error");
         return;
       }
-      const data = await res.json();
+      const data = JSON.parse(text);
       setCliente(data.cliente);
       setMovimientos(Array.isArray(data.movimientos) ? data.movimientos : []);
-    } catch {
+    } catch (e) {
+      console.error("[por-cobrar detalle] fetch error", e);
       showToast("Error de conexión", "error");
     } finally {
       setLoading(false);
