@@ -30,6 +30,7 @@ export default function ClienteDetallePage() {
   const [savingCliente, setSavingCliente] = useState(false);
   const [movOpen, setMovOpen] = useState(false);
   const [movTipo, setMovTipo] = useState<CxcMovimientoTipo>("cargo");
+  const [editingMov, setEditingMov] = useState<CxcMovimiento | null>(null);
   const [savingMov, setSavingMov] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -69,8 +70,15 @@ export default function ClienteDetallePage() {
   const balance = useMemo(() => calcBalance(movimientos), [movimientos]);
   const grupos = useMemo(() => groupMovimientosPorMes(movimientos), [movimientos]);
 
-  const openMovModal = (tipo: CxcMovimientoTipo) => {
+  const openNewMov = (tipo: CxcMovimientoTipo) => {
+    setEditingMov(null);
     setMovTipo(tipo);
+    setMovOpen(true);
+  };
+
+  const openEditMov = (m: CxcMovimiento) => {
+    setEditingMov(m);
+    setMovTipo(m.tipo);
     setMovOpen(true);
   };
 
@@ -120,16 +128,23 @@ export default function ClienteDetallePage() {
   const handleSaveMov = async (data: { fecha: string; monto: number; descripcion: string }) => {
     setSavingMov(true);
     try {
-      const res = await fetch("/api/por-cobrar/movimientos", {
-        method: "POST",
+      const isEdit = !!editingMov;
+      const url = isEdit
+        ? `/api/por-cobrar/movimientos/${editingMov!.id}`
+        : "/api/por-cobrar/movimientos";
+      const body = isEdit
+        ? { fecha: data.fecha, monto: data.monto, descripcion: data.descripcion }
+        : {
+            cliente_id: clienteId,
+            tipo: movTipo,
+            fecha: data.fecha,
+            monto: data.monto,
+            descripcion: data.descripcion,
+          };
+      const res = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cliente_id: clienteId,
-          tipo: movTipo,
-          fecha: data.fecha,
-          monto: data.monto,
-          descripcion: data.descripcion,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
@@ -137,12 +152,33 @@ export default function ClienteDetallePage() {
         return;
       }
       setMovOpen(false);
-      showToast("Movimiento agregado");
+      setEditingMov(null);
+      showToast(isEdit ? "Movimiento actualizado" : "Movimiento agregado");
       fetchData();
     } catch {
       showToast("Error de conexión", "error");
     } finally {
       setSavingMov(false);
+    }
+  };
+
+  const handleDeleteMov = async () => {
+    if (!editingMov) return;
+    try {
+      const res = await fetch(`/api/por-cobrar/movimientos/${editingMov.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        showToast(d.error || "Error al eliminar", "error");
+        return;
+      }
+      setMovOpen(false);
+      setEditingMov(null);
+      showToast("Movimiento eliminado");
+      fetchData();
+    } catch {
+      showToast("Error de conexión", "error");
     }
   };
 
@@ -225,7 +261,7 @@ export default function ClienteDetallePage() {
               {movimientos.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-[15px] text-[#8E8E93]">Sin movimientos</p>
-                  <p className="text-[13px] text-[#8E8E93] mt-1">Agrega un cargo, abono o ajuste abajo</p>
+                  <p className="text-[13px] text-[#8E8E93] mt-1">Agrega un cargo o abono abajo</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -247,9 +283,11 @@ export default function ClienteDetallePage() {
                               : "text-[#007AFF]";
                           const tipoLabel = esCargo ? "Cargo" : esAbono ? "Abono" : "Ajuste";
                           return (
-                            <div
+                            <button
                               key={m.id}
-                              className="flex items-center py-3 px-4"
+                              type="button"
+                              onClick={() => openEditMov(m)}
+                              className="w-full flex items-center py-3 px-4 text-left bg-transparent border-0 active:bg-[#E5E5EA]/50 transition-colors cursor-pointer"
                               style={i > 0 ? { borderTop: "1px solid rgba(198,198,200,0.3)" } : undefined}
                             >
                               <div className="w-10 shrink-0 text-center">
@@ -264,7 +302,7 @@ export default function ClienteDetallePage() {
                               <p className={`text-[15px] font-semibold tabular-nums ${color} ml-3`}>
                                 {signo}{formatCurrency(Number(m.monto))}
                               </p>
-                            </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -282,24 +320,18 @@ export default function ClienteDetallePage() {
           className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/90 backdrop-blur-xl border-t border-[#C6C6C8] px-3 pt-2 z-40"
           style={{ paddingBottom: "calc(8px + env(safe-area-inset-bottom))" }}
         >
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
-              onClick={() => openMovModal("cargo")}
-              className="flex-1 py-3 rounded-xl bg-[#1C1C1E] text-white text-[15px] font-semibold border-0 active:opacity-80 min-h-[44px]"
+              onClick={() => openNewMov("cargo")}
+              className="flex-1 py-4 rounded-2xl bg-[#1C1C1E] text-white text-[17px] font-semibold border-0 active:opacity-80 min-h-[52px]"
             >
               + Cargo
             </button>
             <button
-              onClick={() => openMovModal("abono")}
-              className="flex-1 py-3 rounded-xl bg-green-500 text-white text-[15px] font-semibold border-0 active:opacity-80 min-h-[44px]"
+              onClick={() => openNewMov("abono")}
+              className="flex-1 py-4 rounded-2xl bg-green-500 text-white text-[17px] font-semibold border-0 active:opacity-80 min-h-[52px]"
             >
               + Abono
-            </button>
-            <button
-              onClick={() => openMovModal("ajuste")}
-              className="flex-1 py-3 rounded-xl bg-[#007AFF] text-white text-[15px] font-semibold border-0 active:opacity-80 min-h-[44px]"
-            >
-              + Ajuste
             </button>
           </div>
         </div>
@@ -317,8 +349,10 @@ export default function ClienteDetallePage() {
       <MovimientoModal
         isOpen={movOpen}
         tipo={movTipo}
-        onClose={() => setMovOpen(false)}
+        editing={editingMov}
+        onClose={() => { setMovOpen(false); setEditingMov(null); }}
         onSave={handleSaveMov}
+        onDelete={editingMov ? handleDeleteMov : undefined}
         saving={savingMov}
       />
     </div>
