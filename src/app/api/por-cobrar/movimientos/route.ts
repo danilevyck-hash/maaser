@@ -22,22 +22,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "El monto debe ser mayor a cero" }, { status: 400 });
   }
 
+  // Explicitly omit id — let Supabase generate it via gen_random_uuid().
+  const payload = {
+    cliente_id: body.cliente_id,
+    fecha: body.fecha,
+    tipo: body.tipo,
+    monto,
+    descripcion: body.descripcion?.trim() || null,
+  };
+  console.log("[por-cobrar/movimientos] POST payload", payload);
+
   const { data, error } = await supabase
     .from("cxc_movimientos")
-    .insert([{
-      cliente_id: body.cliente_id,
-      fecha: body.fecha,
-      tipo: body.tipo,
-      monto,
-      descripcion: body.descripcion?.trim() || null,
-    }])
+    .insert([payload])
     .select()
     .single();
 
   if (error) {
+    console.error("[por-cobrar/movimientos] POST error", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  console.log("[por-cobrar/movimientos] POST inserted", { id: data?.id, cliente_id: data?.cliente_id });
   return NextResponse.json(data);
 }
 

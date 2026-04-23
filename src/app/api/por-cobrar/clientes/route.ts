@@ -46,20 +46,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "El nombre es requerido" }, { status: 400 });
   }
 
+  // Explicitly omit id — let Supabase generate it via gen_random_uuid().
+  const payload = {
+    nombre: body.nombre.trim(),
+    telefono: body.telefono?.trim() || null,
+    notas: body.notas?.trim() || null,
+  };
+  console.log("[por-cobrar/clientes] POST payload", payload);
+
   const { data, error } = await supabase
     .from("cxc_clientes")
-    .insert([{
-      nombre: body.nombre.trim(),
-      telefono: body.telefono?.trim() || null,
-      notas: body.notas?.trim() || null,
-    }])
+    .insert([payload])
     .select()
     .single();
 
   if (error) {
+    console.error("[por-cobrar/clientes] POST error", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  console.log("[por-cobrar/clientes] POST inserted", { id: data?.id, nombre: data?.nombre });
   return NextResponse.json(data);
 }
 

@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CxcClienteConBalance } from "@/lib/supabase";
 import { formatCurrency, formatDateShort } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import ClienteModal from "@/components/por-cobrar/ClienteModal";
 
 export default function PorCobrarPage() {
-  const router = useRouter();
   const { showToast } = useToast();
   const [clientes, setClientes] = useState<CxcClienteConBalance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,21 +47,36 @@ export default function PorCobrarPage() {
   const handleCreate = async (data: { nombre: string; telefono: string; notas: string }) => {
     setSaving(true);
     try {
+      // Explicitly send only the allowed fields — never send id on create.
+      const body = {
+        nombre: data.nombre,
+        telefono: data.telefono,
+        notas: data.notas,
+      };
       const res = await fetch("/api/por-cobrar/clientes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(body),
       });
+      const text = await res.text();
+      console.log("[por-cobrar lista] POST clientes", { status: res.status, body: text });
       if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        showToast(d.error || "Error al guardar", "error");
+        let msg = `HTTP ${res.status}`;
+        try {
+          const j = JSON.parse(text);
+          if (j?.error) msg = j.error;
+        } catch {}
+        showToast(`Error al guardar: ${msg}`, "error");
         return;
       }
       setModalOpen(false);
       showToast("Cliente agregado");
+      // Refetch the list from the server so every Link has the real DB id.
+      // Do NOT navigate to the new cliente's detail — user taps it manually.
+      // Do NOT router.refresh() — it can remount a cached detail segment.
       await fetchClientes();
-      router.refresh();
-    } catch {
+    } catch (e) {
+      console.error("[por-cobrar lista] POST error", e);
       showToast("Error de conexión", "error");
     } finally {
       setSaving(false);

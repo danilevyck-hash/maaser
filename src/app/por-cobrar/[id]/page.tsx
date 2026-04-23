@@ -39,6 +39,12 @@ export default function ClienteDetallePage() {
       const res = await fetch(url, { cache: "no-store" });
       const text = await res.text();
       console.log("[por-cobrar detalle] fetch", { url, status: res.status, body: text });
+      if (res.status === 404) {
+        // Cliente no existe (borrado o id stale en Router Cache).
+        // Redirigir en silencio en vez de mostrar un toast confuso.
+        router.replace("/por-cobrar");
+        return;
+      }
       if (!res.ok) {
         let msg = `HTTP ${res.status}`;
         try {
@@ -57,7 +63,7 @@ export default function ClienteDetallePage() {
     } finally {
       setLoading(false);
     }
-  }, [clienteId, showToast]);
+  }, [clienteId, router, showToast]);
 
   useEffect(() => {
     if (!clienteId) {
