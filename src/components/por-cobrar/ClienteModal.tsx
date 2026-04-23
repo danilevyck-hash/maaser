@@ -9,7 +9,7 @@ import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { id?: number; nombre: string; telefono: string; notas: string }) => void;
+  onSave: (data: { id?: string; nombre: string; telefono: string; notas: string }) => void;
   onDelete?: () => void;
   editing?: CxcCliente | null;
   saving?: boolean;

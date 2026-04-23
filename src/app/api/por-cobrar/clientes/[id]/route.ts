@@ -4,12 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const rawId = params?.id;
-  const id = parseInt(rawId, 10);
-  console.log("[por-cobrar/clientes/[id]] GET", { rawId, id });
+  const id = params?.id?.trim();
+  console.log("[por-cobrar/clientes/[id]] GET", { id });
 
-  if (!id || isNaN(id)) {
-    return NextResponse.json({ error: `ID inválido: ${rawId}` }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ error: "ID requerido" }, { status: 400 });
   }
 
   const { data: cliente, error: errCliente } = await supabase

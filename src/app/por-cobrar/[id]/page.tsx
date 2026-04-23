@@ -20,7 +20,7 @@ export default function ClienteDetallePage() {
   const router = useRouter();
   const params = useParams();
   const rawId = params?.id;
-  const clienteId = Number(Array.isArray(rawId) ? rawId[0] : rawId);
+  const clienteId = (Array.isArray(rawId) ? rawId[0] : rawId) || "";
   const { showToast } = useToast();
 
   const [cliente, setCliente] = useState<CxcCliente | null>(null);
@@ -59,7 +59,7 @@ export default function ClienteDetallePage() {
   }, [clienteId, showToast]);
 
   useEffect(() => {
-    if (!clienteId || isNaN(clienteId)) {
+    if (!clienteId) {
       router.replace("/por-cobrar");
       return;
     }
@@ -74,7 +74,7 @@ export default function ClienteDetallePage() {
     setMovOpen(true);
   };
 
-  const handleSaveCliente = async (data: { id?: number; nombre: string; telefono: string; notas: string }) => {
+  const handleSaveCliente = async (data: { id?: string; nombre: string; telefono: string; notas: string }) => {
     setSavingCliente(true);
     try {
       const res = await fetch("/api/por-cobrar/clientes", {
