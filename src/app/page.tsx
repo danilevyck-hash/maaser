@@ -11,6 +11,12 @@ const modules = [
     desc: "Registro de donaciones",
   },
   {
+    href: "/por-cobrar",
+    icon: "🧾",
+    name: "Por Cobrar",
+    desc: "Cuentas por cobrar",
+  },
+  {
     href: "/indriver",
     icon: "🚗",
     name: "InDriver",
