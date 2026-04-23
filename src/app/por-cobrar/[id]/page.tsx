@@ -95,10 +95,10 @@ export default function ClienteDetallePage() {
         showToast(d.error || "Error al guardar", "error");
         return;
       }
-      const updated = await res.json();
-      setCliente(updated);
       setEditOpen(false);
       showToast("Cliente actualizado");
+      await fetchData();
+      router.refresh();
     } catch {
       showToast("Error de conexión", "error");
     } finally {
@@ -120,6 +120,7 @@ export default function ClienteDetallePage() {
       }
       showToast("Cliente eliminado");
       router.push("/por-cobrar");
+      router.refresh();
     } catch {
       showToast("Error de conexión", "error");
     }
@@ -154,7 +155,8 @@ export default function ClienteDetallePage() {
       setMovOpen(false);
       setEditingMov(null);
       showToast(isEdit ? "Movimiento actualizado" : "Movimiento agregado");
-      fetchData();
+      await fetchData();
+      router.refresh();
     } catch {
       showToast("Error de conexión", "error");
     } finally {
@@ -176,7 +178,8 @@ export default function ClienteDetallePage() {
       setMovOpen(false);
       setEditingMov(null);
       showToast("Movimiento eliminado");
-      fetchData();
+      await fetchData();
+      router.refresh();
     } catch {
       showToast("Error de conexión", "error");
     }

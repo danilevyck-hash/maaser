@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CxcClienteConBalance } from "@/lib/supabase";
 import { formatCurrency, formatDateShort } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import ClienteModal from "@/components/por-cobrar/ClienteModal";
 
 export default function PorCobrarPage() {
+  const router = useRouter();
   const { showToast } = useToast();
   const [clientes, setClientes] = useState<CxcClienteConBalance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ export default function PorCobrarPage() {
 
   const fetchClientes = useCallback(async () => {
     try {
-      const res = await fetch("/api/por-cobrar/clientes");
+      const res = await fetch("/api/por-cobrar/clientes", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) setClientes(data);
@@ -31,6 +33,18 @@ export default function PorCobrarPage() {
   }, [showToast]);
 
   useEffect(() => { fetchClientes(); }, [fetchClientes]);
+
+  // Re-fetch when the tab regains focus or navigation brings us back here.
+  // Busts Router Cache staleness after mutations on other routes.
+  useEffect(() => {
+    const onFocus = () => fetchClientes();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [fetchClientes]);
 
   const handleCreate = async (data: { nombre: string; telefono: string; notas: string }) => {
     setSaving(true);
@@ -47,7 +61,8 @@ export default function PorCobrarPage() {
       }
       setModalOpen(false);
       showToast("Cliente agregado");
-      fetchClientes();
+      await fetchClientes();
+      router.refresh();
     } catch {
       showToast("Error de conexión", "error");
     } finally {
@@ -118,6 +133,7 @@ export default function PorCobrarPage() {
                 <Link
                   key={c.id}
                   href={`/por-cobrar/${c.id}`}
+                  prefetch={false}
                   className="flex items-center px-4 py-3 no-underline active:bg-[#E5E5EA]/50 transition-colors"
                   style={i > 0 ? { borderTop: "1px solid rgba(198,198,200,0.3)" } : undefined}
                 >
