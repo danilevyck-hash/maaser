@@ -73,28 +73,3 @@ export type FinanceRecurring = {
 
 export const PAYMENT_METHODS = ["Yappy", "ACH", "Tarjeta de Crédito"] as const;
 
-export type CxcCliente = {
-  id: string;
-  nombre: string;
-  telefono?: string | null;
-  notas?: string | null;
-  created_at?: string;
-};
-
-export type CxcMovimientoTipo = "cargo" | "abono" | "ajuste";
-
-export type CxcMovimiento = {
-  id: string;
-  cliente_id: string;
-  fecha: string;
-  tipo: CxcMovimientoTipo;
-  monto: number;
-  descripcion?: string | null;
-  created_at?: string;
-};
-
-export type CxcClienteConBalance = CxcCliente & {
-  balance: number;
-  ultimo_movimiento?: string | null;
-};
-
