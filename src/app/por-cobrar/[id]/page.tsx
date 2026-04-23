@@ -12,6 +12,7 @@ import {
   buildEstadoCuenta,
   buildWhatsappUrl,
   cleanPhone,
+  formatFechaCorta,
 } from "@/lib/por-cobrar";
 import ClienteModal from "@/components/por-cobrar/ClienteModal";
 import MovimientoModal from "@/components/por-cobrar/MovimientoModal";
@@ -190,16 +191,22 @@ export default function ClienteDetallePage() {
           <Link href="/por-cobrar" className="text-[#007AFF] text-[15px] font-medium no-underline shrink-0">
             &larr; Atrás
           </Link>
-          <h1 className="text-[17px] font-semibold text-[#1C1C1E] truncate flex-1 text-center">
-            {cliente?.nombre || ""}
-          </h1>
           <button
-            onClick={() => setEditClienteOpen(true)}
+            type="button"
+            onClick={() => cliente && setEditClienteOpen(true)}
             disabled={!cliente}
-            className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px] shrink-0 disabled:opacity-40"
+            className="flex items-center gap-1.5 bg-transparent border-0 cursor-pointer min-h-[44px] px-2 disabled:opacity-40 flex-1 justify-center"
           >
-            Editar
+            <h1 className="text-[17px] font-semibold text-[#1C1C1E] truncate">
+              {cliente?.nombre || ""}
+            </h1>
+            {cliente && (
+              <svg className="h-[18px] w-[18px] text-[#8E8E93] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            )}
           </button>
+          <div className="w-[52px] shrink-0" />
         </div>
       </div>
 
@@ -224,9 +231,6 @@ export default function ClienteDetallePage() {
                 <p className={`text-[34px] font-bold leading-tight tabular-nums mt-1 ${balance > 0 ? "text-red-500" : balance < 0 ? "text-green-500" : "text-[#1C1C1E]"}`}>
                   {formatCurrency(balance)}
                 </p>
-                {cliente.telefono && (
-                  <p className="text-[13px] text-[#8E8E93] mt-1">{cliente.telefono}</p>
-                )}
                 <button
                   onClick={handleShareWhatsapp}
                   className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#25D366] text-white text-[14px] font-medium border-0 active:opacity-80 min-h-[44px]"
@@ -253,11 +257,10 @@ export default function ClienteDetallePage() {
               ) : (
                 <div className="space-y-4">
                   {grupos.map((g) => (
-                    <div key={g.key}>
+                    <div key={g.key} className="animate-por-cobrar-fadein">
                       <p className="text-[13px] font-medium text-[#8E8E93] uppercase px-1 mb-1.5">{g.label}</p>
                       <div className="bg-white rounded-2xl overflow-hidden">
                         {g.movs.map((m, i) => {
-                          const day = parseInt(m.fecha.split("-")[2], 10);
                           const esCargo = m.tipo === "cargo";
                           const esAbono = m.tipo === "abono";
                           const signo = esCargo ? "" : "-";
@@ -272,11 +275,11 @@ export default function ClienteDetallePage() {
                               key={m.id}
                               type="button"
                               onClick={() => openEditMov(m)}
-                              className="w-full flex items-center py-3 px-4 text-left bg-transparent border-0 active:bg-[#E5E5EA]/50 transition-colors cursor-pointer"
+                              className="w-full flex items-center py-3 px-4 text-left bg-transparent border-0 active:bg-[#E5E5EA]/50 transition-colors cursor-pointer min-h-[52px]"
                               style={i > 0 ? { borderTop: "1px solid rgba(198,198,200,0.3)" } : undefined}
                             >
-                              <div className="w-10 shrink-0 text-center">
-                                <p className="text-[17px] font-semibold tabular-nums text-[#1C1C1E]">{String(day).padStart(2, "0")}</p>
+                              <div className="w-14 shrink-0">
+                                <p className="text-[13px] font-medium tabular-nums text-[#8E8E93] lowercase">{formatFechaCorta(m.fecha)}</p>
                               </div>
                               <div className="flex-1 min-w-0 ml-2">
                                 <p className="text-[15px] text-[#1C1C1E]">{tipoLabel}</p>
@@ -284,7 +287,10 @@ export default function ClienteDetallePage() {
                                   <p className="text-[13px] text-[#8E8E93] truncate">{m.descripcion}</p>
                                 )}
                               </div>
-                              <p className={`text-[15px] font-semibold tabular-nums ${color} ml-3`}>
+                              <p
+                                className={`text-[15px] font-semibold ml-3 ${color}`}
+                                style={{ fontVariantNumeric: "tabular-nums" }}
+                              >
                                 {signo}{formatCurrency(Number(m.monto))}
                               </p>
                             </button>

@@ -22,3 +22,9 @@ body {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+@keyframes por-cobrar-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-por-cobrar-fadein { animation: por-cobrar-fadein 0.2s ease-out; }

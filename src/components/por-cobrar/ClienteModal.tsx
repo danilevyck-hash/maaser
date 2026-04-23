@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { CxcCliente } from "@/lib/supabase";
 import { useToast } from "@/components/Toast";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import { toTitleCase } from "@/lib/por-cobrar";
 
 type Props = {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, onDelete, editin
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [notas, setNotas] = useState("");
+  const [notasExpanded, setNotasExpanded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useBodyScrollLock(isOpen);
@@ -29,10 +31,12 @@ export default function ClienteModal({ isOpen, onClose, onSave, onDelete, editin
       setNombre(editingCliente.nombre);
       setTelefono(editingCliente.telefono || "");
       setNotas(editingCliente.notas || "");
+      setNotasExpanded(!!editingCliente.notas);
     } else {
       setNombre("");
       setTelefono("");
       setNotas("");
+      setNotasExpanded(false);
     }
     setConfirmDelete(false);
   }, [editingCliente, isOpen]);
@@ -49,7 +53,7 @@ export default function ClienteModal({ isOpen, onClose, onSave, onDelete, editin
       return;
     }
     const cliente: Partial<CxcCliente> = {
-      nombre: nombre.trim(),
+      nombre: toTitleCase(nombre),
       telefono: telefono.trim(),
       notas: notas.trim(),
     };
@@ -109,16 +113,27 @@ export default function ClienteModal({ isOpen, onClose, onSave, onDelete, editin
             <p className="text-[11px] text-[#8E8E93] mt-1">Con código de país, sin espacios</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Notas</label>
-            <textarea
-              value={notas}
-              onChange={(e) => setNotas(e.target.value)}
-              rows={3}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E] resize-none"
-              placeholder="Notas opcionales"
-            />
-          </div>
+          {notasExpanded ? (
+            <div>
+              <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Notas</label>
+              <textarea
+                value={notas}
+                onChange={(e) => setNotas(e.target.value)}
+                rows={3}
+                autoFocus
+                className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E] resize-none"
+                placeholder="Notas opcionales"
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setNotasExpanded(true)}
+              className="text-[15px] text-[#007AFF] font-medium bg-transparent border-0 cursor-pointer py-1"
+            >
+              + Agregar nota
+            </button>
+          )}
 
           {editingCliente && onDelete && (
             <div className="pt-4">

@@ -2,14 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CxcCliente, CxcClienteConBalance } from "@/lib/supabase";
 import { formatCurrency, formatDateShort } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import ClienteModal from "@/components/por-cobrar/ClienteModal";
 
 export default function PorCobrarPage() {
-  const router = useRouter();
   const { showToast } = useToast();
 
   const [clientes, setClientes] = useState<CxcClienteConBalance[]>([]);
@@ -73,16 +71,7 @@ export default function PorCobrarPage() {
             &larr; Inicio
           </Link>
           <h1 className="text-[17px] font-semibold text-[#1C1C1E]">Por Cobrar</h1>
-          <button
-            onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST" });
-              router.push("/login");
-              router.refresh();
-            }}
-            className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer"
-          >
-            Salir
-          </button>
+          <div className="w-[60px]" />
         </div>
       </div>
 
@@ -137,9 +126,13 @@ export default function PorCobrarPage() {
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0 ml-3">
-                      <p className={`text-[17px] font-semibold tabular-nums ${c.balance > 0 ? "text-red-500" : "text-[#8E8E93]"}`}>
-                        {formatCurrency(c.balance)}
-                      </p>
+                      {c.balance === 0 ? (
+                        <p className="text-[13px] font-medium text-green-500">Al día</p>
+                      ) : (
+                        <p className={`text-[17px] font-semibold tabular-nums ${c.balance > 0 ? "text-red-500" : "text-[#8E8E93]"}`}>
+                          {formatCurrency(c.balance)}
+                        </p>
+                      )}
                     </div>
                     <svg className="h-4 w-4 text-[#C7C7CC] ml-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

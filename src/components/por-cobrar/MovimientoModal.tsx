@@ -27,6 +27,7 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [showPicker, setShowPicker] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const todayStr = new Date().toISOString().split("T")[0];
@@ -41,13 +42,15 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
       setDate(editingMov.fecha);
       setAmount(String(editingMov.monto));
       setDescripcion(editingMov.descripcion || "");
+      setShowPicker(editingMov.fecha !== todayStr && editingMov.fecha !== yesterdayStr);
     } else {
       setDate(todayStr);
       setAmount("");
       setDescripcion("");
+      setShowPicker(false);
     }
     setConfirmDelete(false);
-  }, [editingMov, isOpen, todayStr]);
+  }, [editingMov, isOpen, todayStr, yesterdayStr]);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
@@ -74,10 +77,14 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
     onSave(mov);
   };
 
-  const dateShortcutClass = (target: string) =>
-    `text-xs px-2.5 py-1 rounded-lg transition-colors ${
-      date === target ? "bg-[#007AFF] text-white" : "bg-[#E5E5EA] text-[#8E8E93]"
+  const chipClass = (active: boolean) =>
+    `flex-1 py-2 rounded-xl text-[14px] font-medium transition-colors border-0 ${
+      active ? "bg-[#007AFF] text-white" : "bg-[#E5E5EA] text-[#1C1C1E]"
     }`;
+
+  const hoyActive = date === todayStr && !showPicker;
+  const ayerActive = date === yesterdayStr && !showPicker;
+  const otraActive = showPicker;
 
   const tipoActual = editingMov ? editingMov.tipo : tipo;
   const title = editingMov ? `Editar ${TIPO_LABEL[tipoActual]}` : `Nuevo ${TIPO_LABEL[tipoActual]}`;
@@ -122,18 +129,40 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Fecha</label>
-            <div className="flex gap-2 mb-1.5">
-              <button type="button" onClick={() => setDate(todayStr)} className={dateShortcutClass(todayStr)}>Hoy</button>
-              <button type="button" onClick={() => setDate(yesterdayStr)} className={dateShortcutClass(yesterdayStr)}>Ayer</button>
+            <label className="block text-sm font-medium text-[#1C1C1E] mb-2">Fecha</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setDate(todayStr); setShowPicker(false); }}
+                className={chipClass(hoyActive)}
+              >
+                Hoy
+              </button>
+              <button
+                type="button"
+                onClick={() => { setDate(yesterdayStr); setShowPicker(false); }}
+                className={chipClass(ayerActive)}
+              >
+                Ayer
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPicker(true)}
+                className={chipClass(otraActive)}
+              >
+                Otra fecha
+              </button>
             </div>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
-              required
-            />
+            {showPicker && (
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                autoFocus
+                className="w-full mt-2 border border-[#C6C6C8] rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+                required
+              />
+            )}
           </div>
 
           <div>
