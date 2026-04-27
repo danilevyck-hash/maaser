@@ -6,6 +6,7 @@ import { FinanceExpense, FinanceCategory, PAYMENT_METHODS } from "@/lib/supabase
 import { detectCategory } from "@/lib/finance-categories";
 import { useToast } from "@/components/Toast";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import { localISO, todayLocalISO } from "@/lib/format";
 
 type Props = {
   isOpen: boolean;
@@ -35,13 +36,13 @@ export default function ExpenseModal({
   const [autoDetected, setAutoDetected] = useState(false);
   const [manualCategoryChange, setManualCategoryChange] = useState(false);
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = todayLocalISO();
   const yesterdayDate = new Date();
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterdayStr = yesterdayDate.toISOString().split("T")[0];
+  const yesterdayStr = localISO(yesterdayDate);
   const dayBeforeDate = new Date();
   dayBeforeDate.setDate(dayBeforeDate.getDate() - 2);
-  const dayBeforeStr = dayBeforeDate.toISOString().split("T")[0];
+  const dayBeforeStr = localISO(dayBeforeDate);
 
   useBodyScrollLock(isOpen);
 

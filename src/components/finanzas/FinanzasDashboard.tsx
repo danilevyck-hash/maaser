@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { FinanceExpense, FinanceCategory, FinanceBudget } from "@/lib/supabase";
-import { formatCurrency, formatDate, MONTH_NAMES } from "@/lib/format";
+import { formatCurrency, formatDate, todayLocalISO, MONTH_NAMES } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import ExpenseModal from "./ExpenseModal";
+import CategoryExpensesModal from "./CategoryExpensesModal";
 import React from "react";
 
 export default function FinanzasDashboard() {
@@ -32,6 +33,7 @@ export default function FinanzasDashboard() {
   const [showSearch, setShowSearch] = useState(false);
   const [visibleCount, setVisibleCount] = useState(15);
   const [fabVisible, setFabVisible] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const lastScrollY = useRef(0);
   const [lastCategory, setLastCategory] = useState<string>("");
   const [lastPaymentMethod, setLastPaymentMethod] = useState<string>("");
@@ -198,7 +200,7 @@ export default function FinanzasDashboard() {
   };
 
   const handleDuplicate = async (expense: FinanceExpense) => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = todayLocalISO();
     const dup = {
       date: today,
       amount: expense.amount,
@@ -369,7 +371,7 @@ export default function FinanzasDashboard() {
     setViewYear(y);
   };
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = todayLocalISO();
   const daysRemaining = isCurrentMonth ? Math.max(daysInMonth - now.getDate(), 0) : 0;
 
   return (
@@ -478,16 +480,25 @@ export default function FinanzasDashboard() {
 
                 return (
                   <div key={cat.name} className={idx > 0 ? "border-t border-[#C6C6C8]/20 ml-6 -mx-0" : ""}>
-                    <div className={idx > 0 ? "-ml-6" : ""}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory(cat.name)}
+                      className={`w-full text-left active:bg-[#E5E5EA]/40 transition-colors ${idx > 0 ? "-ml-6 pl-6" : ""}`}
+                    >
                       <div className="flex items-center justify-between py-2.5">
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
                           <span className="text-[15px] text-[#1C1C1E]">{iconMap[cat.name] || ""} {cat.name}</span>
                         </div>
-                        <span className="text-[15px] tabular-nums text-[#1C1C1E]">{formatCurrency(cat.total)}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[15px] tabular-nums text-[#1C1C1E]">{formatCurrency(cat.total)}</span>
+                          <svg className="h-3.5 w-3.5 text-[#C7C7CC]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
                       {hasBudget && (
-                        <div className="pb-2">
+                        <div className="pb-2 pr-5">
                           <div className="w-full bg-[#E5E5EA] rounded-full h-1.5 overflow-hidden mb-1">
                             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(budgetPct, 100)}%`, backgroundColor: budgetBarColor }} />
                           </div>
@@ -496,7 +507,7 @@ export default function FinanzasDashboard() {
                           </p>
                         </div>
                       )}
-                    </div>
+                    </button>
                   </div>
                 );
               })}
@@ -663,6 +674,21 @@ export default function FinanzasDashboard() {
         saving={saving}
         defaultCategory={lastCategory}
         defaultPaymentMethod={lastPaymentMethod}
+      />
+
+      <CategoryExpensesModal
+        isOpen={selectedCategory !== null}
+        onClose={() => setSelectedCategory(null)}
+        category={selectedCategory || ""}
+        expenses={expenses}
+        iconMap={iconMap}
+        colorMap={colorMap}
+        todayStr={todayStr}
+        onSelectExpense={(e) => {
+          setSelectedCategory(null);
+          setEditing(e);
+          setModalOpen(true);
+        }}
       />
 
       {/* FAB */}
