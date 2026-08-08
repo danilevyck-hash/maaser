@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const month = body.month; // 'YYYY-MM'
@@ -26,16 +28,19 @@ export async function POST(request: NextRequest) {
   // Get existing charges for this month
   const { data: existing, error: eErr } = await supabase
     .from("rent_charges")
-    .select("contract_id")
+    .select("contract_id, property_id")
     .eq("month", month);
 
   if (eErr) return NextResponse.json({ error: eErr.message }, { status: 500 });
 
   const existingContractIds = new Set((existing || []).map(c => c.contract_id));
+  // Una propiedad no puede tener dos cobros del mismo mes: un pago adelantado
+  // pudo crear el cobro sin contract_id (contrato vencido, por ejemplo).
+  const existingPropertyMonths = new Set((existing || []).map(c => c.property_id));
 
   // Create missing charges
   const toInsert = (contracts || [])
-    .filter(c => !existingContractIds.has(c.id))
+    .filter(c => !existingContractIds.has(c.id) && !existingPropertyMonths.has(c.property_id))
     .map(c => ({
       property_id: c.property_id,
       contract_id: c.id,

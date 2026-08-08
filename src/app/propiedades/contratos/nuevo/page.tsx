@@ -113,7 +113,7 @@ function NuevoContrato() {
             <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Nombre del inquilino</label>
             <input type="text" value={form.tenant_name} onChange={(e) => setForm({ ...form, tenant_name: e.target.value })} placeholder="Juan Perez" className={inputClass} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-5">
             <div>
               <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Telefono</label>
               <input type="tel" value={form.tenant_phone} onChange={(e) => setForm({ ...form, tenant_phone: e.target.value })} placeholder="6000-0000" className={inputClass} />
@@ -123,7 +123,7 @@ function NuevoContrato() {
               <input type="email" value={form.tenant_email} onChange={(e) => setForm({ ...form, tenant_email: e.target.value })} placeholder="correo@email.com" className={inputClass} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-5">
             <div>
               <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Fecha inicio</label>
               <input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className={inputClass} />
