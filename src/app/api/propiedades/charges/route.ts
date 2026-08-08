@@ -1,9 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
+import { supportsPartialPayments } from "@/lib/propiedades-db";
 
 export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const month = request.nextUrl.searchParams.get("month");
+  const propertyId = request.nextUrl.searchParams.get("property_id");
 
   let query = supabase
     .from("rent_charges")
@@ -13,6 +15,9 @@ export async function GET(request: NextRequest) {
 
   if (month) {
     query = query.eq("month", month);
+  }
+  if (propertyId) {
+    query = query.eq("property_id", Number(propertyId));
   }
 
   const { data, error } = await query;
@@ -54,6 +59,13 @@ export async function PUT(request: NextRequest) {
   if (updates.status !== undefined) row.status = updates.status;
   if (updates.paid_date !== undefined) row.paid_date = updates.paid_date;
   if (updates.amount !== undefined) row.amount = updates.amount;
+
+  // Al desmarcar un pago hay que borrar tambien el abono, si no el cobro
+  // seguiria viendose cubierto. Solo se toca si la columna ya existe.
+  if (await supportsPartialPayments()) {
+    if (updates.paid_amount !== undefined) row.paid_amount = updates.paid_amount;
+    else if (row.status !== undefined && row.status !== "pagado") row.paid_amount = 0;
+  }
 
   const { data, error } = await supabase
     .from("rent_charges")

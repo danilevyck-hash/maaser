@@ -15,7 +15,7 @@ App para gestionar donaciones (maaser/tzedaká), gastos de InDriver y apartament
 |--------|------|-------------|
 | Maaser | `/maaser` | Donaciones por año hebreo, meta anual, resumen por beneficiario |
 | InDriver | `/indriver` | Gastos por mes/año, resumen anual |
-| Propiedades | `/propiedades` | Dashboard, CRUD propiedades, contratos, cobros mensuales |
+| Propiedades | `/propiedades` | Control de pago **por propiedad** (pagado hasta / debe), contratos, historial de cobros |
 | Finanzas | `/finanzas` | Presupuesto y gastos por categoría |
 
 ## Auth
@@ -23,6 +23,16 @@ App para gestionar donaciones (maaser/tzedaká), gastos de InDriver y apartament
 - Middleware protege todas las rutas excepto `/login` y `/api/auth`
 - Cookie httpOnly `session` con token SHA-256, expira 30 días
 - Env var: `APP_PASSWORD` = el PIN
+
+## Propiedades — control de pago por propiedad
+- La pantalla principal responde por propiedad: "Pagado hasta diciembre 2026" o "Debe 2 meses · $35,200".
+- "Pagado hasta" NO es una tabla: se deriva de `rent_charges` en `src/lib/propiedades-pagos.ts` (módulo puro, con tests).
+- Registrar pago (`/propiedades/pagar/[id]` → `POST /api/propiedades/pagos`) tiene dos modos:
+  **hasta un mes** (crea los meses que falten) y **por monto** (reparte mes a mes; lo que sobra
+  queda como abono del mes siguiente = saldo a favor).
+- Un cobro viejo con `status='pagado'` vale como pagado completo aunque `paid_amount` sea 0. No se migra nada.
+- ⚠️ **SQL pendiente:** `supabase-propiedades-pagos.sql` (columna `paid_amount`). Sin correrlo la app
+  funciona, pero los abonos parciales y el saldo a favor quedan bloqueados con aviso en pantalla.
 
 ## Base de datos
 - Schema en `supabase-propiedades.sql`

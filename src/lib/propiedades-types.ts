@@ -33,6 +33,8 @@ export type RentCharge = {
   status: "pagado" | "pendiente" | "mora";
   due_date: string;
   paid_date: string | null;
+  /** Abono parcial. undefined mientras no se corra el SQL de paid_amount. */
+  paid_amount?: number | null;
   created_at?: string;
   // joined
   property?: RentProperty;

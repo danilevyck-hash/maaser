@@ -5,32 +5,16 @@ import { useSearchParams } from "next/navigation";
 import type { RentProperty, RentContract, RentCharge } from "@/lib/propiedades-types";
 import { useToast } from "@/components/Toast";
 import ModuleLayout from "@/components/ModuleLayout";
-import DashboardTab from "@/components/propiedades/DashboardTab";
 import PropiedadesTab from "@/components/propiedades/PropiedadesTab";
 import CobrosTab from "@/components/propiedades/CobrosTab";
 import ContratosTab from "@/components/propiedades/ContratosTab";
+import { todayLocalISO } from "@/lib/format";
+import { monthOf } from "@/lib/propiedades-pagos";
 
-type Tab = "dashboard" | "propiedades" | "cobros" | "contratos";
-const validTabs: Tab[] = ["dashboard", "propiedades", "cobros", "contratos"];
-
-function getCurrentMonth() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
+type Tab = "propiedades" | "cobros" | "contratos";
+const validTabs: Tab[] = ["propiedades", "cobros", "contratos"];
 
 const tabItems = [
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="9" />
-        <rect x="14" y="3" width="7" height="5" />
-        <rect x="14" y="12" width="7" height="9" />
-        <rect x="3" y="16" width="7" height="5" />
-      </svg>
-    ),
-  },
   {
     id: "propiedades",
     label: "Propiedades",
@@ -82,13 +66,14 @@ export default function PropiedadesPageWrapper() {
 function PropiedadesPage() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
-  const initialTab = validTabs.includes(searchParams.get("tab") as Tab) ? (searchParams.get("tab") as Tab) : "dashboard";
+  const initialTab = validTabs.includes(searchParams.get("tab") as Tab) ? (searchParams.get("tab") as Tab) : "propiedades";
   const [tab, setTab] = useState<Tab>(initialTab);
   const [properties, setProperties] = useState<RentProperty[]>([]);
   const [contracts, setContracts] = useState<RentContract[]>([]);
   const [charges, setCharges] = useState<RentCharge[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentMonth] = useState(getCurrentMonth);
+  const [today] = useState(todayLocalISO);
+  const currentMonth = monthOf(today);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -96,7 +81,9 @@ function PropiedadesPage() {
       const [pRes, cRes, chRes] = await Promise.all([
         fetch("/api/propiedades/properties"),
         fetch("/api/propiedades/contracts"),
-        fetch("/api/propiedades/charges?month=" + currentMonth),
+        // Todos los cobros: la pantalla por propiedad necesita el historial
+        // completo para saber hasta que mes esta pagada cada una.
+        fetch("/api/propiedades/charges"),
       ]);
       const [pData, cData, chData] = await Promise.all([
         pRes.json(),
@@ -145,19 +132,14 @@ function PropiedadesPage() {
         </div>
       ) : (
         <>
-          {tab === "dashboard" && (
-            <DashboardTab
-              properties={properties}
-              contracts={activeContracts}
-              charges={charges}
-              currentMonth={currentMonth}
-            />
-          )}
           {tab === "propiedades" && (
             <PropiedadesTab
               properties={properties}
-              contracts={activeContracts}
+              contracts={contracts}
               charges={charges}
+              currentMonth={currentMonth}
+              today={today}
+              onGoToContratos={() => setTab("contratos")}
             />
           )}
           {tab === "cobros" && (
@@ -171,6 +153,7 @@ function PropiedadesPage() {
             <ContratosTab
               contracts={activeContracts}
               properties={properties}
+              today={today}
             />
           )}
         </>
