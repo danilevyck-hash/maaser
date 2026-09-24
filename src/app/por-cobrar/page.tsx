@@ -6,6 +6,8 @@ import { CxcCliente, CxcClienteConBalance } from "@/lib/supabase";
 import { formatCurrency, formatDateShort } from "@/lib/format";
 import { useToast } from "@/components/Toast";
 import ClienteModal from "@/components/por-cobrar/ClienteModal";
+import Bienvenida from "@/components/Bienvenida";
+import { BIENVENIDA_POR_COBRAR } from "@/lib/bienvenidas";
 
 export default function PorCobrarPage() {
   const { showToast } = useToast();
@@ -144,6 +146,8 @@ export default function PorCobrarPage() {
           </div>
         </div>
       </div>
+
+      <Bienvenida {...BIENVENIDA_POR_COBRAR} />
 
       <ClienteModal
         isOpen={modalOpen}

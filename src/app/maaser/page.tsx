@@ -35,6 +35,8 @@ import {
   type Compromiso,
 } from "@/lib/maaser/compromisos";
 import Anotar, { type LoQueSeGuarda } from "@/components/maaser/Anotar";
+import Bienvenida from "@/components/Bienvenida";
+import { BIENVENIDA_MAASER } from "@/lib/bienvenidas";
 import ElAnio from "@/components/maaser/ElAnio";
 import ExportModal from "@/components/ExportModal";
 import HojaAbajo from "@/components/propiedades/HojaAbajo";
@@ -459,6 +461,8 @@ export default function MaaserPage() {
             : []
         }
       />
+
+      <Bienvenida {...BIENVENIDA_MAASER} />
     </div>
   );
 }

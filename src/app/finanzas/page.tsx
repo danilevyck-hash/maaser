@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Bienvenida from "@/components/Bienvenida";
+import { BIENVENIDA_FINANZAS } from "@/lib/bienvenidas";
 import PantallaModulo from "@/components/PantallaModulo";
 import FinanzasDashboard from "@/components/finanzas/FinanzasDashboard";
 import FinanzasResumen from "@/components/finanzas/FinanzasResumen";
@@ -45,6 +47,7 @@ export default function FinanzasPage() {
       {tab === "gastos" && <FinanzasDashboard />}
       {tab === "resumen" && <FinanzasResumen />}
       {tab === "config" && <FinanzasConfig />}
+      <Bienvenida {...BIENVENIDA_FINANZAS} />
     </PantallaModulo>
   );
 }

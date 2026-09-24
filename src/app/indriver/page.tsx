@@ -6,6 +6,8 @@ import { formatCurrency, formatDateShort } from "@/lib/format";
 import ExpenseModal from "@/components/ExpenseModal";
 import ExpenseExportModal from "@/components/ExpenseExportModal";
 import PantallaModulo from "@/components/PantallaModulo";
+import Bienvenida from "@/components/Bienvenida";
+import { BIENVENIDA_INDRIVER } from "@/lib/bienvenidas";
 import { useToast } from "@/components/Toast";
 
 const MONTHS = [
@@ -300,6 +302,7 @@ export default function InDriverPage() {
         onClose={() => setExportOpen(false)}
         expenses={allExpenses}
       />
+      <Bienvenida {...BIENVENIDA_INDRIVER} />
     </PantallaModulo>
   );
 }

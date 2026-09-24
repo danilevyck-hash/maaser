@@ -29,6 +29,8 @@ import { AVISO_FALTA_LA_BASE, marcarMes, marcarVariosMeses } from "@/lib/propied
 import { enlaceWhatsapp } from "@/lib/propiedades/whatsapp";
 import type { RentCharge, RentContract, RentProperty } from "@/lib/propiedades-types";
 import HojaAbajo from "@/components/propiedades/HojaAbajo";
+import Bienvenida from "@/components/Bienvenida";
+import { BIENVENIDA_PROPIEDADES } from "@/lib/bienvenidas";
 import Circulo from "@/components/propiedades/Circulo";
 import { CAMPO, ENLACE, FICHA, MONTO, TEXTO_2, TITULO } from "@/lib/ui/apple";
 
@@ -278,6 +280,8 @@ export default function PropiedadesPage() {
           )}
         </div>
       </div>
+
+      <Bienvenida {...BIENVENIDA_PROPIEDADES} />
 
       {/* Tocar un ✓: qué día pagó, adelanto, o deshacer. */}
       <HojaAbajo
