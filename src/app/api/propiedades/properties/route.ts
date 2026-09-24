@@ -18,8 +18,10 @@ export async function POST(request: NextRequest) {
   if (!body.name?.trim()) {
     return NextResponse.json({ error: "El nombre es requerido" }, { status: 400 });
   }
-  if (!body.rent_amount || body.rent_amount <= 0) {
-    return NextResponse.json({ error: "El monto debe ser mayor a cero" }, { status: 400 });
+  // 24-sep-2026: el "+" de la lista pide SOLO el nombre; el alquiler se llena
+  // después en Editar. Por eso un monto vacío ya no frena la creación.
+  if (body.rent_amount !== undefined && body.rent_amount !== null && Number(body.rent_amount) < 0) {
+    return NextResponse.json({ error: "El monto no puede ser negativo" }, { status: 400 });
   }
 
   const { data, error } = await supabase
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
       location: body.location?.trim() || "",
       type: body.type || "residencial",
       icon: body.icon || "🏠",
-      rent_amount: body.rent_amount,
+      rent_amount: Number(body.rent_amount ?? 0),
     }])
     .select()
     .single();
