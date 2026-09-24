@@ -30,7 +30,12 @@ export type RentCharge = {
   tenant_name: string;
   month: string; // 'YYYY-MM'
   amount: number;
-  status: "pagado" | "pendiente" | "mora";
+  /**
+   * pagado = papá tocó el círculo · no_pago = papá dijo que no pagó (lo único
+   * que la app llama deuda) · pendiente y mora = filas viejas que el sistema
+   * creó solo, que hoy se leen como «sin marcar».
+   */
+  status: "pagado" | "pendiente" | "mora" | "no_pago";
   due_date: string;
   paid_date: string | null;
   /** Abono parcial. undefined mientras no se corra el SQL de paid_amount. */
