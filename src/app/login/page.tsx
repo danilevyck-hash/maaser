@@ -57,14 +57,14 @@ export default function LoginPage() {
 
   // ─── Main login screen ───
   return (
-    <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-xs">
-        <div className="text-center mb-6">
-          <div className="text-5xl mb-3">&#x2721;</div>
-          <h1 className="text-[22px] font-bold text-[#1C1C1E]">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
+      <div className="w-full max-w-xs">
+        <div className="text-center mb-8">
+          <div className="text-[40px] leading-none mb-4 text-[#1C1C1E]">&#x2721;</div>
+          <h1 className="text-[34px] font-light tracking-[-0.02em] text-[#1C1C1E] leading-[1.1]">
             Mis Registros
           </h1>
-          <p className="text-[#8E8E93] text-[15px] mt-1">Ingresa tu PIN</p>
+          <p className="text-[#6E6E73] text-[15px] mt-2">Ingresa tu PIN</p>
         </div>
 
         {/* PIN dots */}
@@ -73,20 +73,20 @@ export default function LoginPage() {
             <div
               key={i}
               className={`w-4 h-4 rounded-full transition-all duration-150 ${
-                filled ? "bg-[#007AFF] scale-110" : "bg-[#C6C6C8]"
+                filled ? "bg-[#1C1C1E] scale-110" : "bg-[#E5E5EA]"
               }`}
             />
           ))}
         </div>
 
         {error && (
-          <div className="bg-[#FF3B30]/10 border border-[#FF3B30]/20 text-[#FF3B30] px-4 py-2 rounded-xl text-[15px] text-center mb-4">
+          <div className="border border-[#F0CDC6] bg-[#FDF1EF] text-[#C42B21] px-4 py-2.5 rounded-[14px] text-[15px] text-center mb-4">
             {error}
           </div>
         )}
 
         {loading && (
-          <div className="text-center text-[#8E8E93] text-[15px] mb-4">
+          <div className="text-center text-[#6E6E73] text-[15px] mb-4">
             Verificando...
           </div>
         )}
@@ -114,7 +114,7 @@ export default function LoginPage() {
                   key="del"
                   onClick={handleDelete}
                   disabled={loading || pin.length === 0}
-                  className="h-16 rounded-xl text-lg font-medium text-[#8E8E93] active:bg-[#E5E5EA] transition-colors disabled:opacity-30 border-0 bg-transparent cursor-pointer"
+                  className="h-16 rounded-[14px] text-[20px] text-[#6E6E73] active:bg-[#F2F2F7] transition-colors disabled:opacity-30 border-0 bg-transparent cursor-pointer"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +138,7 @@ export default function LoginPage() {
                 key={key}
                 onClick={() => handleDigit(key)}
                 disabled={loading || pin.length >= 4}
-                className="h-16 rounded-xl text-2xl font-semibold text-[#1C1C1E] active:bg-[#E5E5EA] transition-colors disabled:opacity-30 border-0 bg-transparent cursor-pointer"
+                className="h-16 rounded-full text-[28px] font-light text-[#1C1C1E] bg-[#F2F2F7] active:bg-[#E5E5EA] transition-colors disabled:opacity-30 border-0 cursor-pointer tabular-nums"
               >
                 {key}
               </button>
