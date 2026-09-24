@@ -1,5 +1,9 @@
 "use client";
 
+// SIN USO desde el 24-sep-2026: la portada de Propiedades dejó de tener las
+// tres pestañas (Propiedades · Cobros · Contratos) y es una sola lista.
+// Se conserva un mes por si hay que volver atrás; se borra el 24-oct-2026.
+
 import { useRouter } from "next/navigation";
 import type { RentProperty, RentContract, RentCharge } from "@/lib/propiedades-types";
 import {

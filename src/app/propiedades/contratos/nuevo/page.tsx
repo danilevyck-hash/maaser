@@ -1,5 +1,9 @@
 "use client";
 
+// RETIRADA DE LA APP el 24-sep-2026 (una lista, un toque).
+// Ninguna pantalla enlaza aquí. La dirección sigue abriendo hasta el
+// 24-oct-2026 por si papá tenía un enlace guardado; después se borra.
+
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { RentProperty, RentContract } from "@/lib/propiedades-types";
