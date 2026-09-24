@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ModuleLayout from "@/components/ModuleLayout";
+import PantallaModulo from "@/components/PantallaModulo";
 import FinanzasDashboard from "@/components/finanzas/FinanzasDashboard";
 import FinanzasResumen from "@/components/finanzas/FinanzasResumen";
 import FinanzasConfig from "@/components/finanzas/FinanzasConfig";
@@ -41,10 +41,10 @@ export default function FinanzasPage() {
   ];
 
   return (
-    <ModuleLayout title="Finanzas" tabs={tabs} activeTab={tab} onTabChange={setTab}>
+    <PantallaModulo title="Finanzas" tabs={tabs} activeTab={tab} onTabChange={setTab}>
       {tab === "gastos" && <FinanzasDashboard />}
       {tab === "resumen" && <FinanzasResumen />}
       {tab === "config" && <FinanzasConfig />}
-    </ModuleLayout>
+    </PantallaModulo>
   );
 }

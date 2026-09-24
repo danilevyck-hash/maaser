@@ -236,7 +236,7 @@ export default function FinanzasConfig() {
     >
       <span className="text-[15px] text-[#1C1C1E]">{label}</span>
       <div className="flex items-center gap-2">
-        {value && <span className="text-[15px] text-[#8E8E93]">{value}</span>}
+        {value && <span className="text-[15px] text-[#6E6E73]">{value}</span>}
         {toggleVal !== undefined && onToggle && (
           <div className={`relative inline-flex h-[31px] w-[51px] items-center rounded-full transition-colors ${toggleVal ? "bg-[#34C759]" : "bg-gray-300"}`}>
             <span className={`inline-block h-[27px] w-[27px] rounded-full bg-white shadow transition-transform ${toggleVal ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
@@ -251,16 +251,16 @@ export default function FinanzasConfig() {
     </button>
   );
 
-  const Divider = () => <div className="border-t border-[#C6C6C8]/20 ml-4" />;
+  const Divider = () => <div className="border-t border-[#E5E5EA] ml-4" />;
   const SectionHeader = ({ children }: { children: string }) => (
-    <p className="text-[13px] text-[#8E8E93] uppercase px-4 pt-5 pb-1.5">{children}</p>
+    <p className="text-[14px] text-[#6E6E73] px-4 pt-5 pb-1.5">{children}</p>
   );
 
   return (
     <div className="px-4 pt-2 pb-8">
       {/* Finanzas settings */}
       <SectionHeader>Finanzas</SectionHeader>
-      <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="border-t border-[#E5E5EA]">
         <Cell label="Categorias" value={`${categories.length}`} />
         <Divider />
         <Cell label="Presupuestos" value={`${budgets.length} de ${categories.length}`} onClick={openBulkBudget} />
@@ -270,7 +270,7 @@ export default function FinanzasConfig() {
 
       {/* Categories toggle section */}
       <SectionHeader>Categorias</SectionHeader>
-      <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="border-t border-[#E5E5EA]">
         {DEFAULT_CATEGORIES.map((cat, idx) => {
           const isEnabled = enabledNames.includes(cat.name);
           return (
@@ -281,7 +281,7 @@ export default function FinanzasConfig() {
                 className="w-full flex items-center justify-between px-4 py-3 min-h-[44px] text-left bg-transparent border-0 active:bg-gray-100"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{cat.icon}</span>
+                  <span className="text-[22px]">{cat.icon}</span>
                   <span className="text-[15px] text-[#1C1C1E]">{cat.name}</span>
                 </div>
                 <div className={`relative inline-flex h-[31px] w-[51px] items-center rounded-full transition-colors ${isEnabled ? "bg-[#34C759]" : "bg-gray-300"}`}>
@@ -295,7 +295,7 @@ export default function FinanzasConfig() {
 
       {/* Preferences */}
       <SectionHeader>Preferencias</SectionHeader>
-      <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="border-t border-[#E5E5EA]">
         <Cell
           label="Alertas de presupuesto"
           toggle={budgetAlerts}
@@ -310,13 +310,13 @@ export default function FinanzasConfig() {
 
       {/* Footer */}
       <div className="text-center space-y-1 py-6">
-        <p className="text-[13px] text-[#8E8E93]">{categories.length} categorias · {budgets.length} presupuestos</p>
+        <p className="text-[14px] text-[#6E6E73]">{categories.length} categorias · {budgets.length} presupuestos</p>
       </div>
 
       {/* Bulk Budget Modal */}
       {bulkBudgetOpen && mounted && createPortal(
         <div
-          className="fixed inset-0 bg-[#F2F2F7] z-[9999] animate-fade-in"
+          className="fixed inset-0 bg-white z-[9999] animate-fade-in"
           style={{ height: "100dvh" }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -324,21 +324,21 @@ export default function FinanzasConfig() {
             onSubmit={handleBudgetSubmit}
             className="flex flex-col h-full"
           >
-            <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+            <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#E5E5EA] shrink-0 bg-white">
               <button type="button" onClick={() => setBulkBudgetOpen(false)} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">Cancelar</button>
               <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Presupuestos</h2>
-              <button type="submit" disabled={budgetSaving} className="text-[#007AFF] text-[15px] font-bold bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]">
+              <button type="submit" disabled={budgetSaving} className="text-[#007AFF] text-[17px] font-medium bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]">
                 {budgetSaving ? "..." : "Guardar"}
               </button>
             </div>
             <div className="p-5 space-y-3 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
-              <p className="text-sm text-[#8E8E93] mb-2">
+              <p className="text-[14px] text-[#6E6E73] mb-2">
                 Presupuesto de cada categoria para <span className="font-semibold text-[#1C1C1E]">{currentMonth}</span>
               </p>
               {categories.map((cat) => (
                 <div key={cat.id} className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                  <span className="text-sm text-[#1C1C1E] flex-1 truncate">{cat.name}</span>
+                  <span className="text-[14px] text-[#1C1C1E] flex-1 truncate">{cat.name}</span>
                   <input
                     type="number"
                     step="0.01"
@@ -346,7 +346,7 @@ export default function FinanzasConfig() {
                     inputMode="decimal"
                     value={budgetAmounts[cat.name] || ""}
                     onChange={(e) => setBudgetAmounts((prev) => ({ ...prev, [cat.name]: e.target.value }))}
-                    className="w-28 border border-[#C6C6C8] rounded-xl px-3 py-2 focus:ring-2 focus:ring-[#007AFF] outline-none text-sm bg-white text-[#1C1C1E] text-right"
+                    className="w-28 border border-[#E5E5EA] rounded-[14px] px-3 py-2 focus:border-[#007AFF] outline-none text-[14px] bg-white text-[#1C1C1E] text-right"
                     placeholder="0.00"
                   />
                 </div>
@@ -360,48 +360,48 @@ export default function FinanzasConfig() {
       {/* Recurring Expenses Modal */}
       {recurringOpen && mounted && createPortal(
         <div
-          className="fixed inset-0 bg-[#F2F2F7] z-[9999] animate-fade-in"
+          className="fixed inset-0 bg-white z-[9999] animate-fade-in"
           style={{ height: "100dvh" }}
           onClick={(e) => e.stopPropagation()}
         >
           <div
             className="flex flex-col h-full"
           >
-            <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+            <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#E5E5EA] shrink-0 bg-white">
               <div className="min-w-[70px]" />
               <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Gastos Recurrentes</h2>
-              <button onClick={() => setRecurringOpen(false)} className="text-[#007AFF] text-[15px] font-bold bg-transparent border-0 cursor-pointer min-h-[44px]">Listo</button>
+              <button onClick={() => setRecurringOpen(false)} className="text-[#007AFF] text-[17px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">Listo</button>
             </div>
 
             <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
               {recurringLoading ? (
-                <p className="text-center text-[#8E8E93] py-4">Cargando...</p>
+                <p className="text-center text-[#6E6E73] py-4">Cargando...</p>
               ) : recurringItems.length === 0 && !showRecurringForm ? (
-                <p className="text-center text-[#8E8E93] py-4">No hay gastos recurrentes</p>
+                <p className="text-center text-[#6E6E73] py-4">No hay gastos recurrentes</p>
               ) : (
                 <div className="space-y-3">
                   {recurringItems.map((item) => (
                     <div
                       key={item.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border ${
-                        item.is_active ? "border-[#C6C6C8]/30 bg-white" : "border-[#C6C6C8]/20 bg-[#F2F2F7] opacity-60"
+                      className={`flex items-center gap-3 p-3 rounded-[14px] border ${
+                        item.is_active ? "border-[#E5E5EA] bg-white" : "border-[#E5E5EA] bg-white opacity-60"
                       }`}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-[#1C1C1E]">{formatCurrency(item.amount)}</span>
-                          <span className="text-xs text-[#8E8E93]">dia {item.day_of_month}</span>
+                          <span className="text-[13px] text-[#6E6E73]">dia {item.day_of_month}</span>
                         </div>
-                        <div className="text-sm text-[#8E8E93] truncate">
+                        <div className="text-[14px] text-[#6E6E73] truncate">
                           {item.category} · {item.payment_method}
                         </div>
                         {item.notes && (
-                          <div className="text-xs text-[#8E8E93] truncate">{item.notes}</div>
+                          <div className="text-[13px] text-[#6E6E73] truncate">{item.notes}</div>
                         )}
                       </div>
                       <button
                         onClick={() => handleToggleRecurring(item)}
-                        className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-colors bg-transparent border-0 ${
+                        className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[10px] transition-colors bg-transparent border-0 ${
                           item.is_active ? "text-[#007AFF]" : "text-gray-300"
                         }`}
                       >
@@ -415,7 +415,7 @@ export default function FinanzasConfig() {
                       </button>
                       <button
                         onClick={() => handleDeleteRecurring(item.id)}
-                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 transition-colors bg-transparent border-0"
+                        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[10px] text-red-400 hover:text-red-600 transition-colors bg-transparent border-0"
                       >
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -427,40 +427,40 @@ export default function FinanzasConfig() {
               )}
 
               {showRecurringForm ? (
-                <form onSubmit={handleAddRecurring} className="space-y-3 border-t border-[#C6C6C8]/30 pt-4">
+                <form onSubmit={handleAddRecurring} className="space-y-3 border-t border-[#E5E5EA] pt-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Monto ($)</label>
+                      <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Monto ($)</label>
                       <input
                         type="number"
                         step="0.01"
                         inputMode="decimal"
                         value={recAmount}
                         onChange={(e) => setRecAmount(e.target.value)}
-                        className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+                        className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
                         placeholder="0.00"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Dia del mes</label>
+                      <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Dia del mes</label>
                       <input
                         type="number"
                         min="1"
                         max="31"
                         value={recDayOfMonth}
                         onChange={(e) => setRecDayOfMonth(e.target.value)}
-                        className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+                        className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
                         required
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Categoria</label>
+                    <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Categoria</label>
                     <select
                       value={recCategory}
                       onChange={(e) => setRecCategory(e.target.value)}
-                      className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
+                      className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
                       required
                     >
                       {categories.map((c) => (
@@ -469,11 +469,11 @@ export default function FinanzasConfig() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Metodo de Pago</label>
+                    <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Metodo de Pago</label>
                     <select
                       value={recPaymentMethod}
                       onChange={(e) => setRecPaymentMethod(e.target.value)}
-                      className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
+                      className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
                       required
                     >
                       {PAYMENT_METHODS.map((m) => (
@@ -482,12 +482,12 @@ export default function FinanzasConfig() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Notas</label>
+                    <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Notas</label>
                     <input
                       type="text"
                       value={recNotes}
                       onChange={(e) => setRecNotes(e.target.value)}
-                      className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+                      className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
                       placeholder="Descripcion..."
                     />
                   </div>
@@ -495,14 +495,14 @@ export default function FinanzasConfig() {
                     <button
                       type="submit"
                       disabled={recSaving}
-                      className="flex-1 bg-[#007AFF] disabled:opacity-50 text-white font-semibold py-3 rounded-xl min-h-[48px] text-[16px] border-0"
+                      className="flex-1 bg-[#1C1C1E] disabled:opacity-50 text-white font-semibold py-3 rounded-[14px] min-h-[48px] text-[16px] border-0"
                     >
                       {recSaving ? "Guardando..." : "Agregar"}
                     </button>
                     <button
                       type="button"
                       onClick={() => { setShowRecurringForm(false); resetRecurringForm(); }}
-                      className="flex-1 bg-[#E5E5EA] text-[#1C1C1E] font-semibold py-3 rounded-xl min-h-[48px] text-[16px] border-0"
+                      className="flex-1 bg-[#F2F2F7] text-[#1C1C1E] font-semibold py-3 rounded-[14px] min-h-[48px] text-[16px] border-0"
                     >
                       Cancelar
                     </button>
@@ -511,7 +511,7 @@ export default function FinanzasConfig() {
               ) : (
                 <button
                   onClick={() => { setShowRecurringForm(true); setRecCategory(categories.length > 0 ? categories[0].name : ""); }}
-                  className="w-full bg-[#007AFF] text-white font-semibold py-3 rounded-xl min-h-[48px] text-[16px] border-0"
+                  className="w-full bg-[#1C1C1E] text-white font-semibold py-3 rounded-[14px] min-h-[48px] text-[16px] border-0"
                 >
                   + Agregar gasto recurrente
                 </button>

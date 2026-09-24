@@ -58,14 +58,14 @@ export default function CategoryExpensesModal({
       onClick={onClose}
     >
       <div
-        className="bg-[#F2F2F7] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md flex flex-col animate-slide-up"
+        className="bg-white rounded-t-[22px] sm:rounded-[22px] w-full sm:max-w-md flex flex-col animate-slide-up"
         style={{ maxHeight: "85dvh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="bg-white rounded-t-2xl shrink-0">
           <div className="sm:hidden flex justify-center pt-2 pb-1">
-            <div className="w-9 h-1 rounded-full bg-[#C6C6C8]" />
+            <div className="w-9 h-1 rounded-full bg-[#E5E5EA]" />
           </div>
           <div className="flex items-center justify-between px-4 pt-2 pb-3">
             <div className="min-w-[70px]" />
@@ -84,10 +84,10 @@ export default function CategoryExpensesModal({
             </button>
           </div>
           <div className="px-5 pb-4 text-center">
-            <p className="text-[28px] font-bold text-[#1C1C1E] tabular-nums leading-tight">
+            <p className="text-[28px] font-light tracking-[-0.02em] text-[#1C1C1E] tabular-nums leading-tight">
               {formatCurrency(total)}
             </p>
-            <p className="text-[13px] text-[#8E8E93] mt-0.5">
+            <p className="text-[14px] text-[#6E6E73] mt-0.5">
               {filtered.length} gasto{filtered.length !== 1 ? "s" : ""} este mes
             </p>
           </div>
@@ -97,30 +97,30 @@ export default function CategoryExpensesModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ WebkitOverflowScrolling: "touch" }}>
           {filtered.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-[15px] text-[#8E8E93]">Sin gastos en esta categoria</p>
+              <p className="text-[15px] text-[#6E6E73]">Sin gastos en esta categoria</p>
             </div>
           ) : (
             grouped.map((group) => (
               <div key={group.date}>
-                <p className="text-[13px] font-medium text-[#8E8E93] uppercase px-1 mb-1.5">
+                <p className="text-[14px] font-medium text-[#6E6E73] px-1 mb-1.5">
                   {group.date === todayStr ? "Hoy" : formatDate(group.date)} · {formatCurrency(group.total)}
                 </p>
-                <div className="bg-white rounded-2xl overflow-hidden">
+                <div className="border-t border-[#E5E5EA]">
                   {group.items.map((e, i) => (
                     <div key={e.id}>
-                      {i > 0 && <div className="border-t border-[#C6C6C8]/30 ml-4" />}
+                      {i > 0 && <div className="border-t border-[#E5E5EA] ml-4" />}
                       <button
                         type="button"
                         onClick={() => onSelectExpense?.(e)}
-                        className="w-full flex items-center py-3 px-4 active:bg-[#E5E5EA]/50 transition-colors text-left"
+                        className="w-full flex items-center py-3 px-4 active:bg-[#F2F2F7] transition-colors text-left"
                       >
                         <div className="flex-1 min-w-0">
                           {e.notes ? (
                             <p className="text-[15px] text-[#1C1C1E] truncate">{e.notes}</p>
                           ) : (
-                            <p className="text-[15px] text-[#8E8E93] italic">Sin notas</p>
+                            <p className="text-[15px] text-[#6E6E73] italic">Sin notas</p>
                           )}
-                          <p className="text-[13px] text-[#8E8E93]">{e.payment_method}</p>
+                          <p className="text-[14px] text-[#6E6E73]">{e.payment_method}</p>
                         </div>
                         <div className="text-right ml-3 shrink-0">
                           <p className="text-[15px] font-semibold text-[#1C1C1E] tabular-nums">

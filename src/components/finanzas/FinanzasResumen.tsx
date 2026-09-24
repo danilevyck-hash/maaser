@@ -93,16 +93,16 @@ export default function FinanzasResumen() {
       ) : (
         <>
           {/* Hero stats */}
-          <div className="bg-white rounded-2xl overflow-hidden">
+          <div className="border-t border-[#E5E5EA]">
             <div className="p-5 text-center">
-              <p className="text-[34px] font-bold text-[#1C1C1E] tabular-nums">{formatCurrency(yearTotal)}</p>
-              <p className="text-[13px] text-[#8E8E93] mt-1">{yearCount} gastos · Prom. {formatCurrency(avgMonthly)}/mes</p>
+              <p className="text-[34px] font-light tracking-[-0.02em] text-[#1C1C1E] tabular-nums">{formatCurrency(yearTotal)}</p>
+              <p className="text-[14px] text-[#6E6E73] mt-1">{yearCount} gastos · Prom. {formatCurrency(avgMonthly)}/mes</p>
             </div>
           </div>
 
           {/* Chart */}
           {yearCount > 0 && (
-            <div className="bg-white rounded-2xl p-4">
+            <div className="border-t border-[#E5E5EA] p-4">
               <div style={{ width: "100%", height: 200 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 0, right: 0, left: -15, bottom: 0 }}>
@@ -123,19 +123,19 @@ export default function FinanzasResumen() {
           {/* Months list */}
           {activeMonths.length > 0 && (
             <div>
-              <p className="text-[13px] text-[#8E8E93] uppercase px-1 mb-2">Por mes</p>
-              <div className="bg-white rounded-2xl overflow-hidden">
+              <p className="text-[14px] text-[#6E6E73] px-1 mb-2">Por mes</p>
+              <div className="border-t border-[#E5E5EA]">
                 {activeMonths.map((month, i) => (
                   <div key={month.idx}>
-                    {i > 0 && <div className="border-t border-[#C6C6C8]/20 ml-4" />}
+                    {i > 0 && <div className="border-t border-[#E5E5EA] ml-4" />}
                     <button
                       onClick={() => setExpandedMonth(expandedMonth === month.idx ? null : month.idx)}
-                      className="w-full flex items-center justify-between px-4 py-3 active:bg-[#E5E5EA]/50 bg-transparent border-0"
+                      className="w-full flex items-center justify-between px-4 py-3 active:bg-[#F2F2F7] bg-transparent border-0"
                     >
                       <span className="text-[15px] text-[#1C1C1E]">{month.name}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-[15px] tabular-nums text-[#1C1C1E]">{formatCurrency(month.total)}</span>
-                        <span className="text-[11px] text-[#8E8E93] w-8 text-right">{yearTotal > 0 ? `${((month.total / yearTotal) * 100).toFixed(0)}%` : ""}</span>
+                        <span className="text-[13px] text-[#6E6E73] w-8 text-right">{yearTotal > 0 ? `${((month.total / yearTotal) * 100).toFixed(0)}%` : ""}</span>
                         <svg className={`h-4 w-4 text-[#C7C7CC] transition-transform ${expandedMonth === month.idx ? "rotate-90" : ""}`}
                           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -145,16 +145,16 @@ export default function FinanzasResumen() {
 
                     {expandedMonth === month.idx && (
                       <div className="px-4 pb-4">
-                        <div className="border-t border-[#C6C6C8]/20 pt-3 space-y-2">
+                        <div className="border-t border-[#E5E5EA] pt-3 space-y-2">
                           {month.cats.map((cat) => (
                             <div key={cat.name} className="flex items-center justify-between py-1">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-                                <span className="text-[13px] text-[#1C1C1E] truncate">{cat.name}</span>
+                                <span className="text-[14px] text-[#1C1C1E] truncate">{cat.name}</span>
                               </div>
                               <div className="flex items-center gap-3">
-                                <span className="text-[13px] tabular-nums text-[#1C1C1E]">{formatCurrency(cat.amount)}</span>
-                                <span className="text-[11px] text-[#8E8E93] w-8 text-right">{cat.pct.toFixed(0)}%</span>
+                                <span className="text-[14px] tabular-nums text-[#1C1C1E]">{formatCurrency(cat.amount)}</span>
+                                <span className="text-[13px] text-[#6E6E73] w-8 text-right">{cat.pct.toFixed(0)}%</span>
                               </div>
                             </div>
                           ))}
@@ -171,7 +171,7 @@ export default function FinanzasResumen() {
           {yearCount === 0 && (
             <div className="text-center py-12">
               <p className="text-[17px] font-semibold text-[#1C1C1E]">Sin datos</p>
-              <p className="text-[15px] text-[#8E8E93] mt-1">No hay gastos registrados en {year}</p>
+              <p className="text-[15px] text-[#6E6E73] mt-1">No hay gastos registrados en {year}</p>
             </div>
           )}
         </>

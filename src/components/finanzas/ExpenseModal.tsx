@@ -162,15 +162,15 @@ export default function ExpenseModal({
   );
 
   const dateShortcutClass = (target: string) =>
-    `text-xs px-2.5 py-1 rounded-lg transition-colors ${
+    `text-[13px] px-2.5 py-1 rounded-[10px] transition-colors ${
       date === target
-        ? "bg-[#007AFF] text-white"
-        : "bg-[#E5E5EA] text-[#8E8E93]"
+        ? "bg-[#1C1C1E] text-white"
+        : "bg-[#F2F2F7] text-[#6E6E73]"
     }`;
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-[#F2F2F7] z-[9999] animate-fade-in"
+      className="fixed inset-0 bg-white z-[9999] animate-fade-in"
       style={{ height: "100dvh" }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -178,26 +178,26 @@ export default function ExpenseModal({
         onSubmit={handleSubmit}
         className="flex flex-col h-full"
       >
-        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#E5E5EA] shrink-0 bg-white">
           <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">Cancelar</button>
           <h2 className="text-[17px] font-semibold text-[#1C1C1E]">
             {editingExpense ? "Editar Gasto" : "Nuevo Gasto"}
           </h2>
-          <button type="submit" disabled={saving} className="text-[#007AFF] text-[15px] font-bold bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]">
+          <button type="submit" disabled={saving} className="text-[#007AFF] text-[17px] font-medium bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]">
             {saving ? "..." : "Guardar"}
           </button>
         </div>
         <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           {/* Monto */}
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Monto ($)</label>
+            <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Monto ($)</label>
             <input
               type="number"
               step="0.01"
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+              className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
               placeholder="0.00"
               required
             />
@@ -206,16 +206,16 @@ export default function ExpenseModal({
           {/* Categoria */}
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <label className="block text-sm font-medium text-[#1C1C1E]">Categoria</label>
+              <label className="block text-[14px] font-medium text-[#1C1C1E]">Categoria</label>
               {autoDetected && (
-                <span className="text-[11px] font-semibold text-[#007AFF] bg-blue-50 px-1.5 py-0.5 rounded">Auto</span>
+                <span className="text-[13px] font-semibold text-[#007AFF] bg-blue-50 px-1.5 py-0.5 rounded">Auto</span>
               )}
             </div>
             {categories.length > 0 ? (
               <select
                 value={category}
                 onChange={(e) => { setCategory(e.target.value); setManualCategoryChange(true); setAutoDetected(false); }}
-                className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
+                className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
                 required
               >
                 {categories.map((c) => (
@@ -223,13 +223,13 @@ export default function ExpenseModal({
                 ))}
               </select>
             ) : (
-              <p className="text-sm text-[#8E8E93] py-3">Activa categorias en Config</p>
+              <p className="text-[14px] text-[#6E6E73] py-3">Activa categorias en Config</p>
             )}
           </div>
 
           {/* Fecha */}
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Fecha</label>
+            <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Fecha</label>
             <div className="flex gap-2 mb-1.5">
               <button type="button" onClick={() => setDate(todayStr)} className={dateShortcutClass(todayStr)}>
                 Hoy
@@ -245,18 +245,18 @@ export default function ExpenseModal({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+              className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
               required
             />
           </div>
 
           {/* Metodo de Pago */}
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Método de Pago</label>
+            <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Método de Pago</label>
             <select
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
+              className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none bg-white text-[#1C1C1E] text-[16px]"
               required
             >
               {PAYMENT_METHODS.map((m) => (
@@ -267,14 +267,14 @@ export default function ExpenseModal({
 
           {/* Notas */}
           <div className="relative">
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Notas</label>
+            <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Notas</label>
             <input
               ref={notesRef}
               type="text"
               value={notes}
               onChange={(e) => { setNotes(e.target.value); setShowSuggestions(true); }}
               onFocus={() => setShowSuggestions(true)}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+              className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
               placeholder="Descripción del gasto..."
             />
             {showSuggestions && filteredSuggestions.length > 0 && (
@@ -287,7 +287,7 @@ export default function ExpenseModal({
                     key={s}
                     type="button"
                     onClick={() => { setNotes(s); setShowSuggestions(false); }}
-                    className="text-xs px-2.5 py-1 rounded-lg bg-[#E5E5EA] text-[#8E8E93] hover:bg-[#007AFF] hover:text-white transition-colors truncate max-w-[200px]"
+                    className="text-[13px] px-2.5 py-1 rounded-[10px] bg-[#F2F2F7] text-[#6E6E73] hover:bg-[#1C1C1E] hover:text-white transition-colors truncate max-w-[200px]"
                   >
                     {s}
                   </button>

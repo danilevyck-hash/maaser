@@ -376,28 +376,28 @@ export default function FinanzasDashboard() {
 
   return (
     <>
-      <div className="space-y-4 px-4 pt-4">
+      <div className="space-y-6 px-5 pt-2">
         {/* Month navigation */}
         <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => navigateMonth(-1)}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-transparent border-0"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[14px] bg-transparent border-0"
           >
-            <svg className="h-5 w-5 text-[#8E8E93]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 text-[#6E6E73]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div className="text-center min-w-[180px]">
-            <h2 className="text-xl font-semibold text-[#1C1C1E] flex items-center justify-center">
+            <h2 className="text-[22px] font-medium text-[#1C1C1E] flex items-center justify-center">
               {MONTH_NAMES[viewMonth]} {viewYear}
-              {isCurrentMonth && <span className="inline-block w-2 h-2 bg-[#007AFF] rounded-full ml-1.5 animate-pulse" />}
+              {isCurrentMonth && <span className="inline-block w-2 h-2 bg-[#1C1C1E] rounded-full ml-1.5" />}
             </h2>
           </div>
           <button
             onClick={() => navigateMonth(1)}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-transparent border-0"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[14px] bg-transparent border-0"
           >
-            <svg className="h-5 w-5 text-[#8E8E93]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-5 w-5 text-[#6E6E73]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -409,12 +409,12 @@ export default function FinanzasDashboard() {
             <div className="w-6 h-6 border-2 border-[#8E8E93] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="bg-white rounded-2xl overflow-hidden">
-            <div className="px-5 pt-5 pb-3 text-center">
-              <p className={`text-[34px] font-bold leading-tight tabular-nums ${hasBudgets && spentPct >= 100 ? "text-red-500" : hasBudgets && spentPct >= 80 ? "text-amber-500" : "text-[#1C1C1E]"}`}>
+          <div>
+            <div className="pt-2 pb-4">
+              <p className={`text-[44px] font-light tracking-[-0.03em] leading-none tabular-nums ${hasBudgets && spentPct >= 100 ? "text-[#FF3B30]" : hasBudgets && spentPct >= 80 ? "text-[#8A5510]" : "text-[#1C1C1E]"}`}>
                 {formatCurrency(totalMonth)}
               </p>
-              <p className="text-[13px] text-[#8E8E93] mt-1">
+              <p className="text-[15px] text-[#6E6E73] mt-2">
                 {hasBudgets
                   ? `de ${formatCurrency(budgetTotal)} · quedan ${formatCurrency(Math.max(available, 0))}`
                   : `${expenses.length} gasto${expenses.length !== 1 ? "s" : ""}`
@@ -424,38 +424,38 @@ export default function FinanzasDashboard() {
 
             {/* Mini KPIs row */}
             {(prevMonthData.hasData || (isCurrentMonth && daysPassed > 0 && expenses.length > 0)) && (
-              <div className="border-t border-[#C6C6C8]/20 grid grid-cols-2 divide-x divide-[#C6C6C8]/20">
+              <div className="border-t border-b border-[#E5E5EA] grid grid-cols-2 divide-x divide-[#E5E5EA]">
                 {prevMonthData.hasData && prevMonthData.total > 0 ? (() => {
                   const diff = totalMonth - prevMonthData.total;
                   const changePct = (diff / prevMonthData.total) * 100;
                   const isMore = diff > 0;
                   return (
                     <div className="px-4 py-3 text-center">
-                      <p className="text-[11px] text-[#8E8E93] uppercase">vs mes anterior</p>
-                      <p className={`text-[17px] font-semibold mt-0.5 tabular-nums ${isMore ? "text-red-500" : "text-green-500"}`}>
+                      <p className="text-[13px] text-[#6E6E73]">vs mes anterior</p>
+                      <p className={`text-[17px] font-semibold mt-0.5 tabular-nums ${isMore ? "text-[#FF3B30]" : "text-[#34C759]"}`}>
                         {isMore ? "+" : ""}{Math.round(changePct)}%
                       </p>
-                      <p className="text-[11px] text-[#8E8E93]">al dia {daysPassed}</p>
+                      <p className="text-[13px] text-[#6E6E73]">al dia {daysPassed}</p>
                     </div>
                   );
                 })() : (
                   <div className="px-4 py-3 text-center">
-                    <p className="text-[11px] text-[#8E8E93] uppercase">vs mes anterior</p>
-                    <p className="text-[15px] text-[#8E8E93] mt-0.5">--</p>
+                    <p className="text-[13px] text-[#6E6E73]">vs mes anterior</p>
+                    <p className="text-[15px] text-[#6E6E73] mt-0.5">--</p>
                   </div>
                 )}
 
                 {isCurrentMonth && daysPassed > 0 && expenses.length > 0 ? (
                   <div className="px-4 py-3 text-center">
-                    <p className="text-[11px] text-[#8E8E93] uppercase">Proyeccion</p>
-                    <p className={`text-[17px] font-semibold mt-0.5 tabular-nums ${hasBudgets && projected > budgetTotal ? "text-red-500" : "text-[#1C1C1E]"}`}>
+                    <p className="text-[13px] text-[#6E6E73]">Proyeccion</p>
+                    <p className={`text-[17px] font-semibold mt-0.5 tabular-nums ${hasBudgets && projected > budgetTotal ? "text-[#FF3B30]" : "text-[#1C1C1E]"}`}>
                       {formatCurrency(projected)}
                     </p>
-                    <p className="text-[11px] text-[#8E8E93]">fin de mes</p>
+                    <p className="text-[13px] text-[#6E6E73]">fin de mes</p>
                   </div>
                 ) : (
                   <div className="px-4 py-3 text-center">
-                    <p className="text-[11px] text-[#8E8E93] uppercase">Dias restantes</p>
+                    <p className="text-[13px] text-[#6E6E73]">Dias restantes</p>
                     <p className="text-[17px] font-semibold mt-0.5 tabular-nums text-[#1C1C1E]">
                       {daysRemaining}
                     </p>
@@ -469,21 +469,21 @@ export default function FinanzasDashboard() {
         {/* Category breakdown */}
         {!loading && categoryData.length > 0 && (
           <div>
-            <p className="text-[13px] font-medium text-[#8E8E93] uppercase px-1 mb-2">Por Categoria</p>
-            <div className="bg-white rounded-2xl px-4">
-              {sortedCategoryData.map((cat, idx) => {
+            <p className="text-[14px] text-[#6E6E73] mb-1">Por Categoria</p>
+            <div>
+              {sortedCategoryData.map((cat) => {
                 const budget = budgetMap[cat.name];
                 const hasBudget = budget != null && budget > 0;
                 const budgetPct = hasBudget ? (cat.total / budget) * 100 : 0;
-                const budgetBarColor = budgetPct >= 100 ? "#ef4444" : budgetPct >= 80 ? "#f59e0b" : "#007AFF";
+                const budgetBarColor = budgetPct >= 100 ? "#FF3B30" : budgetPct >= 80 ? "#8A5510" : "#1C1C1E";
                 const remaining = hasBudget ? budget - cat.total : 0;
 
                 return (
-                  <div key={cat.name} className={idx > 0 ? "border-t border-[#C6C6C8]/20 ml-6 -mx-0" : ""}>
+                  <div key={cat.name} className="border-t border-[#E5E5EA]">
                     <button
                       type="button"
                       onClick={() => setSelectedCategory(cat.name)}
-                      className={`w-full text-left active:bg-[#E5E5EA]/40 transition-colors ${idx > 0 ? "-ml-6 pl-6" : ""}`}
+                      className="w-full text-left active:bg-[#F2F2F7] transition-colors bg-transparent border-0 cursor-pointer px-0"
                     >
                       <div className="flex items-center justify-between py-2.5">
                         <div className="flex items-center gap-2">
@@ -499,10 +499,10 @@ export default function FinanzasDashboard() {
                       </div>
                       {hasBudget && (
                         <div className="pb-2 pr-5">
-                          <div className="w-full bg-[#E5E5EA] rounded-full h-1.5 overflow-hidden mb-1">
+                          <div className="w-full bg-[#F2F2F7] rounded-full h-1.5 overflow-hidden mb-1">
                             <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(budgetPct, 100)}%`, backgroundColor: budgetBarColor }} />
                           </div>
-                          <p className="text-[11px] text-[#8E8E93]">
+                          <p className="text-[13px] text-[#6E6E73]">
                             {formatCurrency(cat.total)} de {formatCurrency(budget)} -- {budgetPct >= 100 ? "por encima" : `quedan ${formatCurrency(remaining)}`}
                           </p>
                         </div>
@@ -518,15 +518,15 @@ export default function FinanzasDashboard() {
         {/* Payment method breakdown */}
         {!loading && paymentMethodData.length > 1 && (
           <div>
-            <p className="text-[13px] font-medium text-[#8E8E93] uppercase px-1 mb-2">Por Metodo de Pago</p>
-            <div className="bg-white rounded-2xl px-4">
-              {paymentMethodData.map((pm, idx) => (
-                <div key={pm.method} className={idx > 0 ? "border-t border-[#C6C6C8]/20" : ""}>
+            <p className="text-[14px] text-[#6E6E73] mb-1">Por Metodo de Pago</p>
+            <div>
+              {paymentMethodData.map((pm) => (
+                <div key={pm.method} className="border-t border-[#E5E5EA]">
                   <div className="flex items-center justify-between py-2.5">
                     <span className="text-[15px] text-[#1C1C1E]">{pm.method}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-[15px] tabular-nums text-[#1C1C1E]">{formatCurrency(pm.total)}</span>
-                      <span className="text-[11px] text-[#8E8E93] w-8 text-right">{totalMonth > 0 ? `${Math.round((pm.total / totalMonth) * 100)}%` : ""}</span>
+                      <span className="text-[13px] text-[#6E6E73] w-8 text-right">{totalMonth > 0 ? `${Math.round((pm.total / totalMonth) * 100)}%` : ""}</span>
                     </div>
                   </div>
                 </div>
@@ -536,9 +536,9 @@ export default function FinanzasDashboard() {
         )}
 
         {/* Expense list header */}
-        <div className="flex items-center justify-between px-1">
-          <p className="text-[13px] font-medium text-[#8E8E93] uppercase">Gastos</p>
-          <button onClick={() => setShowSearch(!showSearch)} className="text-[15px] text-[#007AFF] bg-transparent border-0">
+        <div className="flex items-center justify-between">
+          <p className="text-[14px] text-[#6E6E73]">Gastos</p>
+          <button onClick={() => setShowSearch(!showSearch)} className="text-[15px] text-[#007AFF] bg-transparent border-0 cursor-pointer min-h-[44px]">
             {showSearch ? "Cerrar" : "Buscar"}
           </button>
         </div>
@@ -551,12 +551,12 @@ export default function FinanzasDashboard() {
             </div>
           ) : expenses.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-[#E5E5EA] rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="h-8 w-8 text-[#8E8E93]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="w-14 h-14 bg-[#F2F2F7] rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="h-8 w-8 text-[#6E6E73]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
                 </svg>
               </div>
-              <p className="text-[15px] text-[#8E8E93]">Sin gastos este mes</p>
+              <p className="text-[15px] text-[#6E6E73]">Sin gastos este mes</p>
               <button
                 onClick={() => { setEditing(null); setModalOpen(true); }}
                 className="text-[15px] text-[#007AFF] font-medium mt-2 bg-transparent border-0"
@@ -567,43 +567,42 @@ export default function FinanzasDashboard() {
           ) : (
             <>
               {showSearch && (
-                <div className="px-1 pb-2">
+                <div className="pb-2">
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Buscar gastos..."
-                    className="w-full bg-[#E5E5EA] rounded-xl px-4 py-2 text-[16px] text-[#1C1C1E] placeholder:text-[#8E8E93] outline-none"
+                    className="w-full bg-white rounded-[10px] px-4 py-2.5 text-[17px] text-[#1C1C1E] placeholder:text-[#6E6E73] outline-none"
                   />
                 </div>
               )}
 
               {filteredExpenses.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-[15px] text-[#8E8E93]">Sin resultados</p>
+                  <p className="text-[15px] text-[#6E6E73]">Sin resultados</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {visibleGroups.map((group) => (
                     <div key={group.date}>
-                      <p className="text-[13px] font-medium text-[#8E8E93] uppercase px-1 mb-1.5">
+                      <p className="text-[14px] text-[#6E6E73] mb-1">
                         {group.date === todayStr ? "Hoy" : formatDate(group.date)} · {formatCurrency(group.total)}
                       </p>
-                      <div className="bg-white rounded-2xl overflow-hidden">
-                        {group.items.map((e, i) => (
+                      <div>
+                        {group.items.map((e) => (
                           <React.Fragment key={e.id}>
-                            {i > 0 && <div className="border-t border-[#C6C6C8]/30 ml-14" />}
                             <div
-                              className={`flex items-center py-3 px-4 active:bg-[#E5E5EA]/50 transition-colors cursor-pointer ${deletingId === e.id ? "opacity-50" : ""}`}
+                              className={`flex items-center py-3 min-h-[56px] border-t border-[#E5E5EA] active:bg-[#F2F2F7] transition-colors cursor-pointer ${deletingId === e.id ? "opacity-50" : ""}`}
                               onClick={() => { setEditing(e); setModalOpen(true); }}
                             >
                               <div className="flex-1 min-w-0">
                                 <p className="text-[15px] text-[#1C1C1E]">{iconMap[e.category] || ""} {e.category}</p>
-                                {e.notes && <p className="text-[13px] text-[#8E8E93] truncate">{e.notes}</p>}
+                                {e.notes && <p className="text-[14px] text-[#6E6E73] truncate">{e.notes}</p>}
                               </div>
                               <div className="text-right flex-shrink-0 ml-3">
                                 <p className="text-[15px] font-semibold text-[#1C1C1E] tabular-nums">{formatCurrency(e.amount)}</p>
-                                <p className="text-[11px] text-[#8E8E93]">{e.payment_method}</p>
+                                <p className="text-[13px] text-[#6E6E73]">{e.payment_method}</p>
                               </div>
                               <button
                                 onClick={(ev) => { ev.stopPropagation(); handleDuplicate(e); }}
@@ -645,14 +644,14 @@ export default function FinanzasDashboard() {
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
           onClick={() => setConfirmDeleteId(null)}
         >
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-[22px] w-full max-w-sm overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 text-center">
               <h3 className="text-[17px] font-semibold text-[#1C1C1E]">Eliminar gasto</h3>
-              <p className="text-[13px] text-[#8E8E93] mt-2">Esta acción no se puede deshacer.</p>
+              <p className="text-[14px] text-[#6E6E73] mt-2">Esta acción no se puede deshacer.</p>
             </div>
-            <div className="border-t border-[#C6C6C8]/30">
+            <div className="border-t border-[#E5E5EA]">
               <button onClick={handleDeleteConfirm}
-                className="w-full py-3 text-[17px] text-red-500 font-medium border-b border-[#C6C6C8]/30 bg-transparent min-h-[44px]">
+                className="w-full py-3 text-[17px] text-[#FF3B30] font-medium border-b border-[#E5E5EA] bg-transparent min-h-[44px]">
                 Eliminar
               </button>
               <button onClick={() => setConfirmDeleteId(null)}
@@ -694,8 +693,8 @@ export default function FinanzasDashboard() {
       {/* FAB */}
       <button
         onClick={() => { setEditing(null); setModalOpen(true); }}
-        className={`fixed bottom-24 right-5 z-40 w-14 h-14 bg-[#007AFF] text-white rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 border-0 ${fabVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}`}
-        style={{ boxShadow: "0 4px 16px rgba(0,122,255,0.4)" }}
+        className={`fixed bottom-24 right-5 z-40 w-14 h-14 bg-[#1C1C1E] text-white rounded-full flex items-center justify-center transition-all duration-300 active:scale-95 border-0 ${fabVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"}`}
+        style={{ boxShadow: "0 6px 20px rgba(0,0,0,0.18)" }}
       >
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
