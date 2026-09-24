@@ -11,6 +11,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup, fireEvent } from "@testing-library/react";
 import { ToastProvider } from "@/components/Toast";
+import { claveDeBienvenida } from "@/components/Bienvenida";
+import {
+  BIENVENIDA_FINANZAS,
+  BIENVENIDA_INDRIVER,
+  BIENVENIDA_MAASER,
+  BIENVENIDA_POR_COBRAR,
+  BIENVENIDA_PROPIEDADES,
+} from "@/lib/bienvenidas";
 
 // El cliente de Supabase se arma al importar el módulo: sin estas dos variables
 // no se puede ni dibujar la pantalla. En la prueba no se conecta a nada.
@@ -218,6 +226,19 @@ describe("los rótulos de las pantallas no se mueven con el rediseño de piel", 
   beforeEach(() => {
     vi.stubGlobal("scrollTo", () => {});
     const memoria = new Map<string, string>();
+    // 24-sep-2026: cada módulo muestra su bienvenida la PRIMERA vez en ese
+    // teléfono. Aquí se da por vista, para que esta prueba siga contando los
+    // rótulos de la pantalla de trabajo y no los del paseo de bienvenida.
+    // (La bienvenida tiene su propio candado: bienvenida.test.tsx.)
+    for (const b of [
+      BIENVENIDA_PROPIEDADES,
+      BIENVENIDA_POR_COBRAR,
+      BIENVENIDA_FINANZAS,
+      BIENVENIDA_INDRIVER,
+      BIENVENIDA_MAASER,
+    ]) {
+      memoria.set(claveDeBienvenida(b.modulo, b.version), "1");
+    }
     vi.stubGlobal("localStorage", {
       getItem: (k: string) => memoria.get(k) ?? null,
       setItem: (k: string, v: string) => { memoria.set(k, String(v)); },
