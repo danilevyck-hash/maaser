@@ -2,9 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Los colores del sistema, en un solo lugar. */
+:root {
+  --ink: #1c1c1e;
+  --ink-2: #6e6e73;
+  --ink-3: #aeaeb2;
+  --hair: #e5e5ea;
+  --fill: #f2f2f7;
+  --blue: #007aff;
+  --green: #34c759;
+  --red: #ff3b30;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  font-family: -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--ink);
+  background: #ffffff;
+}
+
+/* Todo número se lee en columna: las cifras ocupan lo mismo. */
+.numero {
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes slide-up {

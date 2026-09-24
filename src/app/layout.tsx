@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F2F2F7",
+  themeColor: "#FFFFFF",
   width: "device-width",
   initialScale: 1,
 };
@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="bg-[#F2F2F7] min-h-screen">
+      <body className="bg-white min-h-screen">
         <ToastProvider>
           {children}
           <ServiceWorkerRegistrar />
