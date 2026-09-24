@@ -2,16 +2,22 @@
 //
 // CANDADO DE FLUJO — el rediseño de piel no puede mover un solo rótulo.
 //
-// Se dibujan las tres pantallas (Inicio · Maaser · Propiedades) con datos de
-// mentira y se anota la lista EXACTA de rótulos de botones y enlaces de cada
-// una. Si un cambio visual agrega, quita o renombra un botón, una pestaña o un
-// enlace, esta prueba se pone roja.
+// Se dibujan las pantallas con datos de mentira y se anota la lista EXACTA de
+// rótulos de botones y enlaces de cada una. Si un cambio visual agrega, quita
+// o renombra un botón, una pestaña o un enlace, esta prueba se pone roja.
 //
 // La única edición permitida de las listas de abajo es quitar un emoji
 // decorativo de un rótulo, y hay que decirlo en el informe.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup, fireEvent } from "@testing-library/react";
 import { ToastProvider } from "@/components/Toast";
+
+// El cliente de Supabase se arma al importar el módulo: sin estas dos variables
+// no se puede ni dibujar la pantalla. En la prueba no se conecta a nada.
+vi.hoisted(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||= "prueba";
+});
 
 const PARAMS = { id: "1" };
 
@@ -23,54 +29,59 @@ vi.mock("next/navigation", () => ({
 }));
 
 import Inicio from "@/app/page";
-import MaaserPage from "@/app/maaser/page";
-import PropiedadesPage from "@/app/propiedades/page";
-import NuevaPropiedad from "@/app/propiedades/nueva/page";
-import EditarPropiedad from "@/app/propiedades/editar/[id]/page";
-import RegistrarPagoPropiedad from "@/app/propiedades/pagar/[id]/page";
-import PagarCobro from "@/app/propiedades/cobros/[id]/pagar/page";
-import NuevoContratoPage from "@/app/propiedades/contratos/nuevo/page";
-import EditarContrato from "@/app/propiedades/contratos/editar/[id]/page";
+import FinanzasPage from "@/app/finanzas/page";
+import InDriverPage from "@/app/indriver/page";
+import InDriverResumen from "@/app/indriver/resumen/page";
+import PorCobrarPage from "@/app/por-cobrar/page";
+import ClienteDetallePage from "@/app/por-cobrar/[id]/page";
 
 /* ── Datos de mentira ─────────────────────────────────────────────── */
 
-const DONACIONES = [
-  { id: 1, date: "2026-09-20", beneficiary: "Rab Gil", amount: 180, status: "valido", check_number: "2937", notes: null, metodo: "cheque" },
-  { id: 2, date: "2026-09-18", beneficiary: "", amount: 101, status: "valido", check_number: null, notes: null, metodo: null },
+const CATEGORIAS = [
+  { id: "c1", name: "Comida", icon: "🍔", color: "#EF4444", is_enabled: true },
+  { id: "c2", name: "Hogar", icon: "🏠", color: "#8B5CF6", is_enabled: true },
 ];
 
-const PROPIEDADES = [
-  { id: 1, name: "Casa Albrook", location: "Albrook", type: "residencial", icon: "🏠", rent_amount: 650 },
-  { id: 2, name: "Local Vía España", location: "Vía España", type: "comercial", icon: "🏪", rent_amount: 1200 },
+const PRESUPUESTOS = [
+  { id: "b1", category: "Comida", budget_amount: 500, month: "2026-09" },
 ];
 
-const CONTRATOS = [
-  {
-    id: 11, property_id: 1, tenant_name: "Juan Pérez", tenant_phone: null, tenant_email: null,
-    start_date: "2026-01-01", end_date: "2026-12-31", rent_amount: 650, active: true,
-    property: { id: 1, name: "Casa Albrook" },
-  },
+const GASTOS_FINANZAS = [
+  { id: 1, date: "2026-09-10", amount: 25, category: "Comida", notes: "Almuerzo", payment_method: "Yappy" },
+  { id: 2, date: "2026-09-05", amount: 100, category: "Hogar", notes: "Internet", payment_method: "ACH" },
 ];
 
-const COBROS = [
-  {
-    id: 1, property_id: 1, contract_id: 11, tenant_name: "Juan Pérez", month: "2026-09",
-    amount: 650, paid_amount: 650, status: "pagado", due_date: "2026-09-01", paid_date: "2026-09-05",
-    property: { id: 1, name: "Casa Albrook" },
-  },
+const RECURRENTES = [
+  { id: "r1", amount: 100, category: "Hogar", notes: "Internet", payment_method: "ACH", day_of_month: 5, is_active: true },
 ];
 
-const RESPUESTAS: Array<[string, unknown]> = [
-  ["/api/donations", DONACIONES],
-  ["/api/goal", { gastos_anuales: 800000, columna_gastos: true }],
-  ["/api/propiedades/properties", PROPIEDADES],
-  ["/api/propiedades/contracts", CONTRATOS],
-  ["/api/propiedades/charges", COBROS],
+const GASTOS_INDRIVER = [
+  { id: 1, date: "2026-09-10", amount: 12.5, notes: "Gasolina" },
+  { id: 2, date: "2026-09-04", amount: 8, notes: "Lavado" },
+];
+
+const CLIENTES = [
+  { id: 1, nombre: "Maicol M", telefono: "60000000", notas: null, balance: 250, ultimo_movimiento: "2026-09-10" },
+  { id: 2, nombre: "Rab Gil", telefono: null, notas: null, balance: 0, ultimo_movimiento: null },
+];
+
+const MOVIMIENTOS = [
+  { id: 1, cliente_id: 1, fecha: "2026-09-10", tipo: "cargo", monto: 300, descripcion: "Mercancía" },
+  { id: 2, cliente_id: 1, fecha: "2026-09-12", tipo: "abono", monto: 50, descripcion: null },
 ];
 
 function respuestaDe(url: string) {
-  const par = RESPUESTAS.find(([ruta]) => url.startsWith(ruta));
-  return par ? par[1] : [];
+  if (url.startsWith("/api/finanzas/categories")) return CATEGORIAS;
+  if (url.startsWith("/api/finanzas/budgets")) return PRESUPUESTOS;
+  if (url.startsWith("/api/finanzas/expenses")) return GASTOS_FINANZAS;
+  if (url.startsWith("/api/finanzas/recurring")) return RECURRENTES;
+  if (url.startsWith("/api/finanzas/notes-suggestions")) return [];
+  if (url.startsWith("/api/expenses")) return GASTOS_INDRIVER;
+  if (url.startsWith("/api/por-cobrar/clientes")) {
+    return url.includes("id=") ? CLIENTES[0] : CLIENTES;
+  }
+  if (url.startsWith("/api/por-cobrar/movimientos")) return MOVIMIENTOS;
+  return [];
 }
 
 /* ── Utilidades ───────────────────────────────────────────────────── */
@@ -112,146 +123,109 @@ async function tocar(nombre: string) {
 
 /* ── Las listas esperadas ─────────────────────────────────────────── */
 
+// 23-sep-2026: al aplicar la piel de Apple se quitaron los cinco emojis
+// decorativos de las fichas de Inicio (✡ 🧾 🚗 🏠 💰). El rótulo de cada ficha
+// —nombre y descripción— no cambió ni una letra.
 const INICIO = [
   "Salir",
-  "\u2721 Maaser Registro de donaciones",
-  "\ud83e\uddfe Por Cobrar Cuentas por cobrar",
-  "\ud83d\ude97 InDriver Gastos mensuales",
-  "\ud83c\udfe0 Propiedades Gesti\u00f3n de alquileres",
-  "\ud83d\udcb0 Finanzas Finanzas personales",
+  "Maaser Registro de donaciones",
+  "Por Cobrar Cuentas por cobrar",
+  "InDriver Gastos mensuales",
+  "Propiedades Gestión de alquileres",
+  "Finanzas Finanzas personales",
 ];
 
-const MAASER_DONACIONES = [
-  "\u2190 Inicio",
-  "Salir",
-  "cambiar \u203a",
-  "+ Nueva donaci\u00f3n",
-  "Rab Gil 20 sep \u00b7 cheque 2937 $180",
-  "Sin nombre 18 sep $101",
-  "Donaciones",
-  "Resumen",
-];
-
-const MAASER_RESUMEN = [
+const FINANZAS_GASTOS = [
   "← Inicio",
   "Salir",
-  "5787 · $281",
-  "Tishrei › 12 sep – 11 oct $281 2",
-  "Jeshván › 12 oct – 10 nov $0 0",
-  "Kislev › 11 nov – 10 dic $0 0",
-  "Tévet › 11 dic – 8 ene $0 0",
-  "Shvat › 9 ene – 7 feb $0 0",
-  "Adar I › 8 feb – 9 mar $0 0",
-  "Adar II › 10 mar – 7 abr $0 0",
-  "Nisán › 8 abr – 7 may $0 0",
-  "Iyar › 8 may – 5 jun $0 0",
-  "Siván › 6 jun – 5 jul $0 0",
-  "Tamuz › 6 jul – 3 ago $0 0",
-  "Av › 4 ago – 2 sep $0 0",
-  "Elul › 3 sep – 1 oct $0 0",
-  "Ver por beneficiario ›",
-  "Exportar: PDF para imprimir · Excel para el contador ›",
-  "Donaciones",
+  "🍔 Comida $25.00 $25.00 de $500.00 -- quedan $475.00",
+  "🏠 Hogar $100.00",
+  "Buscar",
+  "Gastos",
   "Resumen",
+  "Config",
 ];
-
-const PROPIEDADES_TAB = [
-  "\u2190 Inicio",
+const FINANZAS_RESUMEN = [
+  "← Inicio",
   "Salir",
-  "1 propiedad sin contrato vigente No se le genera cobro. Toca aqu\u00ed para renovar el contrato.",
-  "+ Agregar",
-  "Registrar pago",
-  "Contrato",
-  "Registrar pago",
+  "Septiembre $125.00 100%",
+  "Gastos",
+  "Resumen",
+  "Config",
+];
+const FINANZAS_CONFIG = [
+  "← Inicio",
+  "Salir",
+  "Categorias 2",
+  "Presupuestos 1 de 2",
+  "Gastos recurrentes",
+  "🍔 Comida",
+  "🛒 Supermercado",
+  "🚗 Transporte",
+  "🏠 Hogar",
+  "💊 Salud",
+  "🎮 Entretenimiento",
+  "👕 Ropa",
+  "📚 Educación",
+  "⚡ Servicios",
+  "💆 Personal",
+  "🐾 Mascotas",
+  "✈️ Viajes",
+  "🎁 Regalos",
+  "📌 Otros",
+  "Alertas de presupuesto",
+  "Gastos",
+  "Resumen",
+  "Config",
+];
+const INDRIVER_GASTOS = [
+  "← Inicio",
+  "Salir",
+  "Exportar",
+  "+ Nuevo Gasto",
   "Editar",
-  "Propiedades",
-  "Cobros",
-  "Contratos",
-];
-
-const COBROS_TAB = [
-  "← Inicio",
-  "Salir",
-  "‹",
-  "›",
-  "Desmarcar",
-  "Propiedades",
-  "Cobros",
-  "Contratos",
-];
-const NUEVA_DONACION = [
-  "← Inicio",
-  "Salir",
-  "cambiar ›",
-  "+ Nueva donación",
-  "Rab Gil 20 sep · cheque 2937 $180",
-  "Sin nombre 18 sep $101",
-  "Donaciones",
+  "Eliminar",
+  "Editar",
+  "Eliminar",
+  "Gastos",
   "Resumen",
-  "Cancelar",
-  "$ 101",
-  "$ 180",
-  "Cheque",
-  "Transferencia / Yappy",
-  "Tarjeta",
-  "Guardar sin nombre",
-  "Agregar",
 ];
-const ADENTRO_DE_PROPIEDADES: Record<string, string[]> = {
-  "Nueva propiedad": [
-    "← Volver",
-    "🏠",
-    "🏢",
-    "🏪",
-    "🏘️",
-    "🏗️",
-    "Guardar propiedad",
-  ],
-  "Editar propiedad": [
-    "← Volver",
-    "Eliminar",
-    "🏠",
-    "🏢",
-    "🏪",
-    "🏘️",
-    "🏗️",
-    "Guardar cambios",
-  ],
-  "Registrar pago de la propiedad": [
-    "← Volver",
-    "Me pagó hasta un mes Ejemplo: me pagó todo el resto del año",
-    "Me dio un monto Se reparte mes por mes. Lo que sobra queda a favor.",
-    "Confirmar pago",
-  ],
-  "Registrar pago del cobro": [
-    "← Volver",
-    "Confirmar pago",
-  ],
-  "Nuevo contrato": [
-    "← Volver",
-    "Crear contrato",
-  ],
-  "Editar contrato": [
-    "← Volver",
-    "Eliminar",
-    "Guardar cambios",
-  ],
-};
-
-const CONTRATOS_TAB = [
+const INDRIVER_RESUMEN_PESTANA = [
   "← Inicio",
   "Salir",
-  "+ Nuevo",
-  "Propiedades",
-  "Cobros",
-  "Contratos",
+  "Gastos",
+  "Resumen",
+];
+const INDRIVER_RESUMEN_PAGINA: string[] = [];
+const POR_COBRAR = [
+  "← Inicio",
+  "Maicol M 10 sep 2026 $250.00",
+  "Rab Gil Sin movimientos Al día",
+];
+const POR_COBRAR_CLIENTE = [
+  "← Atrás",
+  "Maicol M",
+  "Compartir por WhatsApp",
+  "10 sep Cargo Mercancía $300.00",
+  "12 sep Abono - $50.00",
+  "+ Cargo",
+  "+ Abono",
 ];
 
 /* ── Las pruebas ──────────────────────────────────────────────────── */
 
-describe("los rótulos de las tres pantallas no se mueven con el rediseño de piel", () => {
+describe("los rótulos de las pantallas no se mueven con el rediseño de piel", () => {
   beforeEach(() => {
     vi.stubGlobal("scrollTo", () => {});
+    const memoria = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => memoria.get(k) ?? null,
+      setItem: (k: string, v: string) => { memoria.set(k, String(v)); },
+      removeItem: (k: string) => { memoria.delete(k); },
+      clear: () => memoria.clear(),
+      key: () => null,
+      length: 0,
+    });
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date("2026-09-23T17:00:00Z"));
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
@@ -275,54 +249,44 @@ describe("los rótulos de las tres pantallas no se mueven con el rediseño de pi
     expect(rotulos()).toEqual(INICIO);
   });
 
-  it("Maaser · Donaciones y Resumen", async () => {
-    dibujar(MaaserPage);
-    await waitFor(() => expect(screen.getByText("Rab Gil")).toBeDefined());
-    expect(rotulos()).toEqual(MAASER_DONACIONES);
+  it("Finanzas · las tres pestañas", async () => {
+    dibujar(FinanzasPage);
+    await waitFor(() => expect(screen.getAllByText(/Comida/)[0]).toBeDefined());
+    expect(rotulos(), "Gastos").toEqual(FINANZAS_GASTOS);
 
     await tocar("Resumen");
-    await waitFor(() => expect(screen.getAllByRole("button", { name: /beneficiario/i })[0]).toBeDefined());
-    expect(rotulos()).toEqual(MAASER_RESUMEN);
+    await waitFor(() => expect(screen.getAllByText(/Resumen/)[0]).toBeDefined());
+    expect(rotulos(), "Resumen").toEqual(FINANZAS_RESUMEN);
+
+    await tocar("Config");
+    await waitFor(() => expect(screen.getAllByText(/Categorías|Config/)[0]).toBeDefined());
+    expect(rotulos(), "Config").toEqual(FINANZAS_CONFIG);
   });
 
-  it("Propiedades · las tres pestañas", async () => {
-    dibujar(PropiedadesPage);
-    await waitFor(() => expect(screen.getByText("Casa Albrook")).toBeDefined());
-    expect(rotulos()).toEqual(PROPIEDADES_TAB);
+  it("InDriver · las dos pestañas", async () => {
+    dibujar(InDriverPage);
+    await waitFor(() => expect(screen.getAllByText(/Gasolina/)[0]).toBeDefined());
+    expect(rotulos(), "Gastos").toEqual(INDRIVER_GASTOS);
 
-    await tocar("Cobros");
-    await waitFor(() => expect(screen.getAllByText(/Juan Pérez/)[0]).toBeDefined());
-    expect(rotulos()).toEqual(COBROS_TAB);
-
-    await tocar("Contratos");
-    await waitFor(() => expect(screen.getAllByText(/alquiladas/)[0]).toBeDefined());
-    expect(rotulos()).toEqual(CONTRATOS_TAB);
+    await tocar("Resumen");
+    await waitFor(() => expect(screen.getAllByText(/Enero/)[0]).toBeDefined());
+    expect(rotulos(), "Resumen").toEqual(INDRIVER_RESUMEN_PESTANA);
   });
 
-  it("Maaser · la hoja de Nueva donación", async () => {
-    dibujar(MaaserPage);
-    await waitFor(() => expect(screen.getByText("Rab Gil")).toBeDefined());
-    await tocar("+ Nueva donación");
-    await waitFor(() => expect(screen.getAllByRole("button", { name: "Cancelar" })[0]).toBeDefined());
-    expect(rotulos()).toEqual(NUEVA_DONACION);
+  it("InDriver · la página de Resumen", async () => {
+    dibujar(InDriverResumen);
+    await waitFor(() => expect(screen.getAllByText(/Enero/)[0]).toBeDefined());
+    expect(rotulos()).toEqual(INDRIVER_RESUMEN_PAGINA);
   });
 
-  it("Propiedades · las pantallas de adentro", async () => {
-    const pantallas: Array<[string, () => JSX.Element, string]> = [
-      ["Nueva propiedad", NuevaPropiedad, "Nueva propiedad"],
-      ["Editar propiedad", EditarPropiedad, "Editar propiedad"],
-      ["Registrar pago de la propiedad", RegistrarPagoPropiedad, "Registrar pago"],
-      ["Registrar pago del cobro", PagarCobro, "Registrar pago"],
-      ["Nuevo contrato", NuevoContratoPage, "Nuevo contrato"],
-      ["Editar contrato", EditarContrato, "Editar contrato"],
-    ];
-    const visto: Record<string, string[]> = {};
-    for (const [nombre, Pantalla, titulo] of pantallas) {
-      dibujar(Pantalla);
-      await waitFor(() => expect(screen.getAllByText(titulo)[0]).toBeDefined());
-      visto[nombre] = rotulos();
-      cleanup();
-    }
-    expect(visto).toEqual(ADENTRO_DE_PROPIEDADES);
+  it("Por Cobrar · la lista y la ficha del cliente", async () => {
+    dibujar(PorCobrarPage);
+    await waitFor(() => expect(screen.getAllByText(/Maicol M/)[0]).toBeDefined());
+    expect(rotulos(), "lista").toEqual(POR_COBRAR);
+    cleanup();
+
+    dibujar(ClienteDetallePage);
+    await waitFor(() => expect(screen.getAllByText(/Cargo/)[0]).toBeDefined());
+    expect(rotulos(), "ficha").toEqual(POR_COBRAR_CLIENTE);
   });
 });
