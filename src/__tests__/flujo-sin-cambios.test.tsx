@@ -13,16 +13,24 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup, fireEvent } from "@testing-library/react";
 import { ToastProvider } from "@/components/Toast";
 
+const PARAMS = { id: "1" };
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: () => {}, replace: () => {}, refresh: () => {}, back: () => {} }),
   useSearchParams: () => new URLSearchParams(""),
-  useParams: () => ({}),
+  useParams: () => PARAMS,
   usePathname: () => "/",
 }));
 
 import Inicio from "@/app/page";
 import MaaserPage from "@/app/maaser/page";
 import PropiedadesPage from "@/app/propiedades/page";
+import NuevaPropiedad from "@/app/propiedades/nueva/page";
+import EditarPropiedad from "@/app/propiedades/editar/[id]/page";
+import RegistrarPagoPropiedad from "@/app/propiedades/pagar/[id]/page";
+import PagarCobro from "@/app/propiedades/cobros/[id]/pagar/page";
+import NuevoContratoPage from "@/app/propiedades/contratos/nuevo/page";
+import EditarContrato from "@/app/propiedades/contratos/editar/[id]/page";
 
 /* ── Datos de mentira ─────────────────────────────────────────────── */
 
@@ -46,7 +54,7 @@ const CONTRATOS = [
 
 const COBROS = [
   {
-    id: 101, property_id: 1, contract_id: 11, tenant_name: "Juan Pérez", month: "2026-09",
+    id: 1, property_id: 1, contract_id: 11, tenant_name: "Juan Pérez", month: "2026-09",
     amount: 650, paid_amount: 650, status: "pagado", due_date: "2026-09-01", paid_date: "2026-09-05",
     property: { id: 1, name: "Casa Albrook" },
   },
@@ -171,6 +179,65 @@ const COBROS_TAB = [
   "Cobros",
   "Contratos",
 ];
+const NUEVA_DONACION = [
+  "← Inicio",
+  "Salir",
+  "cambiar ›",
+  "+ Nueva donación",
+  "Rab Gil 20 sep · cheque 2937 $180",
+  "Sin nombre 18 sep $101",
+  "Donaciones",
+  "Resumen",
+  "Cancelar",
+  "$ 101",
+  "$ 180",
+  "Cheque",
+  "Transferencia / Yappy",
+  "Tarjeta",
+  "Guardar sin nombre",
+  "Agregar",
+];
+const ADENTRO_DE_PROPIEDADES: Record<string, string[]> = {
+  "Nueva propiedad": [
+    "← Volver",
+    "🏠",
+    "🏢",
+    "🏪",
+    "🏘️",
+    "🏗️",
+    "Guardar propiedad",
+  ],
+  "Editar propiedad": [
+    "← Volver",
+    "Eliminar",
+    "🏠",
+    "🏢",
+    "🏪",
+    "🏘️",
+    "🏗️",
+    "Guardar cambios",
+  ],
+  "Registrar pago de la propiedad": [
+    "← Volver",
+    "Me pagó hasta un mes Ejemplo: me pagó todo el resto del año",
+    "Me dio un monto Se reparte mes por mes. Lo que sobra queda a favor.",
+    "Confirmar pago",
+  ],
+  "Registrar pago del cobro": [
+    "← Volver",
+    "Confirmar pago",
+  ],
+  "Nuevo contrato": [
+    "← Volver",
+    "Crear contrato",
+  ],
+  "Editar contrato": [
+    "← Volver",
+    "Eliminar",
+    "Guardar cambios",
+  ],
+};
+
 const CONTRATOS_TAB = [
   "← Inicio",
   "Salir",
@@ -184,6 +251,7 @@ const CONTRATOS_TAB = [
 
 describe("los rótulos de las tres pantallas no se mueven con el rediseño de piel", () => {
   beforeEach(() => {
+    vi.stubGlobal("scrollTo", () => {});
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date("2026-09-23T17:00:00Z"));
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
@@ -229,5 +297,32 @@ describe("los rótulos de las tres pantallas no se mueven con el rediseño de pi
     await tocar("Contratos");
     await waitFor(() => expect(screen.getAllByText(/alquiladas/)[0]).toBeDefined());
     expect(rotulos()).toEqual(CONTRATOS_TAB);
+  });
+
+  it("Maaser · la hoja de Nueva donación", async () => {
+    dibujar(MaaserPage);
+    await waitFor(() => expect(screen.getByText("Rab Gil")).toBeDefined());
+    await tocar("+ Nueva donación");
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "Cancelar" })[0]).toBeDefined());
+    expect(rotulos()).toEqual(NUEVA_DONACION);
+  });
+
+  it("Propiedades · las pantallas de adentro", async () => {
+    const pantallas: Array<[string, () => JSX.Element, string]> = [
+      ["Nueva propiedad", NuevaPropiedad, "Nueva propiedad"],
+      ["Editar propiedad", EditarPropiedad, "Editar propiedad"],
+      ["Registrar pago de la propiedad", RegistrarPagoPropiedad, "Registrar pago"],
+      ["Registrar pago del cobro", PagarCobro, "Registrar pago"],
+      ["Nuevo contrato", NuevoContratoPage, "Nuevo contrato"],
+      ["Editar contrato", EditarContrato, "Editar contrato"],
+    ];
+    const visto: Record<string, string[]> = {};
+    for (const [nombre, Pantalla, titulo] of pantallas) {
+      dibujar(Pantalla);
+      await waitFor(() => expect(screen.getAllByText(titulo)[0]).toBeDefined());
+      visto[nombre] = rotulos();
+      cleanup();
+    }
+    expect(visto).toEqual(ADENTRO_DE_PROPIEDADES);
   });
 });
