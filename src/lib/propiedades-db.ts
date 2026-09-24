@@ -40,3 +40,39 @@ export async function supportsPartialPayments(): Promise<boolean> {
 export const FALTA_SQL_MSG =
   "Para registrar abonos parciales o saldo a favor falta correr un cambio en la base de datos " +
   "(columna paid_amount en rent_charges). Mientras tanto puedes registrar meses completos.";
+
+/**
+ * ¿rent_properties ya tiene las columnas de recargo por atraso?
+ *
+ * Mismo trato que paid_amount: la app funciona ANTES de que Daniel corra
+ * supabase/20260924-propiedades-recargo.sql. Sin las columnas, el recargo
+ * simplemente no existe: la línea de Editar no se dibuja y nada se rompe.
+ */
+let recargoCacheado: boolean | null = null;
+
+export function resetRecargoCache() {
+  recargoCacheado = null;
+}
+
+export async function supportsRecargo(): Promise<boolean> {
+  if (recargoCacheado !== null) return recargoCacheado;
+
+  const { error } = await supabase.from("rent_properties").select("recargo_dia").limit(1);
+  if (!error) {
+    recargoCacheado = true;
+    return true;
+  }
+
+  const falta =
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    /recargo_dia/i.test(error.message || "");
+
+  if (falta) {
+    recargoCacheado = false;
+    return false;
+  }
+
+  // Error de red o de permisos: no se cachea, puede ser pasajero.
+  return false;
+}

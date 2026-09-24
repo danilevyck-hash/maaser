@@ -22,15 +22,19 @@ export function mensajeDeCobro(input: {
   inquilino: string;
   meses: string[];
   monto: number;
+  /** Recargo por atraso. 0 o sin dato: el mensaje no lo nombra. */
+  recargo?: number;
   anioDeReferencia?: string;
 }): string {
   const { inquilino, meses, monto, anioDeReferencia } = input;
+  const recargo = input.recargo ?? 0;
   const lista = listaDeMeses(meses, anioDeReferencia);
   const cuerpo =
     meses.length === 1
       ? `me falta el alquiler de ${lista}`
       : `me faltan los alquileres de ${lista}`;
-  return `${inquilino}, ${cuerpo} (${fmtMoney(monto)}). Gracias, Alberto`;
+  const cola = recargo > 0 ? ` más ${fmtMoney(recargo)} de recargo` : "";
+  return `${inquilino}, ${cuerpo} (${fmtMoney(monto)})${cola}. Gracias, Alberto`;
 }
 
 export function enlaceWhatsapp(input: {
@@ -38,6 +42,7 @@ export function enlaceWhatsapp(input: {
   inquilino: string;
   meses: string[];
   monto: number;
+  recargo?: number;
   anioDeReferencia?: string;
 }): string | null {
   const numero = numeroWhatsapp(input.telefono);

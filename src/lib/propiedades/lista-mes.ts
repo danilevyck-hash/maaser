@@ -7,8 +7,9 @@
 import { addMonths, fmtMoney, toCents, fromCents } from "@/lib/propiedades-pagos";
 import { cobrosPorMes, estadoDelMes, type CobroLeido, type EstadoMes } from "./estado-mes";
 import { nombreEnPantalla } from "./nombre";
+import { recargoDelMes, reglaDeRecargo, type PropiedadConRecargo } from "./recargo";
 
-export type PropiedadLeida = {
+export type PropiedadLeida = PropiedadConRecargo & {
   id: number;
   name: string;
   rent_amount: number | string;
@@ -46,6 +47,10 @@ export type FilaDelMes = {
   /** Meses que él marcó «no pagó», del más viejo al más nuevo. */
   mesesQueDebe: string[];
   montoQueDebe: number;
+  /** Recargo por atraso de esos meses. 0 cuando la propiedad no cobra recargo. */
+  recargo: number;
+  /** Lo que hay que cobrarle: el alquiler que debe más el recargo. */
+  montoQueDebeConRecargo: number;
 };
 
 /** El contrato vivo de una propiedad. Sin él, la propiedad no tiene fila. */
@@ -76,8 +81,10 @@ export function filasDelMes(input: {
   propiedades: PropiedadLeida[];
   contratos: ContratoLeido[];
   cobros: CobroDeFila[];
+  /** Hoy en Panamá: de ahí sale si al mes no pagado ya se le pasó el día. */
+  hoy: string;
 }): FilaDelMes[] {
-  const { mes, propiedades, contratos, cobros } = input;
+  const { mes, propiedades, contratos, cobros, hoy } = input;
 
   const filas: FilaDelMes[] = [];
   for (const propiedad of propiedades) {
@@ -100,12 +107,16 @@ export function filasDelMes(input: {
 
     // Deuda: SOLO lo que él marcó «no pagó», hasta el mes que se mira.
     const mesesQueDebe: string[] = [];
+    const regla = reglaDeRecargo(propiedad);
     let debeCentavos = 0;
+    let recargoCentavos = 0;
     for (const [mesCobro, suCobro] of porMes) {
       if (mesCobro > mes) continue;
       if (estadoDelMes(suCobro) !== "no_pago") continue;
       mesesQueDebe.push(mesCobro);
-      debeCentavos += Math.max(0, toCents(montoDelMes({ mes: mesCobro, cobro: suCobro, contrato, propiedad })));
+      const suMonto = montoDelMes({ mes: mesCobro, cobro: suCobro, contrato, propiedad });
+      debeCentavos += Math.max(0, toCents(suMonto));
+      recargoCentavos += Math.max(0, toCents(recargoDelMes({ mes: mesCobro, monto: suMonto, regla, hoy })));
     }
     mesesQueDebe.sort();
 
@@ -123,6 +134,8 @@ export function filasDelMes(input: {
       pagadoHasta,
       mesesQueDebe,
       montoQueDebe: fromCents(debeCentavos),
+      recargo: fromCents(recargoCentavos),
+      montoQueDebeConRecargo: fromCents(debeCentavos + recargoCentavos),
     });
   }
   return filas;
@@ -142,7 +155,7 @@ export type ResumenDelMes = {
 export function resumenDelMes(filas: FilaDelMes[]): ResumenDelMes {
   const pagadas = filas.filter((f) => f.estado === "pagado");
   const cobrado = fromCents(pagadas.reduce((suma, f) => suma + toCents(f.monto), 0));
-  const deuda = fromCents(filas.reduce((suma, f) => suma + toCents(f.montoQueDebe), 0));
+  const deuda = fromCents(filas.reduce((suma, f) => suma + toCents(f.montoQueDebeConRecargo), 0));
   return {
     pagados: pagadas.length,
     total: filas.length,

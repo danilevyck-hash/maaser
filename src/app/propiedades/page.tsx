@@ -75,8 +75,8 @@ export default function PropiedadesPage() {
   }, [traer]);
 
   const filas = useMemo(
-    () => filasDelMes({ mes, propiedades, contratos, cobros }),
-    [mes, propiedades, contratos, cobros],
+    () => filasDelMes({ mes, propiedades, contratos, cobros, hoy }),
+    [mes, propiedades, contratos, cobros, hoy],
   );
   const resumen = useMemo(() => resumenDelMes(filas), [filas]);
   const avisoContratos = useMemo(
@@ -346,7 +346,8 @@ export default function PropiedadesPage() {
             <>
               {hoja.fila.inquilino} · {hoja.fila.nombre}
               <br />
-              Debe {mesesEnPalabras(hoja.fila, mes)} · {fmtMoney(hoja.fila.montoQueDebe)}
+              {`Debe ${mesesEnPalabras(hoja.fila, mes)} · ${fmtMoney(hoja.fila.montoQueDebe)}`}
+              {hoja.fila.recargo > 0 && ` + ${fmtMoney(hoja.fila.recargo)} de recargo`}
             </>
           )
         }
@@ -413,6 +414,7 @@ function enlaceDeCobro(fila: FilaDelMes, mes: string): string | null {
     inquilino: fila.inquilino,
     meses: fila.mesesQueDebe,
     monto: fila.montoQueDebe,
+    recargo: fila.recargo,
     anioDeReferencia: mes,
   });
 }

@@ -20,6 +20,7 @@ import { MESES_CORTOS_ES, fechaCorta, nombreMes, nombreMesCap } from "@/lib/prop
 import { nombreEnPantalla } from "@/lib/propiedades/nombre";
 import { AVISO_FALTA_LA_BASE, marcarMes } from "@/lib/propiedades/marcar";
 import { numeroWhatsapp } from "@/lib/propiedades/whatsapp";
+import { laBaseSabeDeRecargo } from "@/lib/propiedades/recargo";
 import type { RentCharge, RentContract, RentProperty } from "@/lib/propiedades-types";
 import HojaAbajo from "@/components/propiedades/HojaAbajo";
 import Circulo from "@/components/propiedades/Circulo";
@@ -52,6 +53,9 @@ function PropiedadPage() {
   const [mesTocado, setMesTocado] = useState<string | null>(null);
   const [editando, setEditando] = useState(busqueda?.get("editar") === "1");
   const [confirmandoSalida, setConfirmandoSalida] = useState(false);
+  // Falla ABIERTO: si la base todavía no tiene las columnas de recargo, la
+  // línea de Editar ni se dibuja y nada más cambia.
+  const [sabeDeRecargo, setSabeDeRecargo] = useState(false);
 
   const traer = useCallback(async () => {
     try {
@@ -61,6 +65,7 @@ function PropiedadPage() {
         fetch(`/api/propiedades/charges?property_id=${id}`).then((r) => r.json()),
       ]);
       const propiedades: RentProperty[] = Array.isArray(p) ? p : [];
+      setSabeDeRecargo(laBaseSabeDeRecargo(propiedades as unknown as Array<Record<string, unknown>>));
       setPropiedad(propiedades.find((x) => x.id === id) ?? null);
       setContratos((Array.isArray(c) ? c : []).filter((x: RentContract) => x.property_id === id));
       setCobros(Array.isArray(ch) ? ch : []);
@@ -82,9 +87,9 @@ function PropiedadPage() {
   const anios = useMemo(
     () =>
       propiedad
-        ? aniosDeLaPropiedad({ propiedad, contratos, cobros, mesDeHoy })
+        ? aniosDeLaPropiedad({ propiedad, contratos, cobros, mesDeHoy, hoy })
         : [],
-    [propiedad, contratos, cobros, mesDeHoy],
+    [propiedad, contratos, cobros, mesDeHoy, hoy],
   );
 
   const circuloDe = (mes: string) =>
@@ -128,6 +133,12 @@ function PropiedadPage() {
           id: propiedad.id,
           name: datos.nombre,
           rent_amount: Number(datos.alquiler) || 0,
+          ...(sabeDeRecargo
+            ? {
+                recargo_dia: datos.recargoDia.trim() ? Number(datos.recargoDia) : null,
+                recargo_pct: datos.recargoPct.trim() ? Number(datos.recargoPct) : null,
+              }
+            : {}),
         }),
       });
 
@@ -288,7 +299,8 @@ function PropiedadPage() {
                 <b>{anio.anio}</b>
                 {anio.deuda ? (
                   <span className="text-[#FF3B30]">
-                    {anio.deuda} · {fmtMoney(anio.montoQueDebe)}
+                    {`${anio.deuda} · ${fmtMoney(anio.montoQueDebe)}`}
+                    {anio.recargo > 0 && ` + ${fmtMoney(anio.recargo)} de recargo`}
                   </span>
                 ) : (
                   <span className="text-[#6E6E73]">{anio.resumen}</span>
@@ -371,6 +383,7 @@ function PropiedadPage() {
           contrato={contrato}
           guardando={guardando}
           aviso={aviso}
+          muestraRecargo={sabeDeRecargo}
           onGuardar={guardarFicha}
           onSeFue={() => setConfirmandoSalida(true)}
           onCancelar={() => setEditando(false)}

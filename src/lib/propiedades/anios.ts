@@ -9,6 +9,7 @@ import { fromCents, toCents } from "@/lib/propiedades-pagos";
 import { cobrosPorMes, estadoDelMes, type CobroLeido, type EstadoMes } from "./estado-mes";
 import { listaDeMeses } from "./mes-en-palabras";
 import { montoDelMes, type ContratoLeido, type PropiedadLeida } from "./lista-mes";
+import { recargoDelMes, reglaDeRecargo } from "./recargo";
 
 export type CirculoDeMes = {
   mes: string;
@@ -24,6 +25,8 @@ export type AnioDeLaPropiedad = {
   pagados: number;
   mesesQueDebe: string[];
   montoQueDebe: number;
+  /** Recargo por atraso de los meses no pagados de ese año. */
+  recargo: number;
   /** «12 de 12» */
   resumen: string;
   /** «debe agosto · $1,300», o null. */
@@ -48,8 +51,12 @@ export function aniosDeLaPropiedad(input: {
   contratos: ContratoLeido[];
   cobros: CobroLeido[];
   mesDeHoy: string;
+  /** Hoy en Panamá. Sin él no se calcula recargo (falla abierto).  */
+  hoy?: string;
 }): AnioDeLaPropiedad[] {
   const { propiedad, contratos, cobros, mesDeHoy } = input;
+  const hoy = input.hoy ?? "";
+  const regla = hoy ? reglaDeRecargo(propiedad) : null;
   const anioDeHoy = Number(mesDeHoy.slice(0, 4));
   const porMes = cobrosPorMes(cobros);
   const desde = primerAnioConHistoria({ cobros, contratos, anioDeHoy });
@@ -64,6 +71,7 @@ export function aniosDeLaPropiedad(input: {
     const meses: CirculoDeMes[] = [];
     const mesesQueDebe: string[] = [];
     let debeCentavos = 0;
+    let recargoCentavos = 0;
     let pagados = 0;
 
     for (let m = 1; m <= 12; m++) {
@@ -75,6 +83,7 @@ export function aniosDeLaPropiedad(input: {
       if (estado === "no_pago") {
         mesesQueDebe.push(mes);
         debeCentavos += Math.max(0, toCents(monto));
+        recargoCentavos += Math.max(0, toCents(recargoDelMes({ mes, monto, regla, hoy })));
       }
       meses.push({ mes, estado, futuro: mes > mesDeHoy, monto, cobroId: cobro?.id });
     }
@@ -86,6 +95,7 @@ export function aniosDeLaPropiedad(input: {
       pagados,
       mesesQueDebe,
       montoQueDebe,
+      recargo: fromCents(recargoCentavos),
       resumen: `${pagados} de 12`,
       deuda:
         mesesQueDebe.length > 0

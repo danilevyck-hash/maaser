@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
+import { supportsRecargo } from "@/lib/propiedades-db";
 
 export const dynamic = "force-dynamic";
 export async function GET() {
@@ -54,6 +55,16 @@ export async function PUT(request: NextRequest) {
   if (updates.type !== undefined) row.type = updates.type;
   if (updates.icon !== undefined) row.icon = updates.icon;
   if (updates.rent_amount !== undefined) row.rent_amount = updates.rent_amount;
+
+  // Recargo por atraso: solo se escribe si la base ya tiene las columnas
+  // (supabase/20260924-propiedades-recargo.sql). Sin ellas, se ignora.
+  if (
+    (updates.recargo_dia !== undefined || updates.recargo_pct !== undefined) &&
+    (await supportsRecargo())
+  ) {
+    if (updates.recargo_dia !== undefined) row.recargo_dia = updates.recargo_dia;
+    if (updates.recargo_pct !== undefined) row.recargo_pct = updates.recargo_pct;
+  }
 
   const { data, error } = await supabase
     .from("rent_properties")

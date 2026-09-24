@@ -18,6 +18,9 @@ export type DatosDeLaPropiedad = {
   alquiler: string;
   desde: string;
   hasta: string;
+  /** Recargo por atraso: día del mes y por ciento. Vacíos = sin recargo. */
+  recargoDia: string;
+  recargoPct: string;
 };
 
 export default function FormularioPropiedad({
@@ -25,6 +28,7 @@ export default function FormularioPropiedad({
   contrato,
   guardando,
   aviso,
+  muestraRecargo,
   onGuardar,
   onSeFue,
   onCancelar,
@@ -33,6 +37,8 @@ export default function FormularioPropiedad({
   contrato: ContratoLeido | null;
   guardando: boolean;
   aviso: string | null;
+  /** Solo cuando la base ya tiene las dos columnas de recargo. */
+  muestraRecargo: boolean;
   onGuardar: (datos: DatosDeLaPropiedad) => void;
   onSeFue: () => void;
   onCancelar: () => void;
@@ -44,6 +50,8 @@ export default function FormularioPropiedad({
     alquiler: String(contrato?.rent_amount ?? propiedad.rent_amount ?? ""),
     desde: contrato?.start_date ?? "",
     hasta: contrato?.end_date ?? "",
+    recargoDia: propiedad.recargo_dia ? String(propiedad.recargo_dia) : "",
+    recargoPct: propiedad.recargo_pct ? String(propiedad.recargo_pct) : "",
   });
 
   const cambiar = (campo: keyof DatosDeLaPropiedad) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -93,6 +101,33 @@ export default function FormularioPropiedad({
 
           <label className={`${ROTULO} mt-4`} htmlFor="campo-hasta">Contrato hasta</label>
           <input id="campo-hasta" className={CAMPO} type="date" value={datos.hasta} onChange={cambiar("hasta")} />
+
+          {muestraRecargo && (
+            <div className="mt-4">
+              <span className={ROTULO}>Recargo por atraso</span>
+              <div className="flex items-center gap-2 text-[17px] text-[#1C1C1E]">
+                <span className="text-[15px] text-[#6E6E73]">Si paga después del día</span>
+                <input
+                  aria-label="Día del recargo"
+                  className={`${CAMPO} w-[72px] text-center`}
+                  inputMode="numeric"
+                  value={datos.recargoDia}
+                  onChange={cambiar("recargoDia")}
+                />
+                <input
+                  aria-label="Por ciento del recargo"
+                  className={`${CAMPO} w-[72px] text-center`}
+                  inputMode="decimal"
+                  value={datos.recargoPct}
+                  onChange={cambiar("recargoPct")}
+                />
+                <span className="text-[15px] text-[#6E6E73]">%</span>
+              </div>
+              <p className="text-[13px] text-[#6E6E73] mt-1.5">
+                Déjalos vacíos si esta propiedad no cobra recargo.
+              </p>
+            </div>
+          )}
 
           <button
             onClick={() => onGuardar(datos)}
