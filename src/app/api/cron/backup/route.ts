@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
+import { hoyPanamaISO } from "@/lib/fecha-panama";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ const TABLES = [
   "rent_properties",
   "rent_contracts",
   "rent_charges",
+  // Por Cobrar: se quedó fuera del respaldo hasta el 23-sep-2026.
+  "cxc_clientes",
+  "cxc_movimientos",
 ] as const;
 
 const BUCKET = "backups";
@@ -40,7 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Upload to Supabase Storage
-    const today = new Date().toISOString().split("T")[0];
+    const today = hoyPanamaISO();
     const fileName = `maaser-backup-${today}.json`;
     const fileContent = JSON.stringify(backup, null, 2);
 

@@ -1,14 +1,25 @@
 import { supabase } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
+import { normalizarMetodo } from "@/lib/maaser/metodo-pago";
 
-// Normalize beneficiary name: trim extra spaces, Title Case
-function normalizeName(name: string): string {
+// Normalize beneficiary name: trim extra spaces, Title Case.
+// Una donación puede ir SIN nombre ("Guardar sin nombre"): queda en blanco y
+// la pantalla la muestra como "Sin nombre", en gris.
+function normalizeName(name: unknown): string {
+  if (typeof name !== "string") return "";
   return name
     .trim()
     .replace(/\s+/g, " ") // collapse multiple spaces
     .split(" ")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
+}
+
+/** La columna `metodo` puede no existir todavía: sin ella se guarda igual. */
+function esColumnaQueFalta(mensaje: string | undefined): boolean {
+  if (!mensaje) return false;
+  const m = mensaje.toLowerCase();
+  return m.includes("metodo") && (m.includes("column") || m.includes("schema cache"));
 }
 
 export const dynamic = "force-dynamic";
@@ -56,6 +67,8 @@ export async function POST(request: NextRequest) {
     notes: body.notes || null,
   };
 
+  const metodo = normalizarMetodo(body.metodo);
+
   // receipt_number column may still exist in DB with NOT NULL constraint
   if (body.receipt_number != null) {
     row.receipt_number = body.receipt_number;
@@ -70,11 +83,21 @@ export async function POST(request: NextRequest) {
     row.receipt_number = (last?.receipt_number ?? 0) + 1;
   }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("donations")
-    .insert([row])
+    .insert([metodo ? { ...row, metodo } : row])
     .select()
     .single();
+
+  // Sin la migración de `metodo`, la donación se guarda igual: solo se pierde
+  // la forma de pago.
+  if (error && metodo && esColumnaQueFalta(error.message)) {
+    ({ data, error } = await supabase
+      .from("donations")
+      .insert([row])
+      .select()
+      .single());
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -99,12 +122,26 @@ export async function PUT(request: NextRequest) {
   if (body.status !== undefined) updates.status = body.status;
   if (body.notes !== undefined) updates.notes = body.notes || null;
 
-  const { data, error } = await supabase
+  const conMetodo =
+    body.metodo !== undefined
+      ? { ...updates, metodo: normalizarMetodo(body.metodo) }
+      : updates;
+
+  let { data, error } = await supabase
     .from("donations")
-    .update(updates)
+    .update(conMetodo)
     .eq("id", id)
     .select()
     .single();
+
+  if (error && body.metodo !== undefined && esColumnaQueFalta(error.message)) {
+    ({ data, error } = await supabase
+      .from("donations")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single());
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

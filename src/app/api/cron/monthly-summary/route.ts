@@ -25,8 +25,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const email = process.env.SUMMARY_EMAIL;
-  if (!email) {
+  // SUMMARY_EMAIL acepta VARIOS correos separados por coma: el resumen le
+  // llega a papá y a Daniel con la misma variable.
+  const destinatarios = (process.env.SUMMARY_EMAIL || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+
+  if (destinatarios.length === 0) {
     return NextResponse.json({ error: "SUMMARY_EMAIL not configured" }, { status: 500 });
   }
 
@@ -104,7 +110,7 @@ export async function GET(request: NextRequest) {
     // Send via Resend
     const { error: sendError } = await getResend().emails.send({
       from: "Maaser <noreply@resend.dev>",
-      to: email,
+      to: destinatarios,
       subject: `Resumen de Maaser — ${prevMonth.name} ${hebrewYear}`,
       html,
     });
@@ -118,6 +124,7 @@ export async function GET(request: NextRequest) {
       month: prevMonth.name,
       totalMonth,
       donationCount,
+      destinatarios: destinatarios.length,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

@@ -1,3 +1,5 @@
+import { hoyPanamaISO } from "@/lib/fecha-panama";
+
 // Lightweight Hebrew calendar calculations — no external dependencies.
 // Uses the "Four Gates" algorithm to compute Rosh Hashana dates
 // and derives month lengths from the year type.
@@ -195,9 +197,9 @@ export function getHebrewYearData(hebrewYear: number): HebrewYearData {
 
 export function getCurrentHebrewYear(): number {
   if (_currentYear !== null) return _currentYear;
-  const today = new Date().toISOString().split("T")[0];
+  const today = hoyPanamaISO();
   // Check years around the expected range
-  const gYear = new Date().getFullYear();
+  const gYear = parseInt(today.slice(0, 4), 10);
   const approx = gYear + 3760;
   for (const hy of [approx + 1, approx]) {
     const data = getHebrewYearData(hy);
@@ -220,7 +222,7 @@ export function getAvailableHebrewYears(): number[] {
 }
 
 export function getPreviousHebrewMonth(): { from: string; to: string; name: string; hebrewYear: number } {
-  const today = new Date().toISOString().split("T")[0];
+  const today = hoyPanamaISO();
   const currentYear = getCurrentHebrewYear();
   const yearData = getHebrewYearData(currentYear);
 
@@ -244,7 +246,7 @@ export function getPreviousHebrewMonth(): { from: string; to: string; name: stri
 
 export function getCurrentHebrewMonthRange(): { from: string; to: string; name: string } {
   if (_currentMonth !== null) return _currentMonth;
-  const today = new Date().toISOString().split("T")[0];
+  const today = hoyPanamaISO();
   const yearData = getHebrewYearData(getCurrentHebrewYear());
   for (const m of yearData.months) {
     if (today >= m.startDate && today <= m.endDate) {
@@ -256,4 +258,21 @@ export function getCurrentHebrewMonthRange(): { from: string; to: string; name: 
   const first = yearData.months[0];
   _currentMonth = { from: first.startDate, to: first.endDate, name: first.name };
   return _currentMonth;
+}
+
+/**
+ * El año hebreo al que pertenece una fecha AAAA-MM-DD.
+ * De aquí salen los años del Resumen: no hay lista escrita a mano, se derivan
+ * de las fechas de las donaciones.
+ */
+export function hebrewYearOfDate(dateISO: string): number {
+  const gYear = parseInt(dateISO.slice(0, 4), 10);
+  if (!Number.isFinite(gYear)) return getCurrentHebrewYear();
+  // Una fecha gregoriana cae en el año hebreo gYear+3760 o gYear+3761,
+  // según esté antes o después de Rosh Hashaná.
+  for (const hy of [gYear + 3761, gYear + 3760]) {
+    const data = getHebrewYearData(hy);
+    if (dateISO >= data.startDate && dateISO <= data.endDate) return hy;
+  }
+  return gYear + 3760;
 }

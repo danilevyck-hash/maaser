@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-async function hashPassword(pw: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pw);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+import { NOMBRE_COOKIE, tokenDeSesion } from "@/lib/sesion";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -26,18 +19,19 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = req.cookies.get("session")?.value;
+  const session = req.cookies.get(NOMBRE_COOKIE)?.value;
   const appPassword = process.env.APP_PASSWORD || "";
 
   if (!session || !appPassword) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const expectedToken = await hashPassword(
-    appPassword + process.env.NEXT_PUBLIC_SUPABASE_URL
+  const esperado = await tokenDeSesion(
+    appPassword,
+    process.env.NEXT_PUBLIC_SUPABASE_URL
   );
 
-  if (session !== expectedToken) {
+  if (session !== esperado) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

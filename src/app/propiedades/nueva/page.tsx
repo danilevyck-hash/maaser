@@ -52,7 +52,7 @@ export default function NuevaPropiedad() {
             <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Casa Albrook" className={inputClass} />
           </div>
           <div>
-            <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Ubicacion</label>
+            <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Ubicación</label>
             <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Albrook" className={inputClass} />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -69,7 +69,7 @@ export default function NuevaPropiedad() {
             </div>
           </div>
           <div>
-            <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Icono</label>
+            <label className="text-[13px] text-[#8E8E93] mb-1.5 block font-medium">Ícono</label>
             <div className="flex gap-2">
               {ICONS.map((icon) => (
                 <button key={icon} onClick={() => setForm({ ...form, icon })} className={`w-12 h-12 rounded-xl text-xl flex items-center justify-center cursor-pointer border-2 transition-colors ${form.icon === icon ? "border-[#007AFF] bg-[#007AFF]/10" : "border-[#C6C6C8] bg-white"}`}>

@@ -14,6 +14,8 @@ export type Donation = {
   check_number?: string;
   status: "valido" | "anulado";
   notes?: string;
+  /** Cómo pagó: cheque | transferencia | tarjeta. Puede no existir en la base. */
+  metodo?: string | null;
   created_at?: string;
 };
 
@@ -21,6 +23,8 @@ export type AnnualGoal = {
   id: number;
   year: number;
   goal_amount: number;
+  /** Lo que gasta en el año. El maaser es el 10 % de esto. */
+  gastos_anuales?: number | null;
 };
 
 export type Expense = {

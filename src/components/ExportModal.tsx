@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Donation } from "@/lib/supabase";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { formatDate, formatDateExport, formatCurrency } from "@/lib/format";
+import { hoyPanamaISO } from "@/lib/fecha-panama";
 import {
   getCurrentHebrewYear,
   getHebrewYearData,
@@ -17,13 +18,11 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   donations: Donation[];
+  /** Año hebreo elegido en el Resumen. Sin él, el año en curso. */
+  anioSeleccionado?: number;
 };
 
-function todayISO(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-export default function ExportModal({ isOpen, onClose, donations }: Props) {
+export default function ExportModal({ isOpen, onClose, donations, anioSeleccionado }: Props) {
   const [preset, setPreset] = useState<FilterPreset>("current_year");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -31,7 +30,8 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
 
   useBodyScrollLock(isOpen);
 
-  const hebrewYear = getCurrentHebrewYear();
+  const hebrewYear = anioSeleccionado ?? getCurrentHebrewYear();
+  const esAnioEnCurso = hebrewYear === getCurrentHebrewYear();
   const currentYearData = getHebrewYearData(hebrewYear);
   const prevYearData = getHebrewYearData(hebrewYear - 1);
   const currentMonth = getCurrentHebrewMonthRange();
@@ -39,7 +39,11 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
   const { dateFrom, dateTo, rangeLabel } = useMemo(() => {
     switch (preset) {
       case "current_year":
-        return { dateFrom: currentYearData.startDate, dateTo: todayISO(), rangeLabel: `${formatDate(currentYearData.startDate)} — Hoy` };
+        return {
+          dateFrom: currentYearData.startDate,
+          dateTo: esAnioEnCurso ? hoyPanamaISO() : currentYearData.endDate,
+          rangeLabel: `${formatDate(currentYearData.startDate)} — ${esAnioEnCurso ? "Hoy" : formatDate(currentYearData.endDate)}`,
+        };
       case "prev_year":
         return { dateFrom: prevYearData.startDate, dateTo: prevYearData.endDate, rangeLabel: `${formatDate(prevYearData.startDate)} — ${formatDate(prevYearData.endDate)}` };
       case "current_month":
@@ -47,7 +51,7 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
       case "custom":
         return { dateFrom: customFrom, dateTo: customTo, rangeLabel: customFrom || customTo ? `${customFrom ? formatDate(customFrom) : "Inicio"} — ${customTo ? formatDate(customTo) : "Fin"}` : "Seleccione fechas" };
     }
-  }, [preset, customFrom, customTo, currentYearData, prevYearData, currentMonth]);
+  }, [preset, customFrom, customTo, currentYearData, prevYearData, currentMonth, esAnioEnCurso]);
 
   const filtered = useMemo(() => donations.filter((d) => {
     if (dateFrom && d.date < dateFrom) return false;
@@ -63,8 +67,8 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
   if (!isOpen || !mounted) return null;
 
   const presets: { key: FilterPreset; label: string }[] = [
-    { key: "current_year", label: `Este ano (${hebrewYear})` },
-    { key: "prev_year", label: `Anterior (${hebrewYear - 1})` },
+    { key: "current_year", label: `Año ${hebrewYear}` },
+    { key: "prev_year", label: `Año ${hebrewYear - 1}` },
     { key: "current_month", label: `Este mes` },
     { key: "custom", label: "Personalizado" },
   ];
@@ -183,11 +187,11 @@ export default function ExportModal({ isOpen, onClose, donations }: Props) {
           <div className="flex gap-3">
             <button onClick={handleExportExcel} disabled={filtered.length === 0 || exporting}
               className="flex-1 h-12 rounded-xl bg-[#34C759] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
-              {exporting ? "..." : "Excel"}
+              {exporting ? "…" : "Excel para el contador"}
             </button>
             <button onClick={handleExportPDF} disabled={filtered.length === 0 || exporting}
               className="flex-1 h-12 rounded-xl bg-[#007AFF] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
-              {exporting ? "..." : "PDF"}
+              {exporting ? "…" : "PDF para imprimir"}
             </button>
           </div>
         </div>

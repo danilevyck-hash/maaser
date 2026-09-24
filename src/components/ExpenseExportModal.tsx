@@ -48,7 +48,7 @@ export default function ExpenseExportModal({ isOpen, onClose, expenses }: Props)
         return { dateFrom: from, dateTo: to, rangeLabel: `${MONTHS[lm]} ${ly}` };
       }
       case "this_year":
-        return { dateFrom: `${thisYear}-01-01`, dateTo: `${thisYear}-12-31`, rangeLabel: `Ano ${thisYear}` };
+        return { dateFrom: `${thisYear}-01-01`, dateTo: `${thisYear}-12-31`, rangeLabel: `Año ${thisYear}` };
       case "custom":
         return {
           dateFrom: customFrom, dateTo: customTo,
@@ -73,7 +73,7 @@ export default function ExpenseExportModal({ isOpen, onClose, expenses }: Props)
   const presets: { key: FilterPreset; label: string }[] = [
     { key: "this_month", label: "Este mes" },
     { key: "last_month", label: "Mes anterior" },
-    { key: "this_year", label: `Ano ${thisYear}` },
+    { key: "this_year", label: `Año ${thisYear}` },
     { key: "custom", label: "Personalizado" },
   ];
 

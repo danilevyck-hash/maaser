@@ -100,20 +100,13 @@ function PropiedadesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMonth]);
 
+  // Abrir la pantalla NO escribe en la base.
+  //
+  // Hasta el 23-sep-2026 entrar aquí creaba solos los cobros del mes: mirar la
+  // pantalla dejaba siete filas nuevas. Ahora solo se lee. Los cobros del mes
+  // se crean con el botón "Generar cobros del mes" de la pestaña Cobros.
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/propiedades/charges/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ month: currentMonth }),
-        });
-        if (!res.ok) showToast("Error al generar cobros", "error");
-        await fetchAll();
-      } catch {
-        showToast("Error al generar cobros", "error");
-      }
-    })();
+    fetchAll();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMonth, fetchAll]);
 
