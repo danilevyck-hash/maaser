@@ -1,3 +1,4 @@
+import { fechaDeLaFila } from "./fecha-en-palabras";
 import { etiquetaMetodo } from "./metodo-pago";
 import type { DonacionMinima } from "./tipos";
 
@@ -39,4 +40,16 @@ export function subtituloRenglon(d: DonacionMinima): string {
     partes.push(nota.length > LARGO_NOTA ? nota.slice(0, LARGO_NOTA - 1) + "…" : nota);
   }
   return partes.filter(Boolean).join(" · ");
+}
+
+/**
+ * La segunda línea de la fila de la lista: cuándo fue y, si la hay, la nota.
+ * "hoy" · "ayer" · "15 sep · Esposa enferma".
+ */
+export function lineaDeLaFila(d: DonacionMinima, hoyISO: string): string {
+  const cuando = fechaDeLaFila(d.date, hoyISO);
+  const nota = (d.notes ?? "").replace(/\s+/g, " ").trim();
+  if (!nota) return cuando;
+  const corta = nota.length > LARGO_NOTA ? nota.slice(0, LARGO_NOTA - 1) + "…" : nota;
+  return `${cuando} · ${corta}`;
 }
