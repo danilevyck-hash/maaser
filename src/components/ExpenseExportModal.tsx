@@ -147,12 +147,12 @@ export default function ExpenseExportModal({ isOpen, onClose, expenses }: Props)
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-[#F2F2F7] z-[9999] animate-fade-in"
+      className="fixed inset-0 bg-white z-[9999] animate-fade-in"
       style={{ height: "100dvh" }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#E5E5EA] shrink-0 bg-white">
           <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">
             Cancelar
           </button>
@@ -163,8 +163,8 @@ export default function ExpenseExportModal({ isOpen, onClose, expenses }: Props)
           <div className="grid grid-cols-2 gap-2">
             {presets.map((p) => (
               <button key={p.key} onClick={() => setPreset(p.key)}
-                className={`px-3 min-h-[44px] py-2.5 rounded-xl text-[15px] font-medium transition-colors border ${
-                  preset === p.key ? "border-[#007AFF] bg-[#007AFF]/10 text-[#007AFF]" : "border-[#C6C6C8] text-[#8E8E93]"
+                className={`px-3 min-h-[44px] py-2.5 rounded-[14px] text-[15px] font-medium transition-colors border ${
+                  preset === p.key ? "border-[#1C1C1E] bg-[#1C1C1E] text-white" : "border-[#E5E5EA] text-[#6E6E73]"
                 }`}
               >{p.label}</button>
             ))}
@@ -172,27 +172,27 @@ export default function ExpenseExportModal({ isOpen, onClose, expenses }: Props)
           {preset === "custom" && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[13px] font-medium text-[#8E8E93] mb-1">Desde</label>
-                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[15px]" />
+                <label className="block text-[14px] font-medium text-[#6E6E73] mb-1">Desde</label>
+                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[15px]" />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-[#8E8E93] mb-1">Hasta</label>
-                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[15px]" />
+                <label className="block text-[14px] font-medium text-[#6E6E73] mb-1">Hasta</label>
+                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[15px]" />
               </div>
             </div>
           )}
-          <div className="bg-white rounded-xl p-3 text-center space-y-1">
-            <p className="text-[13px] text-[#8E8E93]">{rangeLabel}</p>
+          <div className="bg-white rounded-[14px] p-3 text-center space-y-1">
+            <p className="text-[14px] text-[#6E6E73]">{rangeLabel}</p>
             <p className="text-[15px] text-[#1C1C1E] font-medium">{filtered.length} gasto{filtered.length !== 1 ? "s" : ""}</p>
-            <p className="text-[13px] text-[#8E8E93]">Total: {formatCurrency(totalAmount)}</p>
+            <p className="text-[14px] text-[#6E6E73]">Total: {formatCurrency(totalAmount)}</p>
           </div>
           <div className="flex gap-3">
             <button onClick={handleExportExcel} disabled={filtered.length === 0 || exporting}
-              className="flex-1 h-12 rounded-xl bg-[#34C759] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
+              className="flex-1 h-12 rounded-[14px] bg-[#34C759] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
               {exporting ? "..." : "Excel"}
             </button>
             <button onClick={handleExportPDF} disabled={filtered.length === 0 || exporting}
-              className="flex-1 h-12 rounded-xl bg-[#007AFF] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
+              className="flex-1 h-12 rounded-[14px] bg-[#1C1C1E] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
               {exporting ? "..." : "PDF"}
             </button>
           </div>

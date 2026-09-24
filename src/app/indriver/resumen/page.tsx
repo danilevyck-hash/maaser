@@ -55,15 +55,15 @@ export default function InDriverResumen() {
       {/* Header with year selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-[#1A3A5C]">Resumen Mensual</h2>
-          <p className="text-[#C9A84C] text-sm font-medium mt-0.5">
+          <h2 className="text-[28px] font-light tracking-[-0.02em] text-[#1C1C1E]">Resumen Mensual</h2>
+          <p className="text-[#6E6E73] text-[14px] font-medium mt-0.5">
             Gastos InDriver
           </p>
         </div>
         <select
           value={year}
           onChange={(e) => setYear(parseInt(e.target.value))}
-          className="border border-gray-300 rounded-lg px-4 py-3 text-base text-[#1A3A5C] font-medium focus:ring-2 focus:ring-[#C9A84C] outline-none bg-white min-h-[44px]"
+          className="border border-[#E5E5EA] rounded-[10px] px-4 py-3 text-[17px] text-[#1C1C1E] font-medium focus:border-[#007AFF] outline-none bg-white min-h-[44px]"
         >
           {years.map((y) => (
             <option key={y} value={y}>
@@ -75,7 +75,7 @@ export default function InDriverResumen() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="text-[#1A3A5C] text-lg">Cargando...</div>
+          <div className="text-[#1C1C1E] text-[20px]">Cargando...</div>
         </div>
       ) : (
         <div className="space-y-3">
@@ -83,17 +83,17 @@ export default function InDriverResumen() {
           {monthlyData.map((m) => (
             <div
               key={m.name}
-              className={`bg-white rounded-xl shadow-sm border p-4 flex items-center justify-between min-h-[44px] ${
+              className={`border-t border-[#E5E5EA] p-4 flex items-center justify-between min-h-[44px] ${
                 m.total > 0
-                  ? "border-gray-200"
-                  : "border-gray-100 opacity-50"
+                  ? "border-[#E5E5EA]"
+                  : "border-[#E5E5EA] opacity-50"
               }`}
             >
               {/* Left: month name */}
               <div className="flex-1 min-w-0">
                 <p
-                  className={`text-base font-bold ${
-                    m.total > 0 ? "text-[#1A3A5C]" : "text-gray-400"
+                  className={`text-[17px] font-medium ${
+                    m.total > 0 ? "text-[#1C1C1E]" : "text-[#AEAEB2]"
                   }`}
                 >
                   {m.name}
@@ -103,16 +103,16 @@ export default function InDriverResumen() {
               {/* Right: count + total */}
               <div className="text-right ml-4 flex-shrink-0">
                 <p
-                  className={`text-lg font-bold ${
-                    m.total > 0 ? "text-[#1A3A5C]" : "text-gray-400"
+                  className={`text-[20px] font-medium ${
+                    m.total > 0 ? "text-[#1C1C1E]" : "text-[#AEAEB2]"
                   }`}
                 >
                   {formatCurrency(m.total)}
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-[14px] text-[#AEAEB2]">
                   {m.count} {m.count === 1 ? "gasto" : "gastos"}
                   {m.pct > 0 && (
-                    <span className="ml-1 text-[#C9A84C] font-medium">
+                    <span className="ml-1 text-[#6E6E73] font-medium">
                       · {m.pct.toFixed(1)}%
                     </span>
                   )}
@@ -122,15 +122,15 @@ export default function InDriverResumen() {
           ))}
 
           {/* Annual total summary card */}
-          <div className="bg-[#1A3A5C] rounded-xl shadow-md p-5 flex items-center justify-between">
+          <div className="border-t border-[#E5E5EA] pt-4 flex items-end justify-between gap-3">
             <div>
-              <p className="text-lg font-bold text-white">Total Anual</p>
-              <p className="text-sm text-[#C9A84C]">
+              <p className="text-[17px] font-medium text-[#1C1C1E]">Total Anual</p>
+              <p className="text-[14px] text-[#6E6E73]">
                 {expenses.length}{" "}
                 {expenses.length === 1 ? "gasto" : "gastos"}
               </p>
             </div>
-            <p className="text-lg font-bold text-white">
+            <p className="text-[28px] font-light tracking-[-0.02em] text-[#1C1C1E] tabular-nums leading-none">
               {formatCurrency(annualTotal)}
             </p>
           </div>

@@ -5,7 +5,7 @@ import { Expense } from "@/lib/supabase";
 import { formatCurrency, formatDateShort } from "@/lib/format";
 import ExpenseModal from "@/components/ExpenseModal";
 import ExpenseExportModal from "@/components/ExpenseExportModal";
-import ModuleLayout from "@/components/ModuleLayout";
+import PantallaModulo from "@/components/PantallaModulo";
 import { useToast } from "@/components/Toast";
 
 const MONTHS = [
@@ -164,7 +164,7 @@ export default function InDriverPage() {
   }, [expenses, searchQuery]);
 
   return (
-    <ModuleLayout
+    <PantallaModulo
       title="InDriver"
       tabs={tabItems}
       activeTab={tab}
@@ -173,41 +173,41 @@ export default function InDriverPage() {
       {tab === "gastos" && (
         <div className="p-4 space-y-4">
           {/* Month/Year selector */}
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center gap-3">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="border border-[#C6C6C8] rounded-lg px-3 py-2.5 h-11 text-[15px] text-[#1C1C1E] font-medium focus:ring-2 focus:ring-[#007AFF] outline-none bg-white"
+              className="border border-[#E5E5EA] rounded-[10px] px-3 py-2.5 h-11 text-[15px] text-[#1C1C1E] font-medium focus:border-[#007AFF] outline-none bg-white"
             >
               {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
             </select>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="border border-[#C6C6C8] rounded-lg px-3 py-2.5 h-11 text-[15px] text-[#1C1C1E] font-medium focus:ring-2 focus:ring-[#007AFF] outline-none bg-white"
+              className="border border-[#E5E5EA] rounded-[10px] px-3 py-2.5 h-11 text-[15px] text-[#1C1C1E] font-medium focus:border-[#007AFF] outline-none bg-white"
             >
               {years.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
 
           {/* KPI */}
-          <div className="bg-white rounded-2xl shadow-sm p-4 text-center">
-            <p className="text-[13px] text-[#8E8E93] font-medium">Total {MONTHS[selectedMonth]}</p>
-            <p className="text-[22px] font-bold text-[#1C1C1E] mt-1">{formatCurrency(totalMonth)}</p>
-            <p className="text-[13px] text-[#8E8E93] mt-0.5">{expenses.length} gasto{expenses.length !== 1 ? "s" : ""}</p>
+          <div className="pt-2">
+            <p className="text-[15px] text-[#6E6E73]">Total {MONTHS[selectedMonth]}</p>
+            <p className="text-[44px] font-light tracking-[-0.03em] text-[#1C1C1E] leading-none tabular-nums mt-1">{formatCurrency(totalMonth)}</p>
+            <p className="text-[15px] text-[#6E6E73] mt-2">{expenses.length} gasto{expenses.length !== 1 ? "s" : ""}</p>
           </div>
 
           {/* Actions */}
           <div className="flex gap-3">
             <button
               onClick={() => setExportOpen(true)}
-              className="flex-1 h-11 rounded-xl border border-[#007AFF] text-[#007AFF] font-semibold text-[15px] bg-transparent cursor-pointer active:bg-[#007AFF]/10 transition-colors"
+              className="flex-1 min-h-[48px] rounded-[14px] border border-[#E5E5EA] text-[#007AFF] text-[17px] bg-white cursor-pointer active:bg-[#F2F2F7] transition-colors"
             >
               Exportar
             </button>
             <button
               onClick={() => { setEditing(null); setModalOpen(true); }}
-              className="flex-1 h-11 rounded-xl bg-[#007AFF] text-white font-semibold text-[15px] border-0 cursor-pointer active:bg-[#0056b3] transition-colors"
+              className="flex-1 min-h-[48px] rounded-[14px] bg-[#1C1C1E] text-white font-semibold text-[17px] border-0 cursor-pointer active:opacity-80 transition-opacity"
             >
               + Nuevo Gasto
             </button>
@@ -216,7 +216,7 @@ export default function InDriverPage() {
           {/* Search — only show when more than 3 expenses */}
           {expenses.length > 3 && (
             <div className="relative">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8E8E93] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#6E6E73] pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -224,7 +224,7 @@ export default function InDriverPage() {
                 placeholder="Buscar por nota..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-10 pr-4 border border-[#C6C6C8] rounded-xl text-[15px] text-[#1C1C1E] focus:ring-2 focus:ring-[#007AFF] outline-none bg-white"
+                className="w-full h-11 pl-10 pr-4 border border-[#E5E5EA] rounded-[14px] text-[15px] text-[#1C1C1E] focus:border-[#007AFF] outline-none bg-white"
               />
             </div>
           )}
@@ -232,48 +232,48 @@ export default function InDriverPage() {
           {/* Expense cards */}
           <div className="space-y-2">
             {loading ? (
-              <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-[#8E8E93] text-[15px]">Cargando...</div>
+              <div className="border-t border-[#E5E5EA] p-8 text-center text-[#6E6E73] text-[15px]">Cargando...</div>
             ) : filteredExpenses.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-[#8E8E93] text-[15px]">
+              <div className="border-t border-[#E5E5EA] p-8 text-center text-[#6E6E73] text-[15px]">
                 {searchQuery.trim() ? "Sin resultados" : "Sin gastos este mes"}
               </div>
             ) : (
               filteredExpenses.map((e) => (
-                <div key={e.id} className="bg-white rounded-2xl shadow-sm p-4">
+                <div key={e.id} className="border-t border-[#E5E5EA] p-4">
                   {confirmingDeleteId === e.id ? (
                     <div className="flex flex-col items-center gap-3 py-2">
                       <span className="text-[15px] text-[#FF3B30] font-medium">Eliminar este gasto?</span>
                       <div className="flex gap-3 w-full">
-                        <button onClick={() => handleDelete(e.id)} disabled={deleting} className="flex-1 h-11 rounded-lg bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50">{deleting ? "..." : "Si"}</button>
-                        <button onClick={() => setConfirmingDeleteId(null)} className="flex-1 h-11 rounded-lg bg-[#E5E5EA] text-[#1C1C1E] font-semibold text-[15px] border-0 cursor-pointer">No</button>
+                        <button onClick={() => handleDelete(e.id)} disabled={deleting} className="flex-1 h-11 rounded-[10px] bg-[#FF3B30] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50">{deleting ? "..." : "Si"}</button>
+                        <button onClick={() => setConfirmingDeleteId(null)} className="flex-1 h-11 rounded-[10px] bg-[#F2F2F7] text-[#1C1C1E] font-semibold text-[15px] border-0 cursor-pointer">No</button>
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] text-[#8E8E93]">{formatDateShort(e.date)}</p>
+                        <p className="text-[14px] text-[#6E6E73]">{formatDateShort(e.date)}</p>
                         {e.notes && <p className="text-[15px] text-[#1C1C1E] mt-1 break-words">{e.notes}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <p className="text-[17px] font-bold text-[#1C1C1E]">{formatCurrency(e.amount)}</p>
+                        <p className="text-[17px] font-medium text-[#1C1C1E]">{formatCurrency(e.amount)}</p>
                         <div className="flex gap-2">
                           <button
                             onClick={() => { setEditing(e); setModalOpen(true); }}
-                            className="min-h-[44px] min-w-[44px] flex items-center gap-1.5 px-3 rounded-xl text-[#007AFF] active:bg-[#007AFF]/10 transition-colors bg-[#007AFF]/5 border-0 cursor-pointer"
+                            className="min-h-[44px] min-w-[44px] flex items-center gap-1.5 px-3 rounded-[14px] text-[#007AFF] active:bg-[#007AFF]/10 transition-colors bg-[#007AFF]/5 border-0 cursor-pointer"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
-                            <span className="text-[13px] font-medium">Editar</span>
+                            <span className="text-[14px] font-medium">Editar</span>
                           </button>
                           <button
                             onClick={() => setConfirmingDeleteId(e.id)}
-                            className="min-h-[44px] min-w-[44px] flex items-center gap-1.5 px-3 rounded-xl text-[#FF3B30] active:bg-[#FF3B30]/10 transition-colors bg-[#FF3B30]/5 border-0 cursor-pointer"
+                            className="min-h-[44px] min-w-[44px] flex items-center gap-1.5 px-3 rounded-[14px] text-[#FF3B30] active:bg-[#FF3B30]/10 transition-colors bg-[#FF3B30]/5 border-0 cursor-pointer"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                            <span className="text-[13px] font-medium">Eliminar</span>
+                            <span className="text-[14px] font-medium">Eliminar</span>
                           </button>
                         </div>
                       </div>
@@ -300,7 +300,7 @@ export default function InDriverPage() {
         onClose={() => setExportOpen(false)}
         expenses={allExpenses}
       />
-    </ModuleLayout>
+    </PantallaModulo>
   );
 }
 
@@ -351,7 +351,7 @@ function ResumenTab() {
         <select
           value={year}
           onChange={(e) => setYear(parseInt(e.target.value))}
-          className="border border-[#C6C6C8] rounded-lg px-3 py-2.5 text-[15px] text-[#1C1C1E] font-medium focus:ring-2 focus:ring-[#007AFF] outline-none bg-white min-h-[44px]"
+          className="border border-[#E5E5EA] rounded-[10px] px-3 py-2.5 text-[15px] text-[#1C1C1E] font-medium focus:border-[#007AFF] outline-none bg-white min-h-[44px]"
         >
           {years.map((y) => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -359,30 +359,30 @@ function ResumenTab() {
 
       {loading ? (
         <div className="flex items-center justify-center h-40">
-          <div className="text-[#8E8E93] text-[15px]">Cargando...</div>
+          <div className="text-[#6E6E73] text-[15px]">Cargando...</div>
         </div>
       ) : (
         <div className="space-y-2">
           {monthlyData.map((m) => (
-            <div key={m.name} className={`bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between min-h-[44px] ${m.total === 0 ? "opacity-50" : ""}`}>
+            <div key={m.name} className={`border-t border-[#E5E5EA] p-4 flex items-center justify-between min-h-[44px] ${m.total === 0 ? "opacity-50" : ""}`}>
               <div className="flex-1 min-w-0">
-                <p className={`text-[15px] font-semibold ${m.total > 0 ? "text-[#1C1C1E]" : "text-[#8E8E93]"}`}>{m.name}</p>
+                <p className={`text-[15px] font-semibold ${m.total > 0 ? "text-[#1C1C1E]" : "text-[#6E6E73]"}`}>{m.name}</p>
               </div>
               <div className="text-right ml-4 shrink-0">
-                <p className={`text-[17px] font-bold ${m.total > 0 ? "text-[#1C1C1E]" : "text-[#8E8E93]"}`}>{formatCurrency(m.total)}</p>
-                <p className="text-[13px] text-[#8E8E93]">
+                <p className={`text-[17px] font-medium ${m.total > 0 ? "text-[#1C1C1E]" : "text-[#6E6E73]"}`}>{formatCurrency(m.total)}</p>
+                <p className="text-[14px] text-[#6E6E73]">
                   {m.count} {m.count === 1 ? "gasto" : "gastos"}
                   {m.pct > 0 && <span className="ml-1 text-[#007AFF] font-medium">· {m.pct.toFixed(1)}%</span>}
                 </p>
               </div>
             </div>
           ))}
-          <div className="bg-[#007AFF] rounded-2xl p-4 flex items-center justify-between">
+          <div className="border-t border-[#E5E5EA] pt-4 flex items-end justify-between gap-3">
             <div>
-              <p className="text-[17px] font-bold text-white">Total Anual</p>
-              <p className="text-[13px] text-white/70">{expenses.length} {expenses.length === 1 ? "gasto" : "gastos"}</p>
+              <p className="text-[17px] font-medium text-[#1C1C1E]">Total Anual</p>
+              <p className="text-[14px] text-[#6E6E73]">{expenses.length} {expenses.length === 1 ? "gasto" : "gastos"}</p>
             </div>
-            <p className="text-[17px] font-bold text-white">{formatCurrency(annualTotal)}</p>
+            <p className="text-[28px] font-light tracking-[-0.02em] text-[#1C1C1E] tabular-nums leading-none">{formatCurrency(annualTotal)}</p>
           </div>
         </div>
       )}
