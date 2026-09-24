@@ -78,8 +78,8 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
   };
 
   const chipClass = (active: boolean) =>
-    `flex-1 py-2 rounded-xl text-[14px] font-medium transition-colors border-0 ${
-      active ? "bg-[#007AFF] text-white" : "bg-[#E5E5EA] text-[#1C1C1E]"
+    `flex-1 py-2 rounded-[14px] text-[14px] font-medium transition-colors border-0 ${
+      active ? "bg-[#1C1C1E] text-white" : "bg-[#F2F2F7] text-[#1C1C1E]"
     }`;
 
   const hoyActive = date === todayStr && !showPicker;
@@ -91,11 +91,11 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-[#F2F2F7] z-[9999]"
+      className="fixed inset-0 bg-white z-[9999]"
       style={{ height: "100dvh" }}
     >
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
-        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
+        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#E5E5EA] shrink-0 bg-white">
           <button
             type="button"
             onClick={onClose}
@@ -107,7 +107,7 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
           <button
             type="submit"
             disabled={saving}
-            className="text-[#007AFF] text-[15px] font-bold bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]"
+            className="text-[#007AFF] text-[17px] font-medium bg-transparent border-0 cursor-pointer disabled:opacity-50 min-h-[44px]"
           >
             {saving ? "..." : "Guardar"}
           </button>
@@ -115,21 +115,21 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
 
         <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Monto ($)</label>
+            <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Monto ($)</label>
             <input
               type="number"
               step="0.01"
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+              className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
               placeholder="0.00"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-2">Fecha</label>
+            <label className="block text-[14px] font-medium text-[#1C1C1E] mb-2">Fecha</label>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -159,19 +159,19 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 autoFocus
-                className="w-full mt-2 border border-[#C6C6C8] rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+                className="w-full mt-2 border border-[#E5E5EA] rounded-[14px] px-3 py-2.5 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
                 required
               />
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1E] mb-1">Descripción</label>
+            <label className="block text-[14px] font-medium text-[#1C1C1E] mb-1">Descripción</label>
             <input
               type="text"
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
+              className="w-full border border-[#E5E5EA] rounded-[14px] px-3 py-3 focus:border-[#007AFF] outline-none text-[16px] bg-white text-[#1C1C1E]"
               placeholder="Opcional"
             />
           </div>
@@ -181,7 +181,7 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="w-full py-3 text-[15px] text-red-500 font-medium bg-white rounded-xl border border-[#C6C6C8] min-h-[44px]"
+                className="w-full py-3 text-[15px] text-[#FF3B30] font-medium bg-white rounded-[14px] border border-[#E5E5EA] min-h-[44px]"
               >
                 Eliminar {TIPO_LABEL[tipoActual].toLowerCase()}
               </button>
@@ -196,17 +196,17 @@ export default function MovimientoModal({ isOpen, tipo, onClose, onSave, onDelet
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
           onClick={() => setConfirmDelete(false)}
         >
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-[22px] w-full max-w-sm overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 text-center">
               <h3 className="text-[17px] font-semibold text-[#1C1C1E]">
                 ¿Eliminar este {TIPO_LABEL[tipoActual].toLowerCase()}?
               </h3>
-              <p className="text-[13px] text-[#8E8E93] mt-2">Esta acción no se puede deshacer.</p>
+              <p className="text-[14px] text-[#6E6E73] mt-2">Esta acción no se puede deshacer.</p>
             </div>
-            <div className="border-t border-[#C6C6C8]/30">
+            <div className="border-t border-[#E5E5EA]">
               <button
                 onClick={() => { setConfirmDelete(false); onDelete(editingMov.id); }}
-                className="w-full py-3 text-[17px] text-red-500 font-medium border-b border-[#C6C6C8]/30 bg-transparent min-h-[44px]"
+                className="w-full py-3 text-[17px] text-[#FF3B30] font-medium border-b border-[#E5E5EA] bg-transparent min-h-[44px]"
               >
                 Eliminar
               </button>

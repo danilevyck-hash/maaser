@@ -64,15 +64,16 @@ export default function PorCobrarPage() {
   });
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#F2F2F7]">
-      <div className="bg-white/80 backdrop-blur-xl border-b border-[#C6C6C8] px-5 pt-14 pb-3 shrink-0">
-        <div className="flex items-center justify-between max-w-[430px] mx-auto">
-          <Link href="/" className="text-[#007AFF] text-[15px] font-medium no-underline">
+    <div className="fixed inset-0 flex flex-col bg-white">
+      <div className="bg-white px-5 pt-14 shrink-0">
+        <div className="flex items-center max-w-[430px] mx-auto">
+          <Link href="/" className="text-[#007AFF] text-[17px] no-underline min-h-[44px] flex items-center">
             &larr; Inicio
           </Link>
-          <h1 className="text-[17px] font-semibold text-[#1C1C1E]">Por Cobrar</h1>
-          <div className="w-[60px]" />
         </div>
+        <h1 className="text-[34px] font-light tracking-[-0.02em] text-[#1C1C1E] leading-[1.1] max-w-[430px] mx-auto pb-2">
+          Por Cobrar
+        </h1>
       </div>
 
       <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
@@ -80,13 +81,13 @@ export default function PorCobrarPage() {
           className="max-w-[430px] mx-auto"
           style={{ paddingBottom: "calc(96px + env(safe-area-inset-bottom))" }}
         >
-          <div className="space-y-4 px-4 pt-4">
-            <div className="bg-white rounded-2xl px-5 py-5 text-center">
-              <p className="text-[13px] text-[#8E8E93] uppercase">Total por cobrar</p>
-              <p className={`text-[34px] font-bold leading-tight tabular-nums mt-1 ${totalPorCobrar > 0 ? "text-red-500" : "text-[#1C1C1E]"}`}>
+          <div>
+            <div className="px-5 pb-6">
+              <p className="text-[15px] text-[#6E6E73]">Total por cobrar</p>
+              <p className={`text-[44px] font-light tracking-[-0.03em] leading-none tabular-nums mt-1 ${totalPorCobrar > 0 ? "text-[#FF3B30]" : "text-[#1C1C1E]"}`}>
                 {formatCurrency(totalPorCobrar)}
               </p>
-              <p className="text-[13px] text-[#8E8E93] mt-1">
+              <p className="text-[15px] text-[#6E6E73] mt-2">
                 {clientes.length} cliente{clientes.length !== 1 ? "s" : ""}
               </p>
             </div>
@@ -97,12 +98,12 @@ export default function PorCobrarPage() {
               </div>
             ) : clientes.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-[#E5E5EA] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="h-8 w-8 text-[#8E8E93]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <div className="w-14 h-14 bg-[#F2F2F7] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="h-8 w-8 text-[#6E6E73]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <p className="text-[15px] text-[#8E8E93]">Sin clientes</p>
+                <p className="text-[15px] text-[#6E6E73]">Sin clientes</p>
                 <button
                   onClick={() => setModalOpen(true)}
                   className="text-[15px] text-[#007AFF] font-medium mt-2 bg-transparent border-0"
@@ -111,25 +112,24 @@ export default function PorCobrarPage() {
                 </button>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl overflow-hidden">
-                {sorted.map((c, i) => (
+              <div>
+                {sorted.map((c) => (
                   <Link
                     key={c.id}
                     href={`/por-cobrar/${c.id}`}
-                    className="flex items-center px-4 py-3 no-underline active:bg-[#E5E5EA]/50 transition-colors"
-                    style={i > 0 ? { borderTop: "1px solid rgba(198,198,200,0.3)" } : undefined}
+                    className="flex items-center px-5 py-3.5 min-h-[56px] no-underline border-t border-[#E5E5EA] active:bg-[#F2F2F7] transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-[17px] font-semibold text-[#1C1C1E] truncate">{c.nombre}</p>
-                      <p className="text-[13px] text-[#8E8E93]">
+                      <p className="text-[17px] font-medium text-[#1C1C1E] truncate">{c.nombre}</p>
+                      <p className="text-[14px] text-[#6E6E73]">
                         {c.ultimo_movimiento ? formatDateShort(c.ultimo_movimiento) : "Sin movimientos"}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0 ml-3">
                       {c.balance === 0 ? (
-                        <p className="text-[13px] font-medium text-green-500">Al día</p>
+                        <p className="text-[15px] text-[#34C759]">Al día</p>
                       ) : (
-                        <p className={`text-[17px] font-semibold tabular-nums ${c.balance > 0 ? "text-red-500" : "text-[#8E8E93]"}`}>
+                        <p className={`text-[17px] tabular-nums ${c.balance > 0 ? "text-[#FF3B30]" : "text-[#6E6E73]"}`}>
                           {formatCurrency(c.balance)}
                         </p>
                       )}
@@ -155,8 +155,8 @@ export default function PorCobrarPage() {
 
       <button
         onClick={() => setModalOpen(true)}
-        className="fixed bottom-6 right-5 z-40 w-14 h-14 bg-[#007AFF] text-white rounded-full flex items-center justify-center active:scale-95 border-0"
-        style={{ boxShadow: "0 4px 16px rgba(0,122,255,0.4)" }}
+        className="fixed bottom-6 right-5 z-40 w-14 h-14 bg-[#1C1C1E] text-white rounded-full flex items-center justify-center active:scale-95 border-0"
+        style={{ boxShadow: "0 6px 20px rgba(0,0,0,0.18)" }}
       >
         <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
