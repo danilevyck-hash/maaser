@@ -212,15 +212,6 @@ export function getCurrentHebrewYear(): number {
   return approx;
 }
 
-export function getAvailableHebrewYears(): number[] {
-  const current = getCurrentHebrewYear();
-  const years: number[] = [];
-  for (let y = current + 1; y >= current - 3; y--) {
-    years.push(y);
-  }
-  return years;
-}
-
 export function getPreviousHebrewMonth(): { from: string; to: string; name: string; hebrewYear: number } {
   const today = hoyPanamaISO();
   const currentYear = getCurrentHebrewYear();

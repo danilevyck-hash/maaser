@@ -13,7 +13,7 @@ App para gestionar donaciones (maaser/tzedaká), gastos de InDriver y apartament
 ## Módulos
 | Módulo | Ruta | Descripción |
 |--------|------|-------------|
-| Maaser | `/maaser` | **Dos pestañas: Donaciones · Resumen.** Lista corrida de todos los años, el 10 % de lo que gasta, y el resumen mes a mes del año elegido |
+| Maaser | `/maaser` | **Una sola pantalla.** El total del año, «Anotar», el buscador y la lista corrida de todos los años. Tocando el número se abre el año, mes por mes |
 | InDriver | `/indriver` | Gastos por mes/año, resumen anual |
 | Propiedades | `/propiedades` | Control de pago **por propiedad** (pagado hasta / debe), contratos, historial de cobros |
 | Finanzas | `/finanzas` | Presupuesto y gastos por categoría |
@@ -146,9 +146,15 @@ cambiaron los rótulos. El año gana `data-mes`/`data-total` en cada renglón, c
 - El paseo de bienvenida sube a `version: 2` cuando el interruptor está prendido: el
   texto viejo hablaba del «···».
 
-⚠️ **Pantallas muertas, NO tocadas:** `/maaser/resumen` y `/maaser/beneficiarios` siguen
-publicadas, con la paleta vieja (navy/gold), sin encabezado y **sin botón para salir**.
-Nadie las enlaza. Propuesta: borrarlas o mandarlas a `/maaser`. Esperando su sí.
+✅ **Pantallas muertas, BORRADAS** (6-oct-2026, con su sí): `/maaser/resumen` y
+`/maaser/beneficiarios`. Llevaban la paleta vieja (navy/gold), sin encabezado y **sin
+botón para salir**; nadie las enlazaba. Con ellas se fue `getAvailableHebrewYears()`,
+que solo usaba el resumen. Lo que hacían vive hoy en `ElAnio`: los meses del año y «Ver
+cuánto le diste a cada persona».
+
+🔴 **`src/app/not-found.tsx`**: el historial del teléfono todavía abre esas direcciones.
+Antes caían en el 404 de fábrica, en inglés y sin salida. Ahora caen en una pantalla en
+español con «Ir a Maaser» e «Ir al inicio». Vale para cualquier dirección equivocada.
 
 ## Auth
 - Login con PIN de 4 dígitos (página `/login`)
