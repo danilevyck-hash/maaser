@@ -31,9 +31,9 @@ import {
 } from "@/lib/maaser/anio-en-barras";
 import { dinero } from "@/lib/maaser/dinero";
 import { fechaDeLaFila } from "@/lib/maaser/fecha-en-palabras";
-import { HISTORIAL_ORDENADO } from "@/lib/maaser/interruptores";
+import { HISTORIAL_ORDENADO, SIMPLE } from "@/lib/maaser/interruptores";
 import { lineaDeLaFila, nombreEnPantalla } from "@/lib/maaser/renglon";
-import { AZUL, ENLACE, MONTO, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
+import { AZUL, ENLACE, MONTO, RENGLON, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
 
 export default function ElAnio({
   donaciones,
@@ -86,13 +86,18 @@ export default function ElAnio({
           <button onClick={onVolver} className={`${ENLACE} min-h-[44px]`}>
             &lsaquo; Maaser
           </button>
-          <button
-            onClick={() => setHoja(true)}
-            aria-label="Más"
-            className="text-[#007AFF] text-[22px] leading-none min-h-[44px] min-w-[44px] bg-transparent border-0 cursor-pointer"
-          >
-            ···
-          </button>
+          {/* Sin «···»: las dos cosas que escondía viven abajo, con palabras. */}
+          {SIMPLE ? (
+            <span />
+          ) : (
+            <button
+              onClick={() => setHoja(true)}
+              aria-label="Más"
+              className="text-[#007AFF] text-[22px] leading-none min-h-[44px] min-w-[44px] bg-transparent border-0 cursor-pointer"
+            >
+              ···
+            </button>
+          )}
         </div>
       </div>
 
@@ -112,32 +117,119 @@ export default function ElAnio({
           ) : (
             <>
               <div className="px-5">
-                <h1 className={`${TITULO} tabular-nums`}>{anio}</h1>
-                <p className={`${TEXTO_2} tabular-nums mt-0.5`}>
-                  {dinero(total)} · {delAnio.length}{" "}
-                  {delAnio.length === 1 ? "donación" : "donaciones"}
-                  {masFuerte ? ` · ${masFuerte.nombre} fue el mes más fuerte` : ""}
-                </p>
+                <h1 className={`${TITULO} tabular-nums`}>
+                  {SIMPLE ? `Año ${anio}` : anio}
+                </h1>
+                {SIMPLE ? (
+                  <>
+                    <p className={`${TEXTO_2} tabular-nums mt-0.5`}>
+                      {dinero(total)} en {delAnio.length}{" "}
+                      {delAnio.length === 1 ? "donación" : "donaciones"}
+                    </p>
+                    {masFuerte && (
+                      <p className={`${TEXTO_2} mt-0.5`}>
+                        El mes en que más diste fue {masFuerte.nombre}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className={`${TEXTO_2} tabular-nums mt-0.5`}>
+                    {dinero(total)} · {delAnio.length}{" "}
+                    {delAnio.length === 1 ? "donación" : "donaciones"}
+                    {masFuerte ? ` · ${masFuerte.nombre} fue el mes más fuerte` : ""}
+                  </p>
+                )}
                 {/* Hacia atrás siempre; hacia adelante SOLO hasta el año en curso. */}
                 <div className="flex items-center justify-between py-2">
                   <button
                     onClick={() => cambiarAnio(anio - 1)}
                     className={`${ENLACE} min-h-[44px] tabular-nums`}
                   >
-                    &lsaquo; {anio - 1}
+                    &lsaquo; {SIMPLE ? `Año ${anio - 1}` : anio - 1}
                   </button>
                   {anio < anioEnCurso && (
                     <button
                       onClick={() => cambiarAnio(anio + 1)}
                       className={`${ENLACE} min-h-[44px] tabular-nums`}
                     >
-                      {anio + 1} &rsaquo;
+                      {SIMPLE ? `Año ${anio + 1}` : anio + 1} &rsaquo;
                     </button>
                   )}
                 </div>
               </div>
 
+              {/* Mes por mes, con palabras: los rótulos de las barras eran de
+                  9 px y las barras no decían de qué mes eran. */}
+              {SIMPLE && (
+                <div className="pt-2">
+                  {meses.map((m) => (
+                    <div key={m.nombre}>
+                      <button
+                        onClick={() => {
+                          const mismo = mesElegido === m.nombre && verDonaciones;
+                          setMesElegido(m.nombre);
+                          setVerDonaciones(!mismo && m.cantidad > 0);
+                        }}
+                        className={RENGLON}
+                      >
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-[17px] font-medium text-[#1C1C1E]">
+                            {m.nombre}
+                          </span>
+                          <span className={`block ${TEXTO_3}`}>
+                            {m.cantidad === 0
+                              ? "No diste nada este mes"
+                              : `${m.cantidad} ${m.cantidad === 1 ? "donación" : "donaciones"}`}
+                          </span>
+                        </span>
+                        <span
+                          className={MONTO}
+                          style={m.total === 0 ? { color: "#AEAEB2" } : undefined}
+                        >
+                          {dinero(m.total)}
+                        </span>
+                        {m.cantidad > 0 && (
+                          <span className="text-[17px] text-[#AEAEB2] shrink-0">
+                            {mesElegido === m.nombre && verDonaciones ? "⌃" : "›"}
+                          </span>
+                        )}
+                      </button>
+                      {mesElegido === m.nombre &&
+                        verDonaciones &&
+                        m.donaciones.map((d) => (
+                          <div key={d.id} className="px-5">
+                            <FilaDonacion
+                              donacion={d}
+                              hoy={hoy}
+                              onAbrir={onAbrirDonacion}
+                              sangria
+                            />
+                          </div>
+                        ))}
+                    </div>
+                  ))}
+
+                  {/* Lo que el «···» escondía, ahora a la vista y con palabras. */}
+                  <div className="mt-8">
+                    <button onClick={() => setPorQuien(true)} className={RENGLON}>
+                      <span className="flex-1 text-[17px] text-[#1C1C1E]">
+                        Ver cuánto le diste a cada persona
+                      </span>
+                      <span className="text-[17px] text-[#AEAEB2] shrink-0">&rsaquo;</span>
+                    </button>
+                    <button onClick={() => onExportar(anio)} className={RENGLON}>
+                      <span className="flex-1 text-[17px] text-[#1C1C1E]">
+                        Guardar la lista para imprimir o para el contador
+                      </span>
+                      <span className="text-[17px] text-[#AEAEB2] shrink-0">&rsaquo;</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Las barras */}
+              {!SIMPLE && (
+              <>
               <div
                 className="px-5 pt-4 grid gap-[5px] items-end h-[150px]"
                 style={{ gridTemplateColumns: `repeat(${meses.length}, 1fr)` }}
@@ -199,6 +291,8 @@ export default function ElAnio({
                       <FilaDonacion key={d.id} donacion={d} hoy={hoy} onAbrir={onAbrirDonacion} />
                     ))}
                 </div>
+              )}
+              </>
               )}
             </>
           )}

@@ -21,6 +21,7 @@ import { fechaDelBoton } from "@/lib/maaser/fecha-en-palabras";
 import { montosParaChips, NOMBRE_CARGA_INICIAL } from "@/lib/maaser/montos-frecuentes";
 import { nombresSugeridos, textoUltimaDonacion } from "@/lib/maaser/sugerencias-nombre";
 import { normalizarMetodo } from "@/lib/maaser/metodo-pago";
+import { SIMPLE } from "@/lib/maaser/interruptores";
 import {
   AZUL,
   BOTON_PRINCIPAL,
@@ -37,8 +38,13 @@ export type LoQueSeGuarda = {
   repetirCadaMes: boolean;
 };
 
-const ROTULO_CAMPO =
-  "block text-[12px] uppercase tracking-[0.08em] text-[#AEAEB2] mb-1";
+/**
+ * Los rótulos eran de 12 px, en MAYÚSCULAS y en gris claro: por debajo del
+ * mínimo de 14 px de la app y a muy poco contraste.
+ */
+const ROTULO_CAMPO = SIMPLE
+  ? "block text-[14px] text-[#6E6E73] mb-1"
+  : "block text-[12px] uppercase tracking-[0.08em] text-[#AEAEB2] mb-1";
 const CAMPO_LIMPIO =
   "w-full bg-transparent border-0 outline-none text-[17px] text-[#1C1C1E] p-0 placeholder:text-[#AEAEB2]";
 const BLOQUE_CAMPO = "mx-5 border-t border-[#E5E5EA] py-3";
@@ -116,7 +122,7 @@ export default function Anotar({
   const guardar = () => {
     const cuanto = parseFloat(monto);
     if (!Number.isFinite(cuanto) || cuanto <= 0) {
-      setFalta("Falta: cuánto diste");
+      setFalta(SIMPLE ? "Falta poner cuánto diste" : "Falta: cuánto diste");
       return;
     }
     setFalta("");
@@ -141,6 +147,12 @@ export default function Anotar({
           <button onClick={onCancelar} className={`${ENLACE} min-h-[44px]`}>
             Cancelar
           </button>
+          {/* Antes esta pantalla no decía en qué pantalla estaba. */}
+          {SIMPLE && (
+            <span className="text-[17px] font-medium text-[#1C1C1E]">
+              {editando ? "Cambiar la donación" : "Nueva donación"}
+            </span>
+          )}
           <span />
         </div>
       </div>
@@ -159,8 +171,11 @@ export default function Anotar({
                 setFalta("");
               }}
               placeholder="0"
+              autoFocus={SIMPLE && !editando}
               className="bg-transparent border-0 outline-none text-[58px] font-light tracking-[-0.03em] tabular-nums text-[#1C1C1E] leading-none p-0 placeholder:text-[#AEAEB2]"
-              style={{ width: `${Math.max(monto.length, 1)}ch` }}
+              /* Vacío medía 1 ch: había que acertarle a una franja de 30 px
+                 para empezar a escribir. */
+              style={{ width: `${Math.max(monto.length, SIMPLE ? 3 : 1)}ch` }}
             />
           </div>
 
@@ -205,39 +220,70 @@ export default function Anotar({
 
           {/* Cheque */}
           <div className={BLOQUE_CAMPO}>
-            <label className={ROTULO_CAMPO} htmlFor="maaser-cheque">Cheque</label>
+            <label className={ROTULO_CAMPO} htmlFor="maaser-cheque">
+              {SIMPLE ? "Número de cheque" : "Cheque"}
+            </label>
             <input
               id="maaser-cheque"
               inputMode="numeric"
               value={cheque}
-              onFocus={() => {
-                if (!cheque && !editando && proximoCheque) setCheque(proximoCheque);
-              }}
+              /* El número ya NO se llena solo al tocar el campo: aparecía de la
+                 nada. Ahora hay un botón que dice qué número va a poner. */
+              onFocus={
+                SIMPLE
+                  ? undefined
+                  : () => {
+                      if (!cheque && !editando && proximoCheque) setCheque(proximoCheque);
+                    }
+              }
               onChange={(e) => setCheque(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder={proximoCheque ?? "opcional"}
+              placeholder={SIMPLE ? "Si pagaste con cheque" : proximoCheque ?? "opcional"}
               className={CAMPO_LIMPIO}
               style={avisoCheque ? { color: ROJO } : undefined}
             />
           </div>
+          {SIMPLE && !cheque && !editando && proximoCheque && (
+            <div className="px-5 pb-1">
+              <button
+                onClick={() => setCheque(proximoCheque)}
+                className={`${FICHA} !rounded-full !px-3.5`}
+              >
+                Poner el {proximoCheque}
+              </button>
+            </div>
+          )}
           {avisoCheque && (
             <p className="px-5 pb-2 text-[14px] leading-snug" style={{ color: ROJO }}>
               {avisoCheque}
             </p>
           )}
 
-          {/* Cómo pagó */}
-          <div className="flex gap-1.5 px-5 pt-2 pb-1">
+          {/* Cómo pagó. Los cuatro en una fila a 390 px dejaban
+              «Transferencia» en 13 px y apretado: pasan a dos y dos. */}
+          {SIMPLE && (
+            <p className={`${ROTULO_CAMPO} px-5 pt-4`}>Cómo pagaste</p>
+          )}
+          <div
+            className={
+              SIMPLE
+                ? "grid grid-cols-2 gap-2 px-5 pb-1"
+                : "flex gap-1.5 px-5 pt-2 pb-1"
+            }
+          >
             {CHIPS_METODO.map((c) => (
               <button
                 key={c.etiqueta}
                 onClick={() => setChip(chip === c.etiqueta ? null : c.etiqueta)}
-                className={`flex-1 min-h-[44px] rounded-[10px] text-[13px] border cursor-pointer transition-colors ${
+                className={`${SIMPLE ? "min-h-[48px] text-[16px]" : "flex-1 text-[13px]"} rounded-[10px] border cursor-pointer transition-colors ${
+                  SIMPLE ? "" : "min-h-[44px]"
+                } ${
                   chip === c.etiqueta
                     ? "border-[#1C1C1E] text-[#1C1C1E] font-semibold bg-white"
                     : "border-[#E5E5EA] text-[#6E6E73] bg-white"
                 }`}
               >
-                {c.etiqueta}
+                {/* «Cheque» ya es el rótulo del campo de arriba. */}
+                {SIMPLE && c.etiqueta === "Cheque" ? "Con cheque" : c.etiqueta}
               </button>
             ))}
           </div>
@@ -253,6 +299,26 @@ export default function Anotar({
               className={CAMPO_LIMPIO}
             />
           </div>
+
+          {/* El día. Antes vivía DENTRO del botón negro, pegado a «Listo»:
+              tocar la mitad derecha del botón no guardaba, abría el
+              calendario, y parecía que «Listo» no había hecho nada. */}
+          {SIMPLE && (
+            <div className="mx-5 border-t border-[#E5E5EA] py-3 flex items-center justify-between gap-3">
+              <span className="min-w-0">
+                <span className={ROTULO_CAMPO}>Qué día se dio</span>
+                <span className="block text-[17px] text-[#1C1C1E]">
+                  {fechaDelBoton(fecha, hoy)}
+                </span>
+              </span>
+              <button
+                onClick={() => setHoja("fecha")}
+                className="shrink-0 min-h-[44px] rounded-[10px] border border-[#E5E5EA] bg-white text-[#007AFF] text-[16px] px-4 cursor-pointer"
+              >
+                Cambiar el día
+              </button>
+            </div>
+          )}
 
           {/* Se repite cada mes — solo si la tabla ya existe. */}
           {hayCompromisos && !editando && (
@@ -274,9 +340,11 @@ export default function Anotar({
               </button>
             </div>
           )}
-
-          {falta && (
-            <p className="px-5 pt-3 text-[14px]" style={{ color: ROJO }}>{falta}</p>
+          {SIMPLE && hayCompromisos && !editando && repetir && (
+            <p className={`${TEXTO_2} px-5 pb-1`}>
+              Todos los meses te va a esperar arriba, lista para anotarla de un
+              toque.
+            </p>
           )}
 
           {editando && onBorrar && (
@@ -286,7 +354,7 @@ export default function Anotar({
                 className="w-full min-h-[52px] bg-transparent border-0 cursor-pointer text-[17px]"
                 style={{ color: ROJO }}
               >
-                Borrar
+                {SIMPLE ? "Borrar esta donación" : "Borrar"}
               </button>
             </div>
           )}
@@ -295,24 +363,50 @@ export default function Anotar({
 
       {/* El botón negro: "Listo" guarda, la fecha se toca para cambiarla. */}
       <div className="shrink-0 bg-white px-5" style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom))" }}>
-        <div
-          className={`${BOTON_PRINCIPAL} max-w-[430px] mx-auto flex items-center justify-center gap-1.5 !py-0`}
-          style={{ opacity: guardando ? 0.4 : 1 }}
-        >
+        {/* El aviso vive PEGADO al botón: antes se dibujaba al final del
+            formulario, fuera de la pantalla, y él tocaba «Listo» sin ver nada. */}
+        {falta && (
+          <p
+            className="max-w-[430px] mx-auto pb-2 text-[15px] text-center"
+            style={{ color: ROJO }}
+          >
+            {falta}
+          </p>
+        )}
+        {SIMPLE ? (
+          /* Un solo botón, todo el ancho: tocarlo donde sea GUARDA. */
           <button
             onClick={guardar}
             disabled={guardando}
-            className="flex-1 text-right bg-transparent border-0 text-white text-[17px] font-semibold cursor-pointer min-h-[52px] px-1"
+            className={`${BOTON_PRINCIPAL} max-w-[430px] mx-auto block`}
           >
-            {guardando ? "Guardando…" : "Listo ·"}
+            {guardando ? "Guardando…" : "Listo, anotar"}
           </button>
-          <button
-            onClick={() => setHoja("fecha")}
-            className="flex-1 text-left bg-transparent border-0 text-white text-[17px] font-semibold cursor-pointer min-h-[52px] px-1"
+        ) : (
+          <div
+            className={`${BOTON_PRINCIPAL} max-w-[430px] mx-auto flex items-center justify-center gap-1.5 !py-0`}
+            style={{
+              opacity: guardando ? 0.4 : 1,
+              // Mientras guarda, TODA la barra se apaga: ni «Listo» ni la fecha.
+              pointerEvents: guardando ? "none" : undefined,
+            }}
           >
-            {fechaDelBoton(fecha, hoy)}
-          </button>
-        </div>
+            <button
+              onClick={guardar}
+              disabled={guardando}
+              className="flex-1 text-right bg-transparent border-0 text-white text-[17px] font-semibold cursor-pointer min-h-[52px] px-1"
+            >
+              {guardando ? "Guardando…" : "Listo ·"}
+            </button>
+            <button
+              onClick={() => setHoja("fecha")}
+              disabled={guardando}
+              className="flex-1 text-left bg-transparent border-0 text-white text-[17px] font-semibold cursor-pointer min-h-[52px] px-1"
+            >
+              {fechaDelBoton(fecha, hoy)}
+            </button>
+          </div>
+        )}
       </div>
 
       <HojaAbajo

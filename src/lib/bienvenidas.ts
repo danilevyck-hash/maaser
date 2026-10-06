@@ -7,6 +7,7 @@
  */
 
 import type { PaginaDeBienvenida } from "@/components/Bienvenida";
+import { SIMPLE } from "@/lib/maaser/interruptores";
 
 export type Bienvenida = {
   modulo: string;
@@ -70,7 +71,8 @@ export const BIENVENIDA_PROPIEDADES: Bienvenida = {
 
 export const BIENVENIDA_MAASER: Bienvenida = {
   modulo: "maaser",
-  version: 1,
+  // Con el rediseño el paseo vuelve a salir una vez: ya no hay «···».
+  version: SIMPLE ? 2 : 1,
   titulo: "Maaser",
   paginas: [
     {
@@ -85,8 +87,12 @@ export const BIENVENIDA_MAASER: Bienvenida = {
     },
     {
       dibujo: "m-anio",
-      titulo: "Toca el número para ver el año",
-      texto: "Cada mes es una barra, con ‹ y › cambias de año, y en «···» están los beneficiarios y exportar.",
+      titulo: SIMPLE
+        ? "Toca el número grande para ver mes por mes"
+        : "Toca el número para ver el año",
+      texto: SIMPLE
+        ? "Cada mes es un renglón que se abre. Abajo está «Ver cuánto le diste a cada persona» y guardar la lista para imprimir."
+        : "Cada mes es una barra, con ‹ y › cambias de año, y en «···» están los beneficiarios y exportar.",
     },
     {
       dibujo: "m-editar",
@@ -95,7 +101,7 @@ export const BIENVENIDA_MAASER: Bienvenida = {
     },
     {
       dibujo: "m-buscar",
-      titulo: "Desliza hacia abajo para buscar",
+      titulo: SIMPLE ? "Escribe un nombre en «Buscar»" : "Desliza hacia abajo para buscar",
       texto: "Escribes un nombre y la lista se queda con lo suyo.",
     },
   ],

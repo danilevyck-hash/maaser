@@ -80,6 +80,69 @@ El código **falla ABIERTO** sin los tres: la app funciona igual.
 | ~~`20260923-donations-metodo.sql`~~ | columna `metodo` | ✅ **ya aplicada** (medido el 6-oct-2026). Queda como historia. |
 | `20260923-login-intentos.sql` | tabla del freno de PIN | no se frena a nadie |
 
+## Maaser — el duplicado y «para un señor de 70 años» (6-oct-2026)
+
+Daniel: «Al poner un gasto y poner Listo, no sé si pasó o no, se repite» · «No quiero
+los 3 puntitos, que sea más intuitivo, más fácil de usar para un señor de 70 años
+panameño» · «Revisá todo, cada botón, cada pestaña, el workflow».
+
+### 🔴 El duplicado — ✅ PUBLICADO, sin interruptor (es un error)
+
+**La causa de raíz, en tres partes:**
+1. **El botón negro de Anotar son DOS botones pegados** dentro de la misma pastilla:
+   «Listo ·» a la izquierda y la fecha a la derecha. Tocar la mitad derecha NO guarda,
+   abre el calendario. Ese es literalmente el «toco Listo y no sé si pasó».
+2. **`traerDonaciones()` no se esperaba**: se volvía al inicio con el número grande y la
+   lista de antes. Ahora se `await`ea ANTES de `setVista`.
+3. **El servidor no tenía ninguna protección.**
+
+**Lo que entró:**
+- `POST /api/donations` → `laMismaDeHaceUnMomento()`: antes de insertar busca una
+  donación IDÉNTICA (día + nombre + monto + cheque) escrita dentro de los últimos
+  **60 s** y, si existe, **devuelve esa** sin insertar. Vive en el servidor a propósito:
+  por ahí pasan los DOS caminos que escriben donaciones (Anotar y el círculo de un
+  compromiso) y también los reintentos del teléfono. **Falla ABIERTA.**
+- Mientras guarda, **toda la barra se apaga** (`pointerEvents: none`), no solo «Listo».
+- El aviso dice **«Anotado ✓»** / «Guardado ✓» / «Borrado ✓». `cumplirCompromiso` NO
+  decía nada al terminar: ahora también avisa.
+- «Falta poner cuánto diste» se dibuja **pegado al botón**, no al final del scroll
+  (estaba fuera de la pantalla).
+- Candado: `src/__tests__/api/donaciones-sin-duplicar.test.ts`.
+
+✅ **Medido en producción el 6-oct-2026, sin borrar nada: CERO duplicados hechos por la
+app.** De 266 donaciones, 149 son de la app y 117 de la carga del 22-mar-2026. Los 13
+grupos idénticos son TODOS de esa carga (nombre «Donación», sin cheque). El único par
+de la app —Rab Joseph Floster, 12-ago-2026, $500 ×2, ids 509 y 510, 97 s de
+diferencia— lleva **cheques distintos** (2896 y 2899): son dos donaciones de verdad.
+
+### ⚪ `NEXT_PUBLIC_MAASER_SIMPLE` — APAGADO hasta su sí
+
+`SIMPLE` en `src/lib/maaser/interruptores.ts`. **Apagado por defecto**; se prende con
+`NEXT_PUBLIC_MAASER_SIMPLE=1` en Vercel y se apaga borrando la variable: la pantalla
+vuelve a ser BYTE por BYTE la de hoy. Candado: `maaser-simple.test.tsx` (las dos
+posiciones). Capturas HOY vs RECOMENDACIÓN a 390 px, en solo lectura, en
+`.claude/jobs/c25ab4e9/tmp/maaser-simple/index.html`.
+
+- **Se va el «···» de las DOS pantallas.** Ordenar son tres palabras a la vista (Por
+  fecha · Por monto · Por nombre). En el año, «Ver cuánto le diste a cada persona» y
+  «Guardar la lista para imprimir o para el contador» vuelven a ser renglones.
+- **Anotar: UN solo botón** («Listo, anotar», todo el ancho). El día pasa a su propio
+  renglón con «Cambiar el día». Título «Nueva donación». Rótulos de 12 px MAYÚSCULAS a
+  14 px normales. Cómo pagaste en 2×2 («Transferencia» se salía de 390 px). El cheque
+  ya no se escribe solo al enfocar: hay un botón «Poner el 2937».
+- **El año, mes por mes en renglones** con el nombre completo. Las doce barras tenían
+  rótulos de **9 px** («Tis», «Jes») y no decían ni el mes ni el monto.
+- **Inicio:** «Debes dar $X este año · te faltan $Y» en vez de «Meta 10 %», «Ver mes
+  por mes ›» bajo el número (era un botón secreto), flecha › en cada fila, buscador
+  siempre a la vista, la línea del año a 15 px, y el círculo del compromiso pasa a ser
+  un botón que dice **«Anotar»**.
+- El paseo de bienvenida sube a `version: 2` cuando el interruptor está prendido: el
+  texto viejo hablaba del «···».
+
+⚠️ **Pantallas muertas, NO tocadas:** `/maaser/resumen` y `/maaser/beneficiarios` siguen
+publicadas, con la paleta vieja (navy/gold), sin encabezado y **sin botón para salir**.
+Nadie las enlaza. Propuesta: borrarlas o mandarlas a `/maaser`. Esperando su sí.
+
 ## Auth
 - Login con PIN de 4 dígitos (página `/login`)
 - Middleware protege todas las rutas excepto `/login` y `/api/auth`
@@ -175,7 +238,7 @@ El código **falla ABIERTO** sin los tres: la app funciona igual.
 
 ## Pruebas
 ```bash
-npx vitest run   # 213 pruebas (eran 125)
+npx vitest run   # 225 pruebas (eran 213)
 npx next build   # tiene que pasar antes de subir
 ```
 Los módulos de Maaser son **puros y con prueba**: `fecha-panama` · `montos-frecuentes` ·

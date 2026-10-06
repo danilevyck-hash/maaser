@@ -28,7 +28,7 @@ import {
   textoDelOrden,
   type Orden,
 } from "@/lib/maaser/orden";
-import { HISTORIAL_ORDENADO } from "@/lib/maaser/interruptores";
+import { HISTORIAL_ORDENADO, SIMPLE } from "@/lib/maaser/interruptores";
 import { filtrarPorBeneficiario } from "@/lib/maaser/busqueda";
 import { dinero } from "@/lib/maaser/dinero";
 import {
@@ -143,7 +143,7 @@ export default function MaaserPage() {
         .reduce((s, d) => s + d.amount, 0),
     [donaciones, datosAnterior.startDate, datosAnterior.endDate]
   );
-  const meta = lineaDeLaMeta(gastosAnuales, total);
+  const meta = lineaDeLaMeta(gastosAnuales, total, { simple: SIMPLE });
 
   /* ── Los compromisos del mes hebreo en curso ───────────────────── */
 
@@ -176,7 +176,7 @@ export default function MaaserPage() {
    * número es la respuesta de la pantalla y nada se le pone encima. Vive
    * pegado a la lista, debajo de «Anotar».
    */
-  const buscadorFijo = HISTORIAL_ORDENADO && donaciones.length > MUCHAS;
+  const buscadorFijo = SIMPLE || (HISTORIAL_ORDENADO && donaciones.length > MUCHAS);
 
   const verElAnio = (a: number) => {
     setAnioMirado(a);
@@ -214,9 +214,14 @@ export default function MaaserPage() {
         }).catch(() => null);
         traerCompromisos();
       }
+      /**
+       * La lista se recarga ANTES de volver. Si no, él llegaba al inicio con
+       * el número grande y la lista de ANTES: parecía que no había pasado
+       * nada, volvía a anotar y quedaba dos veces.
+       */
+      await traerDonaciones();
       setVista({ tipo: volverA });
-      showToast(donacion.id ? "Donación guardada" : "Anotada");
-      traerDonaciones();
+      showToast(donacion.id ? "Guardado ✓" : "Anotado ✓");
     } catch {
       showToast("No se pudo guardar", "error");
     } finally {
@@ -236,9 +241,9 @@ export default function MaaserPage() {
         showToast("No se pudo borrar", "error");
         return;
       }
+      await traerDonaciones();
       setVista({ tipo: volverA });
-      showToast("Donación borrada");
-      traerDonaciones();
+      showToast("Borrado ✓");
     } catch {
       showToast("No se pudo borrar", "error");
     } finally {
@@ -259,7 +264,9 @@ export default function MaaserPage() {
         showToast("No se pudo anotar", "error");
         return;
       }
+      // Antes esto no decía nada al terminar: él volvía a tocar el círculo.
       await traerDonaciones();
+      showToast("Anotado ✓");
     } catch {
       showToast("No se pudo anotar", "error");
     } finally {
@@ -331,7 +338,8 @@ export default function MaaserPage() {
           <Link href="/" className={`${ENLACE} min-h-[44px] flex items-center pr-2`}>
             &lsaquo; Inicio
           </Link>
-          {HISTORIAL_ORDENADO ? (
+          {/* Sin «···»: ordenar vive con palabras, arriba de la lista. */}
+          {HISTORIAL_ORDENADO && !SIMPLE ? (
             <button
               onClick={() => setHojaOrden(true)}
               aria-label="Ordenar"
@@ -389,6 +397,13 @@ export default function MaaserPage() {
               {lineaDeDonaciones(delAnio.length, { anio: anio - 1, total: totalAnterior })}
             </span>
             {meta && <span className={`block ${TEXTO_2} mt-1`}>{meta}</span>}
+            {/* El número era un botón secreto: había que explicarlo en el
+                paseo de bienvenida. Ahora lo dice en voz alta. */}
+            {SIMPLE && (
+              <span className="block text-[15px] mt-2" style={{ color: AZUL }}>
+                Ver mes por mes &rsaquo;
+              </span>
+            )}
           </button>
 
           <div className="px-5 pt-4 pb-1">
@@ -412,6 +427,26 @@ export default function MaaserPage() {
             </div>
           )}
 
+          {/* Ordenar, con palabras y a la vista: el «···» no se entendía. */}
+          {HISTORIAL_ORDENADO && SIMPLE && !cargando && donaciones.length > 1 && (
+            <div className="flex gap-2 px-5 pt-5">
+              {ORDENES.map((o) => (
+                <button
+                  key={o.clave}
+                  onClick={() => setOrden(o.clave)}
+                  aria-pressed={orden === o.clave}
+                  className={`flex-1 min-h-[44px] rounded-[10px] text-[15px] border cursor-pointer transition-colors ${
+                    orden === o.clave
+                      ? "bg-[#1C1C1E] text-white border-[#1C1C1E] font-semibold"
+                      : "bg-white text-[#1C1C1E] border-[#E5E5EA]"
+                  }`}
+                >
+                  {o.texto}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Los compromisos del mes que todavía no se dieron. */}
           {pendientes.map((c) => (
             <div
@@ -425,17 +460,30 @@ export default function MaaserPage() {
                 <span className="block text-[17px] font-medium text-[#1C1C1E] truncate">
                   {c.beneficiary}
                 </span>
-                <span className={`block ${TEXTO_3}`}>cada mes</span>
+                <span className={`block ${TEXTO_3}`}>
+                  {SIMPLE ? "Todos los meses · este mes falta" : "cada mes"}
+                </span>
               </button>
               <span className={MONTO}>{dinero(c.amount)}</span>
-              <button
-                onClick={() => cumplirCompromiso(c)}
-                disabled={marcando != null}
-                aria-label={`Anotar ${c.beneficiary}`}
-                className="w-11 h-11 -mr-2 flex items-center justify-center bg-transparent border-0 cursor-pointer disabled:opacity-40"
-              >
-                <Circulo estado={marcando === c.id ? "pagado" : "sin_marcar"} />
-              </button>
+              {/* El círculo vacío no decía qué hacía. Ahora lo dice. */}
+              {SIMPLE ? (
+                <button
+                  onClick={() => cumplirCompromiso(c)}
+                  disabled={marcando != null}
+                  className="shrink-0 min-h-[44px] rounded-[10px] bg-[#1C1C1E] text-white text-[15px] font-semibold px-3.5 border-0 cursor-pointer disabled:opacity-40"
+                >
+                  {marcando === c.id ? "Un momento…" : "Anotar"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => cumplirCompromiso(c)}
+                  disabled={marcando != null}
+                  aria-label={`Anotar ${c.beneficiary}`}
+                  className="w-11 h-11 -mr-2 flex items-center justify-center bg-transparent border-0 cursor-pointer disabled:opacity-40"
+                >
+                  <Circulo estado={marcando === c.id ? "pagado" : "sin_marcar"} />
+                </button>
+              )}
             </div>
           ))}
 
@@ -449,7 +497,7 @@ export default function MaaserPage() {
           ) : (
             <div className="pt-3">
               {/* Si la lista no está por fecha, la línea gris lo dice y vuelve. */}
-              {HISTORIAL_ORDENADO && orden !== ORDEN_DE_SIEMPRE && (
+              {HISTORIAL_ORDENADO && !SIMPLE && orden !== ORDEN_DE_SIEMPRE && (
                 <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
                   <span className="text-[13px] text-[#AEAEB2]">{textoDelOrden(orden)}</span>
                   <button
@@ -469,12 +517,19 @@ export default function MaaserPage() {
                       key={`anio-${r.anio}`}
                       onClick={() => verElAnio(r.anio)}
                       aria-label={`Ver el año ${r.anio}`}
-                      className="w-full flex items-center justify-between gap-3 text-[13px] text-[#AEAEB2] tabular-nums px-5 pt-7 pb-2 border-x-0 border-b-0 border-t border-solid border-[#E5E5EA] mt-3 bg-transparent cursor-pointer text-left active:bg-[#F2F2F7] transition-colors"
+                      className={`w-full flex items-center justify-between gap-3 tabular-nums px-5 ${
+                        SIMPLE
+                          ? "text-[15px] text-[#6E6E73] pt-7 pb-3 min-h-[44px]"
+                          : "text-[13px] text-[#AEAEB2] pt-7 pb-2"
+                      } border-x-0 border-b-0 border-t border-solid border-[#E5E5EA] mt-3 bg-transparent cursor-pointer text-left active:bg-[#F2F2F7] transition-colors`}
                     >
                       <span>
+                        {SIMPLE ? "Año " : ""}
                         {r.anio} · {dinero(r.total)}
                       </span>
-                      <span style={{ color: AZUL }}>ver el año &rsaquo;</span>
+                      <span style={{ color: AZUL }}>
+                        {SIMPLE ? "Ver este año" : "ver el año"} &rsaquo;
+                      </span>
                     </button>
                   ) : (
                     <p
@@ -508,6 +563,11 @@ export default function MaaserPage() {
                       </span>
                     </span>
                     <span className={MONTO}>{dinero(r.donacion.amount)}</span>
+                    {/* La flecha avisa que el renglón se abre: antes había que
+                        aprenderlo en el paseo de bienvenida. */}
+                    {SIMPLE && (
+                      <span className="text-[17px] text-[#AEAEB2] shrink-0">&rsaquo;</span>
+                    )}
                   </button>
                 )
               )}

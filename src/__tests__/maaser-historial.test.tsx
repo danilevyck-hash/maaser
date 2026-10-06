@@ -36,6 +36,8 @@ vi.mock("@/lib/maaser/interruptores", () => ({
   get HISTORIAL_ORDENADO() {
     return interruptor.prendido;
   },
+  // Este candado cuida el historial; el rediseño «simple» tiene el suyo.
+  SIMPLE: false,
 }));
 
 const llamadas: { url: string; metodo: string }[] = [];

@@ -29,10 +29,14 @@ export function lineaDeDonaciones(
 /**
  * "Meta 10 %: $10,000 · te faltan $9,322", o "· vas $678 adelante".
  * Sin lo que gasta, null: la línea no existe.
+ *
+ * Con `simple` se dice sin jerga: "Debes dar $10,000 este año · te faltan
+ * $9,322". "Meta 10 %" no le dice nada a quien no lleva cuentas.
  */
 export function lineaDeLaMeta(
   gastosAnuales: number | null | undefined,
-  totalDado: number
+  totalDado: number,
+  { simple = false }: { simple?: boolean } = {}
 ): string | null {
   const cuenta = calcularDiezmo(gastosAnuales, totalDado);
   if (!cuenta) return null;
@@ -41,5 +45,8 @@ export function lineaDeLaMeta(
     cuenta.faltan > 0
       ? `te faltan ${dinero(cuenta.faltan)}`
       : `vas ${dinero(Math.max(totalDado, 0) - cuenta.debeDar)} adelante`;
+  if (simple) {
+    return `Debes dar ${dinero(cuenta.debeDar)} este año · ${cola}`;
+  }
   return `Meta ${pct} %: ${dinero(cuenta.debeDar)} · ${cola}`;
 }

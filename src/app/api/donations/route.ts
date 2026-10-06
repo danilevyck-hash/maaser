@@ -22,6 +22,48 @@ function esColumnaQueFalta(mensaje: string | undefined): boolean {
   return m.includes("metodo") && (m.includes("column") || m.includes("schema cache"));
 }
 
+/** Cuántos segundos cuentan como «el mismo envío». */
+const SEGUNDOS_DEL_MISMO_ENVIO = 60;
+
+/**
+ * La donación idéntica que ya entró hace un momento, si la hay.
+ *
+ * Papá toca «Listo», no ve ninguna confirmación y vuelve a tocar: la misma
+ * donación quedaba dos veces. El freno vive en el SERVIDOR porque por aquí
+ * pasan los dos caminos que escriben donaciones —la pantalla de Anotar y el
+ * círculo de un compromiso— y también los reintentos del teléfono cuando la
+ * señal está mala.
+ *
+ * Idéntica = mismo día, mismo nombre, mismo monto y mismo cheque, escrita
+ * dentro del último minuto. Dos donaciones de verdad NUNCA se pierden: basta
+ * que cambie el monto, el nombre o el cheque, o que pase un minuto. (Medido el
+ * 6-oct-2026: de las 149 donaciones escritas desde la app, ningún par cae en
+ * esa ventana; el único par del mismo día y monto lleva cheques distintos.)
+ *
+ * Falla ABIERTA: si la consulta se cae, se inserta como siempre.
+ */
+async function laMismaDeHaceUnMomento(
+  row: Record<string, unknown>
+): Promise<Record<string, unknown> | null> {
+  try {
+    const desde = new Date(Date.now() - SEGUNDOS_DEL_MISMO_ENVIO * 1000).toISOString();
+    const { data, error } = await supabase
+      .from("donations")
+      .select("*")
+      .eq("date", row.date as string)
+      .eq("beneficiary", row.beneficiary as string)
+      .eq("amount", row.amount as number)
+      .gte("created_at", desde)
+      .order("id", { ascending: false })
+      .limit(5);
+    if (error || !Array.isArray(data)) return null;
+    const cheque = String(row.check_number ?? "");
+    return data.find((d) => String(d.check_number ?? "") === cheque) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const from = request.nextUrl.searchParams.get("from");
@@ -68,6 +110,10 @@ export async function POST(request: NextRequest) {
   };
 
   const metodo = normalizarMetodo(body.metodo);
+
+  // El mismo envío no entra dos veces: se devuelve la que YA quedó guardada.
+  const yaEsta = await laMismaDeHaceUnMomento(row);
+  if (yaEsta) return NextResponse.json(yaEsta);
 
   // receipt_number column may still exist in DB with NOT NULL constraint
   if (body.receipt_number != null) {
