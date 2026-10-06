@@ -47,12 +47,35 @@ App para gestionar donaciones (maaser/tzedaká), gastos de InDriver y apartament
   "Beneficiarios" dejó de ser pestaña.
 - "Año Hebreo" **con ñ** en todo el sistema.
 
+## Maaser — historial ordenado y cheque (6-oct-2026) · 🔴 APAGADO
+
+Daniel: «Aquí en Maaser no veo historial. De manera ordenada quiero poder ver historial
+ordenado y número de cheque». **Todo entra detrás de `NEXT_PUBLIC_MAASER_HISTORIAL`**
+(`src/lib/maaser/interruptores.ts`), que nace apagado: sin esa variable la pantalla es la
+de hoy, byte por byte, y el candado `maaser-historial.test.tsx` lo cuida.
+
+- ✅ **`donations.check_number` YA existe en producción** (medido el 6-oct-2026: 266
+  donaciones, 123 con cheque) y «Anotar» ya lo escribe desde el 24-sep. **No hace falta
+  ninguna migración**: lo único que faltaba era mostrarlo.
+- **El cheque a la vista**: `lineaDeLaFila(d, hoy, { cheque: true })` →
+  «22 sep · Cheque 2936 · Esposa enferma», en la lista del inicio y en las filas del año.
+  Un cheque **«0000» no se dibuja**: hay dos así en la base y un cheque cero no es un cheque.
+- **La línea «5786 · $81,198» se toca** y abre ese año en `ElAnio`. Era un `<p>` muerto:
+  por eso él decía que no veía historial. (La pantalla del año ya existía, pero solo se
+  llegaba tocando el número grande, sin ninguna pista.)
+- **Ordenar** desde el «···»: por fecha (la de siempre, con separadores de año), por monto
+  o por nombre (`src/lib/maaser/orden.ts`, módulo puro). Por monto y por nombre son UNA
+  lista pareja **sin separadores**, y la fecha **lleva el año** («24 dic 2025») porque
+  mezcla años. El empate se rompe por fecha, de la más nueva a la más vieja.
+- **El buscador** deja de esconderse con más de 20 donaciones, y vive **debajo de
+  «Anotar»**, nunca arriba: el número grande es la respuesta de la pantalla.
+
 ⚠️ **SQL pendiente (escrito, NO aplicado — lo corre Daniel):** `supabase/*.sql`.
 El código **falla ABIERTO** sin los tres: la app funciona igual.
 | Archivo | Qué hace | Sin él |
 |---|---|---|
 | `20260923-annual-goals-gastos.sql` | columna `gastos_anuales` | no sale el 10 %; la tarjeta dice "poner lo que gastas ›" |
-| `20260923-donations-metodo.sql` | columna `metodo` | la donación se guarda igual, sin la forma de pago |
+| ~~`20260923-donations-metodo.sql`~~ | columna `metodo` | ✅ **ya aplicada** (medido el 6-oct-2026). Queda como historia. |
 | `20260923-login-intentos.sql` | tabla del freno de PIN | no se frena a nadie |
 
 ## Auth
@@ -150,12 +173,12 @@ El código **falla ABIERTO** sin los tres: la app funciona igual.
 
 ## Pruebas
 ```bash
-npx vitest run   # 125 pruebas (eran 77)
+npx vitest run   # 213 pruebas (eran 125)
 npx next build   # tiene que pasar antes de subir
 ```
 Los módulos de Maaser son **puros y con prueba**: `fecha-panama` · `montos-frecuentes` ·
 `lista-donaciones` · `diezmo` · `anios-con-datos` · `historial-beneficiario` · `renglon` ·
-`metodo-pago` · `login-freno`.
+`metodo-pago` · `login-freno` · `orden`.
 
 ## Deploy
 ```bash

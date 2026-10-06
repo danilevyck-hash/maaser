@@ -31,7 +31,8 @@ import {
 } from "@/lib/maaser/anio-en-barras";
 import { dinero } from "@/lib/maaser/dinero";
 import { fechaDeLaFila } from "@/lib/maaser/fecha-en-palabras";
-import { nombreEnPantalla } from "@/lib/maaser/renglon";
+import { HISTORIAL_ORDENADO } from "@/lib/maaser/interruptores";
+import { lineaDeLaFila, nombreEnPantalla } from "@/lib/maaser/renglon";
 import { AZUL, ENLACE, MONTO, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
 
 export default function ElAnio({
@@ -246,7 +247,11 @@ function FilaDonacion({
         <span className="block text-[17px] text-[#1C1C1E] truncate">
           {nombreEnPantalla(donacion)}
         </span>
-        <span className={`block ${TEXTO_3}`}>{fechaDeLaFila(donacion.date, hoy)}</span>
+        <span className={`block ${TEXTO_3} truncate`}>
+          {HISTORIAL_ORDENADO
+            ? lineaDeLaFila(donacion, hoy, { cheque: true })
+            : fechaDeLaFila(donacion.date, hoy)}
+        </span>
       </span>
       <span className={MONTO}>{dinero(donacion.amount)}</span>
     </button>

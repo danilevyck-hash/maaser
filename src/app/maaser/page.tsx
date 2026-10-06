@@ -21,6 +21,14 @@ import type { Donation } from "@/lib/supabase";
 import { hoyPanamaISO } from "@/lib/fecha-panama";
 import { getCurrentHebrewYear, getHebrewYearData } from "@/lib/hebrew-year";
 import { listaCorrida } from "@/lib/maaser/lista-donaciones";
+import {
+  ORDENES,
+  ORDEN_DE_SIEMPRE,
+  historialOrdenado,
+  textoDelOrden,
+  type Orden,
+} from "@/lib/maaser/orden";
+import { HISTORIAL_ORDENADO } from "@/lib/maaser/interruptores";
 import { filtrarPorBeneficiario } from "@/lib/maaser/busqueda";
 import { dinero } from "@/lib/maaser/dinero";
 import {
@@ -42,7 +50,10 @@ import ExportModal from "@/components/ExportModal";
 import HojaAbajo from "@/components/propiedades/HojaAbajo";
 import Circulo from "@/components/propiedades/Circulo";
 import { useToast } from "@/components/Toast";
-import { BOTON_PRINCIPAL, ENLACE, MONTO, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
+import { AZUL, BOTON_PRINCIPAL, ENLACE, MONTO, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
+
+/** Desde cuántas donaciones el buscador vive a la vista, sin tener que bajar. */
+const MUCHAS = 20;
 
 type Vista =
   | { tipo: "lista" }
@@ -65,6 +76,8 @@ export default function MaaserPage() {
   const [exportarAnio, setExportarAnio] = useState<number | null>(null);
   const [anioMirado, setAnioMirado] = useState<number | null>(null);
   const [compromisoTocado, setCompromisoTocado] = useState<Compromiso | null>(null);
+  const [orden, setOrden] = useState<Orden>(ORDEN_DE_SIEMPRE);
+  const [hojaOrden, setHojaOrden] = useState(false);
   const { showToast } = useToast();
   const lista = useRef<HTMLDivElement>(null);
 
@@ -153,10 +166,22 @@ export default function MaaserPage() {
 
   /* ── La lista ──────────────────────────────────────────────────── */
 
-  const renglones = useMemo(
-    () => listaCorrida(filtrarPorBeneficiario(donaciones, busqueda)),
-    [donaciones, busqueda]
-  );
+  const renglones = useMemo(() => {
+    const filtradas = filtrarPorBeneficiario(donaciones, busqueda);
+    return HISTORIAL_ORDENADO ? historialOrdenado(filtradas, orden) : listaCorrida(filtradas);
+  }, [donaciones, busqueda, orden]);
+
+  /**
+   * Con muchas donaciones el buscador no se esconde. Pero NO va arriba: el
+   * número es la respuesta de la pantalla y nada se le pone encima. Vive
+   * pegado a la lista, debajo de «Anotar».
+   */
+  const buscadorFijo = HISTORIAL_ORDENADO && donaciones.length > MUCHAS;
+
+  const verElAnio = (a: number) => {
+    setAnioMirado(a);
+    setVista({ tipo: "anio" });
+  };
 
   /* ── Escribir ──────────────────────────────────────────────────── */
 
@@ -306,7 +331,17 @@ export default function MaaserPage() {
           <Link href="/" className={`${ENLACE} min-h-[44px] flex items-center pr-2`}>
             &lsaquo; Inicio
           </Link>
-          <span />
+          {HISTORIAL_ORDENADO ? (
+            <button
+              onClick={() => setHojaOrden(true)}
+              aria-label="Ordenar"
+              className="text-[#007AFF] text-[22px] leading-none min-h-[44px] min-w-[44px] bg-transparent border-0 cursor-pointer"
+            >
+              ···
+            </button>
+          ) : (
+            <span />
+          )}
         </div>
         <div className="max-w-[430px] mx-auto">
           <h1 className={TITULO}>Maaser</h1>
@@ -314,7 +349,7 @@ export default function MaaserPage() {
             {subtituloDelAnio(anio, datos.startDate)}
           </p>
         </div>
-        {seVeBuscar && (
+        {seVeBuscar && !buscadorFijo && (
           <div className="max-w-[430px] mx-auto pt-3">
             <input
               aria-label="Buscar por nombre"
@@ -365,6 +400,18 @@ export default function MaaserPage() {
             </button>
           </div>
 
+          {buscadorFijo && (
+            <div className="px-5 pt-3">
+              <input
+                aria-label="Buscar por nombre"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar un nombre"
+                className="w-full min-h-[44px] rounded-[10px] bg-[#F2F2F7] px-3 text-[17px] text-[#1C1C1E] placeholder:text-[#8E8E93] border-0 outline-none"
+              />
+            </div>
+          )}
+
           {/* Los compromisos del mes que todavía no se dieron. */}
           {pendientes.map((c) => (
             <div
@@ -401,14 +448,42 @@ export default function MaaserPage() {
             </p>
           ) : (
             <div className="pt-3">
+              {/* Si la lista no está por fecha, la línea gris lo dice y vuelve. */}
+              {HISTORIAL_ORDENADO && orden !== ORDEN_DE_SIEMPRE && (
+                <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
+                  <span className="text-[13px] text-[#AEAEB2]">{textoDelOrden(orden)}</span>
+                  <button
+                    onClick={() => setOrden(ORDEN_DE_SIEMPRE)}
+                    className="text-[13px] bg-transparent border-0 p-0 cursor-pointer"
+                    style={{ color: AZUL }}
+                  >
+                    por fecha
+                  </button>
+                </div>
+              )}
               {renglones.map((r) =>
                 r.tipo === "separador" ? (
-                  <p
-                    key={`anio-${r.anio}`}
-                    className="text-[13px] text-[#AEAEB2] tabular-nums px-5 pt-7 pb-2 border-t border-[#E5E5EA] mt-3"
-                  >
-                    {r.anio} · {dinero(r.total)}
-                  </p>
+                  HISTORIAL_ORDENADO ? (
+                    /* La línea del pie se toca y abre ese año entero. */
+                    <button
+                      key={`anio-${r.anio}`}
+                      onClick={() => verElAnio(r.anio)}
+                      aria-label={`Ver el año ${r.anio}`}
+                      className="w-full flex items-center justify-between gap-3 text-[13px] text-[#AEAEB2] tabular-nums px-5 pt-7 pb-2 border-x-0 border-b-0 border-t border-solid border-[#E5E5EA] mt-3 bg-transparent cursor-pointer text-left active:bg-[#F2F2F7] transition-colors"
+                    >
+                      <span>
+                        {r.anio} · {dinero(r.total)}
+                      </span>
+                      <span style={{ color: AZUL }}>ver el año &rsaquo;</span>
+                    </button>
+                  ) : (
+                    <p
+                      key={`anio-${r.anio}`}
+                      className="text-[13px] text-[#AEAEB2] tabular-nums px-5 pt-7 pb-2 border-t border-[#E5E5EA] mt-3"
+                    >
+                      {r.anio} · {dinero(r.total)}
+                    </p>
+                  )
                 ) : (
                   <button
                     key={r.donacion.id}
@@ -426,7 +501,10 @@ export default function MaaserPage() {
                         {nombreEnPantalla(r.donacion)}
                       </span>
                       <span className={`block ${TEXTO_3} truncate`}>
-                        {lineaDeLaFila(r.donacion, hoy)}
+                        {lineaDeLaFila(r.donacion, hoy, {
+                          cheque: HISTORIAL_ORDENADO,
+                          anio: HISTORIAL_ORDENADO && orden !== ORDEN_DE_SIEMPRE,
+                        })}
                       </span>
                     </span>
                     <span className={MONTO}>{dinero(r.donacion.amount)}</span>
@@ -460,6 +538,23 @@ export default function MaaserPage() {
               ]
             : []
         }
+      />
+
+      {/* Ordenar la lista: tres frases y el visto en la que está puesta. */}
+      <HojaAbajo
+        abierta={hojaOrden}
+        onCerrar={() => setHojaOrden(false)}
+        encabezado={<>Ordenar las donaciones</>}
+        opciones={[
+          ...ORDENES.map((o) => ({
+            texto: o.clave === orden ? `${o.texto} ✓` : o.texto,
+            onClick: () => {
+              setOrden(o.clave);
+              setHojaOrden(false);
+            },
+          })),
+          { texto: "Cancelar", tono: "fuerte" as const, onClick: () => setHojaOrden(false) },
+        ]}
       />
 
       <Bienvenida {...BIENVENIDA_MAASER} />

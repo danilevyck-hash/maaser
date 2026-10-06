@@ -1,4 +1,4 @@
-import { fechaDeLaFila } from "./fecha-en-palabras";
+import { diaYMesCorto, fechaDeLaFila } from "./fecha-en-palabras";
 import { etiquetaMetodo } from "./metodo-pago";
 import type { DonacionMinima } from "./tipos";
 
@@ -45,11 +45,38 @@ export function subtituloRenglon(d: DonacionMinima): string {
 /**
  * La segunda línea de la fila de la lista: cuándo fue y, si la hay, la nota.
  * "hoy" · "ayer" · "15 sep · Esposa enferma".
+ *
+ * Con `cheque` entra el número entre la fecha y la nota: "22 sep · Cheque 2936".
+ * Un cheque "0000" NO es un cheque y no se dibuja (hay dos así en la base).
+ *
+ * Con `anio` la fecha lleva el año: "24 dic 2024". Hace falta cuando la lista
+ * NO está por fecha y mezcla años, porque ahí "24 dic" no dice de cuándo es.
+ *
+ * Sin opciones la línea sale idéntica a la de siempre.
  */
-export function lineaDeLaFila(d: DonacionMinima, hoyISO: string): string {
-  const cuando = fechaDeLaFila(d.date, hoyISO);
+export function lineaDeLaFila(
+  d: DonacionMinima,
+  hoyISO: string,
+  { cheque: conCheque = false, anio: conAnio = false }: {
+    cheque?: boolean;
+    anio?: boolean;
+  } = {}
+): string {
+
+  const cuando = conAnio
+    ? `${diaYMesCorto(d.date)} ${d.date.slice(0, 4)}`
+    : fechaDeLaFila(d.date, hoyISO);
+  const partes: string[] = [cuando];
+
+  const cheque = String(d.check_number ?? "").trim();
+  const numero = parseInt(cheque, 10);
+  if (conCheque && cheque && (!Number.isFinite(numero) || numero > 0)) {
+    partes.push(`Cheque ${cheque}`);
+  }
+
   const nota = (d.notes ?? "").replace(/\s+/g, " ").trim();
-  if (!nota) return cuando;
-  const corta = nota.length > LARGO_NOTA ? nota.slice(0, LARGO_NOTA - 1) + "…" : nota;
-  return `${cuando} · ${corta}`;
+  if (nota) {
+    partes.push(nota.length > LARGO_NOTA ? nota.slice(0, LARGO_NOTA - 1) + "…" : nota);
+  }
+  return partes.join(" · ");
 }
