@@ -7,7 +7,7 @@
 //     en español: «5787 · desde el 12 de septiembre».
 //  2. Debajo, en gris, cuántas van y cuánto fue el año pasado.
 //  3. Sin `gastos_anuales` escrito NO aparece la palabra «Meta». Con 100.000
-//     escrito aparece «Meta 10 %: $10,000 · te faltan $9,322».
+//     escrito aparece «Debes dar $10,000 este año · te faltan $9,322».
 //  4. No hay «+» arriba ni pestañas: el único botón es «Anotar».
 //  5. El separador de año aparece UNA sola vez al pasar de 5787 a 5786.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -91,14 +91,17 @@ describe("Maaser · al abrir", () => {
     ).toBeDefined();
   });
 
-  it("sin lo que gasta escrito, la palabra «Meta» no existe", async () => {
+  it("sin lo que gasta escrito, no se inventa ninguna meta", async () => {
     await abrir(null);
     expect(screen.queryByText(/Meta/)).toBeNull();
+    expect(screen.queryByText(/Debes dar/)).toBeNull();
   });
 
   it("con lo que gasta escrito, dice cuánto le toca y cuánto falta", async () => {
     await abrir(100_000);
-    expect(screen.getByText("Meta 10 %: $10,000 · te faltan $9,322")).toBeDefined();
+    expect(
+      screen.getByText("Debes dar $10,000 este año · te faltan $9,322"),
+    ).toBeDefined();
   });
 
   it("no hay «+» arriba ni pestañas: el único botón grande es «Anotar»", async () => {
@@ -124,9 +127,11 @@ describe("Maaser · al abrir", () => {
 
   it("el separador del año aparece UNA sola vez", async () => {
     await abrir();
-    const separadores = screen.getAllByText(/^5786 · \$/);
+    const separadores = screen.getAllByText(/^Año 5786 · \$/);
     expect(separadores).toHaveLength(1);
-    expect(separadores[0].textContent).toBe(`5786 · $${TOTAL_5786.toLocaleString("en-US")}`);
+    expect(separadores[0].textContent).toBe(
+      `Año 5786 · $${TOTAL_5786.toLocaleString("en-US")}`,
+    );
     // Y la lista sigue: las de 5786 están dibujadas, sin selector de año.
     for (const d of DE_5786) {
       expect(screen.getAllByText(d.beneficiary).length).toBeGreaterThan(0);

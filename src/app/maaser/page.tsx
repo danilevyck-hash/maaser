@@ -470,6 +470,7 @@ export default function MaaserPage() {
                 <button
                   onClick={() => cumplirCompromiso(c)}
                   disabled={marcando != null}
+                  aria-label={`Anotar ${c.beneficiary}`}
                   className="shrink-0 min-h-[44px] rounded-[10px] bg-[#1C1C1E] text-white text-[15px] font-semibold px-3.5 border-0 cursor-pointer disabled:opacity-40"
                 >
                   {marcando === c.id ? "Un momento…" : "Anotar"}

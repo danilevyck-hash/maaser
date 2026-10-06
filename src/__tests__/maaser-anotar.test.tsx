@@ -155,20 +155,23 @@ describe("Maaser · anotar una donación", () => {
 
   it("el cheque propone el siguiente al mayor usado", async () => {
     await abrirAnotar();
-    const cheque = screen.getByLabelText("Cheque") as HTMLInputElement;
-    expect(cheque.placeholder).toBe("2937");
-    fireEvent.focus(cheque);
+    const cheque = screen.getByLabelText("Número de cheque") as HTMLInputElement;
+    // El marcador dice para qué es el campo; el número lo propone el botón.
+    expect(cheque.placeholder).toBe("Si pagaste con cheque");
+    expect(cheque.value).toBe("");
+    // Ya no se escribe solo al tocar el campo: lo pone un botón que lo dice.
+    fireEvent.click(screen.getByRole("button", { name: "Poner el 2937" }));
     await waitFor(() => expect(cheque.value).toBe("2937"));
   });
 
   it("un cheque repetido se avisa en rojo y NO frena", async () => {
     await abrirAnotar();
     escribir("Cuánto", "101");
-    escribir("Cheque", "2936");
+    escribir("Número de cheque", "2936");
     await waitFor(() =>
       expect(screen.getByText("Ya lo usaste con Iosef Milszteln el 22 sep")).toBeDefined(),
     );
-    const listo = screen.getByRole("button", { name: "Listo ·" }) as HTMLButtonElement;
+    const listo = screen.getByRole("button", { name: "Listo, anotar" }) as HTMLButtonElement;
     expect(listo.disabled).toBe(false);
     fireEvent.click(listo);
     await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
@@ -177,10 +180,10 @@ describe("Maaser · anotar una donación", () => {
 
   it("«Listo» guarda con el día de Panamá, no con el de mañana", async () => {
     await abrirAnotar();
-    expect(screen.getByRole("button", { name: "hoy 23 de septiembre" })).toBeDefined();
+    expect(screen.getByText("hoy 23 de septiembre")).toBeDefined();
     escribir("Cuánto", "180");
     escribir("A quién", "Rab Gil");
-    fireEvent.click(screen.getByRole("button", { name: "Listo ·" }));
+    fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
     await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
     const cuerpo = donacionesEscritas()[0].cuerpo;
     expect(cuerpo.date).toBe("2026-09-23");
@@ -191,7 +194,7 @@ describe("Maaser · anotar una donación", () => {
   it("sin nombre se guarda igual, como «Donación»", async () => {
     await abrirAnotar();
     escribir("Cuánto", "36");
-    fireEvent.click(screen.getByRole("button", { name: "Listo ·" }));
+    fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
     await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
     expect(donacionesEscritas()[0].cuerpo.beneficiary).toBe("Donación");
   });
@@ -199,12 +202,12 @@ describe("Maaser · anotar una donación", () => {
   it("tocar la fecha del botón permite guardar con otro día", async () => {
     await abrirAnotar();
     escribir("Cuánto", "500");
-    fireEvent.click(screen.getByRole("button", { name: "hoy 23 de septiembre" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cambiar el día" }));
     await waitFor(() => expect(screen.getByLabelText("Día de la donación")).toBeDefined());
     escribir("Día de la donación", "2026-04-02");
     fireEvent.click(screen.getByRole("button", { name: "Listo" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "2 de abril" })).toBeDefined());
-    fireEvent.click(screen.getByRole("button", { name: "Listo ·" }));
+    await waitFor(() => expect(screen.getByText("2 de abril")).toBeDefined());
+    fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
     await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
     expect(donacionesEscritas()[0].cuerpo.date).toBe("2026-04-02");
   });
@@ -214,7 +217,7 @@ describe("Maaser · anotar una donación", () => {
     escribir("Cuánto", "500");
     escribir("A quién", "Rab Gil");
     fireEvent.click(screen.getByRole("switch", { name: "Se repite cada mes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Listo ·" }));
+    fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
     await waitFor(() =>
       expect(escrituras.some((e) => e.url.startsWith("/api/maaser/compromisos"))).toBe(true),
     );
@@ -228,7 +231,7 @@ describe("Maaser · anotar una donación", () => {
     await abrirAnotar(false);
     expect(screen.queryByRole("switch")).toBeNull();
     escribir("Cuánto", "72");
-    fireEvent.click(screen.getByRole("button", { name: "Listo ·" }));
+    fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
     await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
     expect(escrituras.some((e) => e.url.startsWith("/api/maaser/compromisos"))).toBe(false);
   });

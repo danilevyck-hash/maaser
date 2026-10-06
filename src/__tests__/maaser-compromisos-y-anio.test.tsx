@@ -1,17 +1,18 @@
 // @vitest-environment jsdom
 //
-// CANDADO — «los compromisos y el año en barras» (24-sep-2026).
+// CANDADO — «los compromisos y el año, mes por mes» (24-sep-2026,
+// al día con el rediseño simple del 6-oct-2026).
 //
 // Lo que cuida:
 //  1. Un compromiso al que todavía no se le dio ESTE MES hebreo sale arriba de
-//     la lista, con el círculo vacío.
+//     la lista, con un botón que dice «Anotar».
 //  2. Si ya hay una donación de ese beneficiario en el mes, NO sale. Y no
 //     queda debiendo nada: el mes que termina se lo lleva sin aviso.
-//  3. Tocar el círculo escribe UNA donación, con la fecha de hoy en Panamá.
+//  3. Tocar ese botón escribe UNA donación, con la fecha de hoy en Panamá.
 //  4. Tocar el número grande abre el año EN CURSO. Se cambia de año con «‹» y
 //     «›», como los meses de Propiedades, y NUNCA hay flecha a un año futuro.
-//  5. Una barra por mes hebreo (5786 tiene doce) y el mes más fuerte mide el
-//     100 %.
+//  5. Un renglón por mes hebreo (5786 tiene doce) y el mes más fuerte se
+//     dice con palabras.
 //  6. «Ver por beneficiario» suma bien: Rab Gil, 2 veces, $2,000.
 //  7. TODA fila de donación se toca y abre la misma pantalla de Anotar, con
 //     sus datos y «Borrar»: la del detalle del mes y la de un beneficiario.
@@ -89,7 +90,7 @@ async function abrir(opciones = {}) {
   await waitFor(() => expect(screen.getByText("Para Soldados Usar Lulab")).toBeDefined());
 }
 
-const barras = () => Array.from(document.querySelectorAll<HTMLElement>("[data-barra]"));
+const meses = () => Array.from(document.querySelectorAll<HTMLElement>("[data-mes]"));
 
 describe("Maaser · los compromisos del mes", () => {
   beforeEach(() => {
@@ -104,25 +105,25 @@ describe("Maaser · los compromisos del mes", () => {
     vi.useRealTimers();
   });
 
-  it("uno sin donación este mes sale arriba, con el círculo vacío", async () => {
+  it("uno sin donación este mes sale arriba, con su botón «Anotar»", async () => {
     await abrir();
-    expect(screen.getByText("cada mes")).toBeDefined();
+    expect(screen.getByText("Todos los meses · este mes falta")).toBeDefined();
     expect(screen.getByRole("button", { name: "Anotar Rab Gil" })).toBeDefined();
     expect(screen.getAllByText("$1,000").length).toBeGreaterThan(0);
   });
 
   it("si ya se le dio este mes, no sale", async () => {
     await abrir({ donaciones: [...TODAS, YA_LE_DIO_ESTE_MES] });
-    expect(screen.queryByText("cada mes")).toBeNull();
+    expect(screen.queryByText("Todos los meses · este mes falta")).toBeNull();
     expect(screen.queryByRole("button", { name: "Anotar Rab Gil" })).toBeNull();
   });
 
   it("sin la tabla no se dibuja ninguna línea de compromiso", async () => {
     await abrir({ hayTabla: false, compromisos: [] });
-    expect(screen.queryByText("cada mes")).toBeNull();
+    expect(screen.queryByText("Todos los meses · este mes falta")).toBeNull();
   });
 
-  it("tocar el círculo escribe UNA donación con la fecha de hoy", async () => {
+  it("tocar «Anotar» escribe UNA donación con la fecha de hoy", async () => {
     await abrir();
     fireEvent.click(screen.getByRole("button", { name: "Anotar Rab Gil" }));
     await waitFor(() => expect(escrituras).toHaveLength(1));
@@ -137,7 +138,7 @@ describe("Maaser · los compromisos del mes", () => {
 
   it("«Ya no se repite» lo apaga, no lo borra", async () => {
     await abrir();
-    fireEvent.click(screen.getByRole("button", { name: "Rab Gil cada mes" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Rab Gil Todos los meses/ }));
     await waitFor(() => expect(screen.getByText("Ya no se repite")).toBeDefined());
     fireEvent.click(screen.getByText("Ya no se repite"));
     await waitFor(() => expect(escrituras).toHaveLength(1));
@@ -147,7 +148,7 @@ describe("Maaser · los compromisos del mes", () => {
   });
 });
 
-describe("Maaser · el año en barras", () => {
+describe("Maaser · el año, mes por mes", () => {
   beforeEach(() => {
     escrituras = [];
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -163,52 +164,51 @@ describe("Maaser · el año en barras", () => {
   async function abrirElAnio() {
     await abrir();
     fireEvent.click(screen.getByRole("button", { name: "Ver el año" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "‹ 5786" })).toBeDefined());
+    await waitFor(() => expect(screen.getByRole("button", { name: "‹ Año 5786" })).toBeDefined());
   }
 
   async function abrirElAnio5786() {
     await abrirElAnio();
-    fireEvent.click(screen.getByRole("button", { name: "‹ 5786" }));
-    await waitFor(() => expect(barras()).toHaveLength(12));
+    fireEvent.click(screen.getByRole("button", { name: "‹ Año 5786" }));
+    await waitFor(() => expect(meses()).toHaveLength(12));
   }
 
   it("abre en el año en curso y NUNCA ofrece una flecha a un año futuro", async () => {
     await abrirElAnio();
-    expect(screen.getByRole("heading", { name: "5787" })).toBeDefined();
-    expect(screen.queryByRole("button", { name: "5788 ›" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Año 5787" })).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Año 5788 ›" })).toBeNull();
   });
 
   it("«‹» lleva al año anterior, y desde ahí sí se puede volver", async () => {
     await abrirElAnio5786();
-    expect(screen.getByRole("heading", { name: "5786" })).toBeDefined();
-    expect(screen.getByRole("button", { name: "5787 ›" })).toBeDefined();
-    fireEvent.click(screen.getByRole("button", { name: "5787 ›" }));
-    await waitFor(() => expect(screen.getByRole("heading", { name: "5787" })).toBeDefined());
-    expect(screen.queryByRole("button", { name: "5788 ›" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Año 5786" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Año 5787 ›" })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Año 5787 ›" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Año 5787" })).toBeDefined());
+    expect(screen.queryByRole("button", { name: "Año 5788 ›" })).toBeNull();
   });
 
-  it("5786 dibuja doce barras y Tévet mide el 100 %", async () => {
+  it("5786 son doce renglones y el más fuerte se dice con palabras", async () => {
     await abrirElAnio5786();
-    expect(barras()).toHaveLength(12);
-    const cien = barras().filter((b) => b.dataset.alto === "100");
-    expect(cien).toHaveLength(1);
-    expect(cien[0].dataset.barra).toBe("Tévet");
-    expect(screen.getByText(/Tévet fue el mes más fuerte/)).toBeDefined();
+    expect(meses()).toHaveLength(12);
+    const masFuerte = meses().reduce((a, b) =>
+      Number(b.dataset.total) > Number(a.dataset.total) ? b : a,
+    );
+    expect(masFuerte.dataset.mes).toBe("Tévet");
+    expect(screen.getByText(/El mes en que más diste fue Tévet/)).toBeDefined();
   });
 
-  it("el mes tocado se abre abajo con sus donaciones", async () => {
+  it("el mes tocado se abre con sus donaciones", async () => {
     await abrirElAnio5786();
-    expect(screen.getByText(/^Tévet · /)).toBeDefined();
-    expect(screen.getByText("1 donación")).toBeDefined();
-    fireEvent.click(screen.getByRole("button", { name: "ver ›" }));
+    expect(screen.getByText("Tévet")).toBeDefined();
+    expect(screen.getAllByText("1 donación").length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: /^Tévet/ }));
     await waitFor(() => expect(screen.getByText("Rubén Elin")).toBeDefined());
   });
 
   it("«Ver por beneficiario» suma bien", async () => {
     await abrirElAnio5786();
-    fireEvent.click(screen.getByRole("button", { name: "Más" }));
-    await waitFor(() => expect(screen.getByText("Ver por beneficiario")).toBeDefined());
-    fireEvent.click(screen.getByText("Ver por beneficiario"));
+    fireEvent.click(screen.getByText("Ver cuánto le diste a cada persona"));
     await waitFor(() => expect(screen.getByText("Rab Gil")).toBeDefined());
     expect(screen.getByText("2 veces")).toBeDefined();
     expect(screen.getByText("$2,000")).toBeDefined();
@@ -217,29 +217,27 @@ describe("Maaser · el año en barras", () => {
   });
   it("una fila del detalle del mes abre ESA donación en Anotar", async () => {
     await abrirElAnio5786();
-    fireEvent.click(screen.getByRole("button", { name: "ver ›" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Tévet/ }));
     await waitFor(() => expect(screen.getByRole("button", { name: /Rubén Elin/ })).toBeDefined());
     fireEvent.click(screen.getByRole("button", { name: /Rubén Elin/ }));
     await waitFor(() => expect(screen.getByLabelText("Cuánto")).toBeDefined());
     expect((screen.getByLabelText("Cuánto") as HTMLInputElement).value).toBe("4800");
     expect((screen.getByLabelText("A quién") as HTMLInputElement).value).toBe("Rubén Elin");
-    expect(screen.getByRole("button", { name: "Borrar" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Borrar esta donación" })).toBeDefined();
     // Y «Cancelar» devuelve al año, no a la lista del inicio.
     fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
-    await waitFor(() => expect(screen.getByRole("heading", { name: "5786" })).toBeDefined());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Año 5786" })).toBeDefined());
   });
 
   it("una fila de la lista de un beneficiario abre ESA donación", async () => {
     await abrirElAnio5786();
-    fireEvent.click(screen.getByRole("button", { name: "Más" }));
-    await waitFor(() => expect(screen.getByText("Ver por beneficiario")).toBeDefined());
-    fireEvent.click(screen.getByText("Ver por beneficiario"));
+    fireEvent.click(screen.getByText("Ver cuánto le diste a cada persona"));
     await waitFor(() => expect(screen.getByRole("button", { name: /Rab Gil/ })).toBeDefined());
     fireEvent.click(screen.getByRole("button", { name: /Rab Gil/ }));
     const filas = await screen.findAllByRole("button", { name: /Rab Gil 25 may/ });
     fireEvent.click(filas[0]);
     await waitFor(() => expect(screen.getByLabelText("Cuánto")).toBeDefined());
     expect((screen.getByLabelText("Cuánto") as HTMLInputElement).value).toBe("1000");
-    expect(screen.getByRole("button", { name: "25 de mayo" })).toBeDefined();
+    expect(screen.getByText("25 de mayo")).toBeDefined();
   });
 });

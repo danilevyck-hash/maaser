@@ -115,13 +115,20 @@ grupos idénticos son TODOS de esa carga (nombre «Donación», sin cheque). El 
 de la app —Rab Joseph Floster, 12-ago-2026, $500 ×2, ids 509 y 510, 97 s de
 diferencia— lleva **cheques distintos** (2896 y 2899): son dos donaciones de verdad.
 
-### ⚪ `NEXT_PUBLIC_MAASER_SIMPLE` — APAGADO hasta su sí
+### ✅ `NEXT_PUBLIC_MAASER_SIMPLE` — PUBLICADO el 6-oct-2026
 
-`SIMPLE` en `src/lib/maaser/interruptores.ts`. **Apagado por defecto**; se prende con
-`NEXT_PUBLIC_MAASER_SIMPLE=1` en Vercel y se apaga borrando la variable: la pantalla
-vuelve a ser BYTE por BYTE la de hoy. Candado: `maaser-simple.test.tsx` (las dos
-posiciones). Capturas HOY vs RECOMENDACIÓN a 390 px, en solo lectura, en
-`.claude/jobs/c25ab4e9/tmp/maaser-simple/index.html`.
+`SIMPLE` en `src/lib/maaser/interruptores.ts`. **Se prendió el 6-oct-2026 con su sí**
+sobre las capturas: «aplícalo y lo veo en vivo». La variable está en `1` en Vercel
+producción. **Para apagarlo: `NEXT_PUBLIC_MAASER_SIMPLE=0`** y volver a publicar — las
+pantallas vuelven a ser BYTE por BYTE las de antes, sin tocar código. Candado:
+`maaser-simple.test.tsx` (las dos posiciones). Capturas HOY vs RECOMENDACIÓN a 390 px,
+en solo lectura, en `.claude/jobs/c25ab4e9/tmp/maaser-simple/index.html`.
+
+Los tres candados viejos —`maaser-al-abrir`, `maaser-anotar`,
+`maaser-compromisos-y-anio`— quedaron al día con las pantallas nuevas: siguen cuidando
+lo mismo (la fecha de Panamá, qué se escribe, el compromiso, los doce meses), solo
+cambiaron los rótulos. El año gana `data-mes`/`data-total` en cada renglón, como antes
+`data-barra`.
 
 - **Se va el «···» de las DOS pantallas.** Ordenar son tres palabras a la vista (Por
   fecha · Por monto · Por nombre). En el año, «Ver cuánto le diste a cada persona» y

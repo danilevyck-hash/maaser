@@ -32,8 +32,12 @@ export const HISTORIAL_ORDENADO =
  *  · Nada por debajo de 14 px, ningún ícono solo, y el buscador siempre a la
  *    vista.
  *
- * ⚪ APAGADO. `NEXT_PUBLIC_MAASER_SIMPLE=1` lo prende; sin eso la pantalla es
- * BYTE por BYTE la de hoy. El candado `maaser-simple.test.tsx` cuida las dos
+ * ✅ **PRENDIDO el 6-oct-2026**, con el sí de Daniel sobre las capturas:
+ * «aplícalo y lo veo en vivo».
+ *
+ * Sigue siendo un interruptor: `NEXT_PUBLIC_MAASER_SIMPLE=0` lo apaga y las
+ * pantallas vuelven a ser BYTE por BYTE las de antes, sin tocar código ni
+ * volver a publicar. El candado `maaser-simple.test.tsx` cuida las dos
  * posiciones.
  */
-export const SIMPLE = process.env.NEXT_PUBLIC_MAASER_SIMPLE === "1";
+export const SIMPLE = process.env.NEXT_PUBLIC_MAASER_SIMPLE !== "0";

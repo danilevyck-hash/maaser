@@ -170,6 +170,8 @@ export default function ElAnio({
                           setMesElegido(m.nombre);
                           setVerDonaciones(!mismo && m.cantidad > 0);
                         }}
+                        data-mes={m.nombre}
+                        data-total={m.total}
                         className={RENGLON}
                       >
                         <span className="flex-1 min-w-0">
