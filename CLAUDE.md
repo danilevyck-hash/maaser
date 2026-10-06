@@ -47,12 +47,14 @@ App para gestionar donaciones (maaser/tzedaká), gastos de InDriver y apartament
   "Beneficiarios" dejó de ser pestaña.
 - "Año Hebreo" **con ñ** en todo el sistema.
 
-## Maaser — historial ordenado y cheque (6-oct-2026) · 🔴 APAGADO
+## Maaser — historial ordenado y cheque (6-oct-2026) · ✅ PUBLICADO
 
 Daniel: «Aquí en Maaser no veo historial. De manera ordenada quiero poder ver historial
-ordenado y número de cheque». **Todo entra detrás de `NEXT_PUBLIC_MAASER_HISTORIAL`**
-(`src/lib/maaser/interruptores.ts`), que nace apagado: sin esa variable la pantalla es la
-de hoy, byte por byte, y el candado `maaser-historial.test.tsx` lo cuida.
+ordenado y número de cheque». Entró detrás de `NEXT_PUBLIC_MAASER_HISTORIAL`
+(`src/lib/maaser/interruptores.ts`) y **se prendió el 6-oct-2026 con su sí** sobre las
+capturas. **Para apagarlo: `NEXT_PUBLIC_MAASER_HISTORIAL=0`** en Vercel y volver a
+publicar — la pantalla vuelve a ser la de antes, byte por byte, sin tocar código. El
+candado `maaser-historial.test.tsx` cuida las dos posiciones.
 
 - ✅ **`donations.check_number` YA existe en producción** (medido el 6-oct-2026: 266
   donaciones, 123 con cheque) y «Anotar» ya lo escribe desde el 24-sep. **No hace falta

@@ -111,12 +111,15 @@ describe("Maaser · al abrir", () => {
     expect(screen.queryByText("+ Nueva donación")).toBeNull();
   });
 
-  it("la fila dice hoy, ayer o el día, y la nota cuando la hay", async () => {
+  // 6-oct-2026: con «historial ordenado» publicado, la misma línea lleva
+  // además el número de cheque. La donación sin cheque sigue diciendo solo
+  // «hoy»: no se inventa nada.
+  it("la fila dice hoy, ayer o el día, el cheque y la nota cuando la hay", async () => {
     await abrir();
     expect(screen.getByText("hoy")).toBeDefined();
-    expect(screen.getByText("ayer")).toBeDefined();
-    expect(screen.getByText("15 sep")).toBeDefined();
-    expect(screen.getByText("14 sep · Esposa enferma")).toBeDefined();
+    expect(screen.getByText("ayer · Cheque 2936")).toBeDefined();
+    expect(screen.getByText("15 sep · Cheque 2935")).toBeDefined();
+    expect(screen.getByText("14 sep · Cheque 2933 · Esposa enferma")).toBeDefined();
   });
 
   it("el separador del año aparece UNA sola vez", async () => {
