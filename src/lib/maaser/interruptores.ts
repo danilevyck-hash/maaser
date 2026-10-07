@@ -43,19 +43,27 @@ export const HISTORIAL_ORDENADO =
 export const SIMPLE = process.env.NEXT_PUBLIC_MAASER_SIMPLE !== "0";
 
 /**
- * 🟡 `AUDITORIA` (6-oct-2026): lo que salió de recorrer la app entera pantalla
+ * ✅ `AUDITORIA` (6-oct-2026): lo que salió de recorrer la app entera pantalla
  * por pantalla, pensando en un señor de 70 años en Panamá.
  *
- * **APAGADO.** Es una PROPUESTA: se prende con el sí de Daniel sobre las
- * capturas (`NEXT_PUBLIC_MAASER_AUDITORIA=1` en Vercel). Al revés que los
- * otros dos interruptores, este nace en cero: sin la variable, la app es
- * BYTE por BYTE la de hoy.
+ * **PRENDIDO el 6-oct-2026**, con el sí de Daniel sobre las capturas: «lo
+ * demás de la auditoría está aprobado: empezá a aplicarlo».
+ *
+ * Para apagarlo: `NEXT_PUBLIC_MAASER_AUDITORIA=0` en Vercel y volver a
+ * publicar — las pantallas vuelven a ser BYTE por BYTE las de antes, sin tocar
+ * código. Candado: `maaser-auditoria.test.tsx` (las dos posiciones).
  *
  * Qué cambia:
- *  · **Buscar encuentra por número de cheque.** Hoy buscar es solo por
- *    nombre: escribir «2936» no encuentra nada, y el número de cheque es lo
- *    que él usa para cuadrar con el banco (123 de 266 donaciones lo llevan).
- *  · **El número de cheque se ve.** En la fila va en tinta negra y en
- *    negrita, no en el gris de la fecha y la nota.
+ *  · **Buscar encuentra por número de cheque.** Buscar era solo por nombre:
+ *    escribir «2936» no encontraba nada, y el número de cheque es lo que él
+ *    usa para cuadrar con el banco (123 de 266 donaciones lo llevan).
+ *  · **Manda el monto.** La fila de una donación dice el monto grande; a quién
+ *    y por qué bajan a la segunda línea, en gris y más chicos. El número de
+ *    cheque va en negro, con la fecha.
+ *  · **El gasto anual se cambia desde la pantalla**, no en la base.
+ *  · **«Guardar los cambios»** al cambiar una donación, y la hoja de borrar
+ *    dice QUÉ borra.
+ *  · **«Cuánto le diste a cada persona»** tiene un solo «‹», su título y su
+ *    flecha en cada fila.
  */
-export const AUDITORIA = process.env.NEXT_PUBLIC_MAASER_AUDITORIA === "1";
+export const AUDITORIA = process.env.NEXT_PUBLIC_MAASER_AUDITORIA !== "0";

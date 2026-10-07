@@ -111,15 +111,21 @@ describe("Maaser · al abrir", () => {
     expect(screen.queryByText("+ Nueva donación")).toBeNull();
   });
 
-  // 6-oct-2026: con «historial ordenado» publicado, la misma línea lleva
-  // además el número de cheque. La donación sin cheque sigue diciendo solo
-  // «hoy»: no se inventa nada.
-  it("la fila dice hoy, ayer o el día, el cheque y la nota cuando la hay", async () => {
+  // 6-oct-2026, con la auditoría publicada: manda el MONTO. Arriba, cuándo fue
+  // y el número de cheque en negro; abajo, en gris, a quién y por qué.
+  // (Daniel: «nada de "rab gil", pon nombre o motivo en gris».)
+  it("la fila dice cuándo y el cheque arriba, y el nombre en gris abajo", async () => {
     await abrir();
-    expect(screen.getByText("hoy")).toBeDefined();
-    expect(screen.getByText("ayer · Cheque 2936")).toBeDefined();
-    expect(screen.getByText("15 sep · Cheque 2935")).toBeDefined();
-    expect(screen.getByText("14 sep · Cheque 2933 · Esposa enferma")).toBeDefined();
+    const fila = screen.getByText("Iosef Milszteln").closest("button")!;
+    expect(fila.textContent).toContain("ayer");
+    expect(fila.textContent).toContain("Cheque 2936");
+    // El número va en negrita, no en el gris de la fecha.
+    expect(screen.getByText("Cheque 2936").tagName).toBe("B");
+    // El nombre y el motivo viven en la MISMA línea, debajo.
+    const conNota = screen.getByText(/Alberto Sedani · Esposa enferma/);
+    expect(conNota).toBeDefined();
+    // Y el monto se lee más grande que todo lo demás de la fila.
+    expect(fila.querySelector(".text-\\[20px\\]")?.textContent).toBe("$101");
   });
 
   it("el separador del año aparece UNA sola vez", async () => {
@@ -131,7 +137,7 @@ describe("Maaser · al abrir", () => {
     );
     // Y la lista sigue: las de 5786 están dibujadas, sin selector de año.
     for (const d of DE_5786) {
-      expect(screen.getAllByText(d.beneficiary).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(new RegExp(d.beneficiary)).length).toBeGreaterThan(0);
     }
   });
 });

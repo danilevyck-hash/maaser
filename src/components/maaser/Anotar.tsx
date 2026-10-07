@@ -203,7 +203,7 @@ export default function Anotar({
           SIMPLE ? "grid grid-cols-2 gap-2 px-5 pb-1" : "flex gap-1.5 px-5 pt-2 pb-1"
         }
       >
-        {CHIPS_METODO.map((c) => (
+        {CHIPS_METODO.map((c, i) => (
           <button
             key={c.etiqueta}
             onClick={() => {
@@ -214,6 +214,12 @@ export default function Anotar({
             }}
             className={`${SIMPLE ? "min-h-[48px] text-[16px]" : "flex-1 text-[13px]"} rounded-[10px] border cursor-pointer transition-colors ${
               SIMPLE ? "" : "min-h-[44px]"
+            } ${
+              /* Son tres y la rejilla es de dos: el último ocupa el renglón
+                 entero, que además es el de nombre más largo. */
+              SIMPLE && i === CHIPS_METODO.length - 1 && CHIPS_METODO.length % 2 === 1
+                ? "col-span-2"
+                : ""
             } ${
               chip === c.etiqueta
                 ? "border-[#1C1C1E] text-[#1C1C1E] font-semibold bg-white"

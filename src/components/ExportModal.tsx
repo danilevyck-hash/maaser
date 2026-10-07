@@ -4,8 +4,18 @@ import { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Donation } from "@/lib/supabase";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
-import { formatDate, formatDateExport, formatCurrency } from "@/lib/format";
+import { formatDateExport, formatCurrency } from "@/lib/format";
+import { diaYMesCorto } from "@/lib/maaser/fecha-en-palabras";
+import { dinero } from "@/lib/maaser/dinero";
 import { hoyPanamaISO } from "@/lib/fecha-panama";
+import {
+  BOTON_BORDE_ANCHO,
+  BOTON_PRINCIPAL,
+  CAMPO,
+  ENLACE,
+  ROTULO,
+  TEXTO_2,
+} from "@/lib/ui/apple";
 import {
   getCurrentHebrewYear,
   getHebrewYearData,
@@ -42,14 +52,14 @@ export default function ExportModal({ isOpen, onClose, donations, anioSelecciona
         return {
           dateFrom: currentYearData.startDate,
           dateTo: esAnioEnCurso ? hoyPanamaISO() : currentYearData.endDate,
-          rangeLabel: `${formatDate(currentYearData.startDate)} — ${esAnioEnCurso ? "Hoy" : formatDate(currentYearData.endDate)}`,
+          rangeLabel: `${diaYMesCorto(currentYearData.startDate)} – ${esAnioEnCurso ? "hoy" : diaYMesCorto(currentYearData.endDate)}`,
         };
       case "prev_year":
-        return { dateFrom: prevYearData.startDate, dateTo: prevYearData.endDate, rangeLabel: `${formatDate(prevYearData.startDate)} — ${formatDate(prevYearData.endDate)}` };
+        return { dateFrom: prevYearData.startDate, dateTo: prevYearData.endDate, rangeLabel: `${diaYMesCorto(prevYearData.startDate)} ${prevYearData.startDate.slice(0, 4)} – ${diaYMesCorto(prevYearData.endDate)} ${prevYearData.endDate.slice(0, 4)}` };
       case "current_month":
-        return { dateFrom: currentMonth.from, dateTo: currentMonth.to, rangeLabel: `${currentMonth.name}: ${formatDate(currentMonth.from)} — ${formatDate(currentMonth.to)}` };
+        return { dateFrom: currentMonth.from, dateTo: currentMonth.to, rangeLabel: `${currentMonth.name} · ${diaYMesCorto(currentMonth.from)} – ${diaYMesCorto(currentMonth.to)}` };
       case "custom":
-        return { dateFrom: customFrom, dateTo: customTo, rangeLabel: customFrom || customTo ? `${customFrom ? formatDate(customFrom) : "Inicio"} — ${customTo ? formatDate(customTo) : "Fin"}` : "Seleccione fechas" };
+        return { dateFrom: customFrom, dateTo: customTo, rangeLabel: customFrom || customTo ? `${customFrom ? diaYMesCorto(customFrom) : "el inicio"} – ${customTo ? diaYMesCorto(customTo) : "hoy"}` : "Falta elegir las fechas" };
     }
   }, [preset, customFrom, customTo, currentYearData, prevYearData, currentMonth, esAnioEnCurso]);
 
@@ -70,7 +80,7 @@ export default function ExportModal({ isOpen, onClose, donations, anioSelecciona
     { key: "current_year", label: `Año ${hebrewYear}` },
     { key: "prev_year", label: `Año ${hebrewYear - 1}` },
     { key: "current_month", label: `Este mes` },
-    { key: "custom", label: "Personalizado" },
+    { key: "custom", label: "Otras fechas" },
   ];
 
   const handleExportExcel = async () => {
@@ -144,55 +154,97 @@ export default function ExportModal({ isOpen, onClose, donations, anioSelecciona
   };
 
   return createPortal(
-    <div
-      className="fixed inset-0 bg-[#F2F2F7] z-[9999] animate-fade-in"
-      style={{ height: "100dvh" }}
-      onClick={(e) => e.stopPropagation()}
-    >
+    /* Hasta el 6-oct-2026 esta era la ÚNICA pantalla con la cara vieja: botón
+       verde, botón azul, fondo gris, tarjetas y la fecha en números. */
+    <div className="fixed inset-0 bg-white z-[9999] animate-fade-in" style={{ height: "100dvh" }}>
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between px-5 pt-14 pb-3 border-b border-[#C6C6C8] shrink-0 bg-white">
-          <button type="button" onClick={onClose} className="text-[#007AFF] text-[15px] font-medium bg-transparent border-0 cursor-pointer min-h-[44px]">
-            Cancelar
-          </button>
-          <h2 className="text-[17px] font-semibold text-[#1C1C1E]">Exportar</h2>
-          <div className="w-16" />
-        </div>
-        <div className="p-5 space-y-4 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div className="grid grid-cols-2 gap-2">
-            {presets.map((p) => (
-              <button key={p.key} onClick={() => setPreset(p.key)}
-                className={`px-3 min-h-[44px] py-2.5 rounded-xl text-[15px] font-medium transition-colors border ${
-                  preset === p.key ? "border-[#007AFF] bg-[#007AFF]/10 text-[#007AFF]" : "border-[#C6C6C8] text-[#8E8E93]"
-                }`}
-              >{p.label}</button>
-            ))}
+        <div className="px-5 pt-14 shrink-0 bg-white">
+          <div className="flex items-center justify-between max-w-[430px] mx-auto">
+            <button type="button" onClick={onClose} className={`${ENLACE} min-h-[44px]`}>
+              Cancelar
+            </button>
+            <span className="text-[17px] font-medium text-[#1C1C1E]">Guardar la lista</span>
+            <span className="w-[70px]" />
           </div>
-          {preset === "custom" && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[13px] font-medium text-[#8E8E93] mb-1">Desde</label>
-                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[15px]" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+          <div className="max-w-[430px] mx-auto pb-8">
+            <p className={`${ROTULO} px-5 pt-5`}>Fechas de la lista</p>
+            <div className="grid grid-cols-2 gap-2 px-5">
+              {presets.map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => setPreset(p.key)}
+                  className={`min-h-[48px] text-[16px] rounded-[10px] border cursor-pointer transition-colors ${
+                    preset === p.key
+                      ? "border-[#1C1C1E] text-[#1C1C1E] font-semibold bg-white"
+                      : "border-[#E5E5EA] text-[#6E6E73] bg-white"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {preset === "custom" && (
+              <div className="grid grid-cols-2 gap-3 px-5 pt-4">
+                <div>
+                  <label className={ROTULO} htmlFor="exportar-desde">Desde</label>
+                  <input
+                    id="exportar-desde"
+                    type="date"
+                    value={customFrom}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                    className={CAMPO}
+                  />
+                </div>
+                <div>
+                  <label className={ROTULO} htmlFor="exportar-hasta">Hasta</label>
+                  <input
+                    id="exportar-hasta"
+                    type="date"
+                    value={customTo}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                    className={CAMPO}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-[13px] font-medium text-[#8E8E93] mb-1">Hasta</label>
-                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="w-full border border-[#C6C6C8] rounded-xl px-3 py-3 focus:ring-2 focus:ring-[#007AFF] outline-none text-[15px]" />
+            )}
+
+            <div className="mx-5 mt-6 border-t border-[#E5E5EA]">
+              <div className="flex items-baseline justify-between py-3 border-b border-[#E5E5EA]">
+                <span className={TEXTO_2}>{rangeLabel}</span>
+                <b className="text-[17px] font-medium tabular-nums">{dinero(totalAmount)}</b>
+              </div>
+              <div className="py-3">
+                <span className={TEXTO_2}>
+                  {filtered.length} {filtered.length === 1 ? "donación" : "donaciones"}
+                </span>
               </div>
             </div>
-          )}
-          <div className="bg-white rounded-xl p-3 text-center space-y-1">
-            <p className="text-[13px] text-[#8E8E93]">{rangeLabel}</p>
-            <p className="text-[15px] text-[#1C1C1E] font-medium">{filtered.length} donaci{filtered.length !== 1 ? "ones" : "ón"}</p>
-            <p className="text-[13px] text-[#8E8E93]">Total: {formatCurrency(totalAmount)}</p>
-          </div>
-          <div className="flex gap-3">
-            <button onClick={handleExportExcel} disabled={filtered.length === 0 || exporting}
-              className="flex-1 h-12 rounded-xl bg-[#34C759] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
-              {exporting ? "…" : "Excel para el contador"}
-            </button>
-            <button onClick={handleExportPDF} disabled={filtered.length === 0 || exporting}
-              className="flex-1 h-12 rounded-xl bg-[#007AFF] text-white font-semibold text-[15px] border-0 cursor-pointer disabled:opacity-50 transition-colors">
-              {exporting ? "…" : "PDF para imprimir"}
-            </button>
+
+            <div className="px-5 pt-4 flex flex-col gap-2.5">
+              <button
+                onClick={handleExportPDF}
+                disabled={filtered.length === 0 || exporting}
+                className={BOTON_PRINCIPAL}
+              >
+                {exporting ? "Un momento…" : "PDF para imprimir"}
+              </button>
+              <button
+                onClick={handleExportExcel}
+                disabled={filtered.length === 0 || exporting}
+                className={BOTON_BORDE_ANCHO}
+              >
+                {exporting ? "Un momento…" : "Excel para el contador"}
+              </button>
+              {filtered.length === 0 && (
+                <p className={`${TEXTO_2} text-center pt-1`}>
+                  No hay donaciones en esas fechas.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -37,20 +37,36 @@ import {
   lineaDeLaMeta,
   subtituloDelAnio,
 } from "@/lib/maaser/encabezado";
-import {
-  esSinNombre,
-  lineaDeLaFila,
-  nombreEnPantalla,
-  partesDeLaFila,
-} from "@/lib/maaser/renglon";
+import { esSinNombre, lineaDeLaFila, nombreEnPantalla } from "@/lib/maaser/renglon";
 import Anotar, { type LoQueSeGuarda } from "@/components/maaser/Anotar";
 import Bienvenida from "@/components/Bienvenida";
 import { BIENVENIDA_MAASER } from "@/lib/bienvenidas";
 import ElAnio from "@/components/maaser/ElAnio";
+import FilaDonacion from "@/components/maaser/FilaDonacion";
 import ExportModal from "@/components/ExportModal";
 import HojaAbajo from "@/components/propiedades/HojaAbajo";
 import { useToast } from "@/components/Toast";
-import { AZUL, BOTON_PRINCIPAL, ENLACE, MONTO, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
+import {
+  AZUL,
+  BOTON_PRINCIPAL,
+  CAMPO,
+  ENLACE,
+  MONTO,
+  RAYA,
+  ROTULO,
+  TEXTO_2,
+  TEXTO_3,
+  TITULO,
+} from "@/lib/ui/apple";
+
+/**
+ * Lo que dicen los avisos rojos. No alcanza con «No se pudo guardar»: hay que
+ * decir qué hacer y, sobre todo, que no se perdió nada —todo lo escrito sigue
+ * en la pantalla y basta con volver a tocar el botón.
+ */
+const AVISO_NO_SE_GUARDO =
+  "No se pudo guardar. Revisa el internet y vuelve a tocar «Listo, anotar». No se perdió nada.";
+const AVISO_NO_SE_BORRO = "No se pudo borrar. Revisa el internet y vuelve a intentar.";
 
 /** Desde cuántas donaciones el buscador vive a la vista, sin tener que bajar. */
 const MUCHAS = 20;
@@ -73,6 +89,9 @@ export default function MaaserPage() {
   const [exportarAnio, setExportarAnio] = useState<number | null>(null);
   const [anioMirado, setAnioMirado] = useState<number | null>(null);
   const [orden, setOrden] = useState<Orden>(ORDEN_DE_SIEMPRE);
+  const [hojaGasto, setHojaGasto] = useState(false);
+  const [gastoEscrito, setGastoEscrito] = useState("");
+  const [guardandoGasto, setGuardandoGasto] = useState(false);
   const [hojaOrden, setHojaOrden] = useState(false);
   const { showToast } = useToast();
   const lista = useRef<HTMLDivElement>(null);
@@ -164,7 +183,7 @@ export default function MaaserPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        showToast(err?.error || "No se pudo guardar", "error");
+        showToast(err?.error || AVISO_NO_SE_GUARDO, "error");
         return;
       }
       /**
@@ -176,9 +195,41 @@ export default function MaaserPage() {
       setVista({ tipo: volverA });
       showToast(donacion.id ? "Guardado ✓" : "Anotado ✓");
     } catch {
-      showToast("No se pudo guardar", "error");
+      showToast(AVISO_NO_SE_GUARDO, "error");
     } finally {
       setGuardando(false);
+    }
+  };
+
+  /**
+   * Lo que gasta en el año. De ahí sale el 10 %: al guardarlo, «te faltan $X»
+   * se recalcula solo, porque la línea se deriva del dato (`lineaDeLaMeta`).
+   */
+  const guardarGasto = async () => {
+    const monto = parseFloat(gastoEscrito.replace(/[^\d.]/g, ""));
+    if (!Number.isFinite(monto) || monto <= 0) {
+      showToast("Falta poner cuánto gastas en el año", "error");
+      return;
+    }
+    setGuardandoGasto(true);
+    try {
+      const res = await fetch("/api/goal", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ year: anio, gastos_anuales: monto }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        showToast(err?.error || "No se pudo guardar el gasto anual", "error");
+        return;
+      }
+      await traerGasto();
+      setHojaGasto(false);
+      showToast("Guardado ✓");
+    } catch {
+      showToast("No se pudo guardar. Revisa el internet y vuelve a intentar.", "error");
+    } finally {
+      setGuardandoGasto(false);
     }
   };
 
@@ -191,14 +242,14 @@ export default function MaaserPage() {
         body: JSON.stringify({ id }),
       });
       if (!res.ok) {
-        showToast("No se pudo borrar", "error");
+        showToast(AVISO_NO_SE_BORRO, "error");
         return;
       }
       await traerDonaciones();
       setVista({ tipo: volverA });
       showToast("Borrado ✓");
     } catch {
-      showToast("No se pudo borrar", "error");
+      showToast(AVISO_NO_SE_BORRO, "error");
     } finally {
       setBorrando(false);
     }
@@ -311,7 +362,9 @@ export default function MaaserPage() {
             <span className={`block ${TEXTO_2} mt-2`}>
               {lineaDeDonaciones(delAnio.length, { anio: anio - 1, total: totalAnterior })}
             </span>
-            {meta && <span className={`block ${TEXTO_2} mt-1`}>{meta}</span>}
+            {!AUDITORIA && meta && (
+              <span className={`block ${TEXTO_2} mt-1`}>{meta}</span>
+            )}
             {/* El número era un botón secreto: había que explicarlo en el
                 paseo de bienvenida. Ahora lo dice en voz alta. */}
             {SIMPLE && (
@@ -320,6 +373,26 @@ export default function MaaserPage() {
               </span>
             )}
           </button>
+
+          {/* El gasto anual se cambia DESDE la pantalla. Hasta el 6-oct-2026
+              solo se podía en la base: la línea del 10 % era texto muerto y,
+              sin el dato, no se dibujaba nada. */}
+          {AUDITORIA && (
+            <button
+              onClick={() => {
+                setGastoEscrito(gastosAnuales != null ? String(gastosAnuales) : "");
+                setHojaGasto(true);
+              }}
+              className="w-full flex items-center justify-center gap-1.5 bg-transparent border-0 cursor-pointer px-5 pt-1 pb-0 min-h-[44px]"
+            >
+              <span className={`${TEXTO_2} text-center`}>
+                {meta ?? "Poner el gasto anual"}
+              </span>
+              <span className="text-[15px] shrink-0" style={{ color: AZUL }}>
+                &rsaquo;
+              </span>
+            </button>
+          )}
 
           <div className="px-5 pt-4 pb-1">
             <button
@@ -414,6 +487,17 @@ export default function MaaserPage() {
                       {r.anio} · {dinero(r.total)}
                     </p>
                   )
+                ) : AUDITORIA ? (
+                  /* Manda el monto; el nombre y el motivo van en gris abajo. */
+                  <FilaDonacion
+                    key={r.donacion.id}
+                    donacion={r.donacion}
+                    hoy={hoy}
+                    conAnio={HISTORIAL_ORDENADO && orden !== ORDEN_DE_SIEMPRE}
+                    onAbrir={(d) =>
+                      setVista({ tipo: "anotar", donacion: d, volverA: "lista" })
+                    }
+                  />
                 ) : (
                   <button
                     key={r.donacion.id}
@@ -431,35 +515,10 @@ export default function MaaserPage() {
                         {nombreEnPantalla(r.donacion)}
                       </span>
                       <span className={`block ${TEXTO_3} truncate`}>
-                        {AUDITORIA ? (
-                          /* El cheque, en tinta negra: es lo que busca con el
-                             ojo para cuadrar con el banco. */
-                          (() => {
-                            const p = partesDeLaFila(r.donacion, hoy, {
-                              cheque: HISTORIAL_ORDENADO,
-                              anio: HISTORIAL_ORDENADO && orden !== ORDEN_DE_SIEMPRE,
-                            });
-                            return (
-                              <>
-                                {p.cuando}
-                                {p.cheque && (
-                                  <>
-                                    {" · "}
-                                    <b className="font-semibold text-[#1C1C1E]">
-                                      Cheque {p.cheque}
-                                    </b>
-                                  </>
-                                )}
-                                {p.nota && ` · ${p.nota}`}
-                              </>
-                            );
-                          })()
-                        ) : (
-                          lineaDeLaFila(r.donacion, hoy, {
-                            cheque: HISTORIAL_ORDENADO,
-                            anio: HISTORIAL_ORDENADO && orden !== ORDEN_DE_SIEMPRE,
-                          })
-                        )}
+                        {lineaDeLaFila(r.donacion, hoy, {
+                          cheque: HISTORIAL_ORDENADO,
+                          anio: HISTORIAL_ORDENADO && orden !== ORDEN_DE_SIEMPRE,
+                        })}
                       </span>
                     </span>
                     <span className={MONTO}>{dinero(r.donacion.amount)}</span>
@@ -475,6 +534,40 @@ export default function MaaserPage() {
           )}
         </div>
       </div>
+
+      {/* El gasto anual: un número al año, y de ahí sale el 10 %. */}
+      <HojaAbajo
+        abierta={hojaGasto}
+        onCerrar={() => setHojaGasto(false)}
+        encabezado={<>Gasto anual · {anio}</>}
+        opciones={[
+          {
+            texto: guardandoGasto ? "Guardando…" : "Guardar",
+            tono: "fuerte",
+            desactivada: guardandoGasto,
+            onClick: guardarGasto,
+          },
+          { texto: "Cancelar", onClick: () => setHojaGasto(false) },
+        ]}
+      >
+        <div className="p-4" style={{ borderTop: `1px solid ${RAYA}` }}>
+          <label className={ROTULO} htmlFor="maaser-gasto">
+            Gasto anual
+          </label>
+          <input
+            id="maaser-gasto"
+            aria-label="Gasto anual"
+            inputMode="decimal"
+            value={gastoEscrito}
+            onChange={(e) => setGastoEscrito(e.target.value.replace(/[^\d.]/g, ""))}
+            placeholder="800000"
+            className={`${CAMPO} tabular-nums`}
+          />
+          <p className={`${TEXTO_2} pt-2`}>
+            El maaser es el 10 % de este monto. Se escribe una vez al año.
+          </p>
+        </div>
+      </HojaAbajo>
 
       {/* Ordenar la lista: tres frases y el visto en la que está puesta. */}
       <HojaAbajo

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import HojaAbajo from "@/components/propiedades/HojaAbajo";
 import { ENLACE, TITULO } from "@/lib/ui/apple";
 
 const modules = [
@@ -34,20 +36,23 @@ const modules = [
 
 export default function Home() {
   const router = useRouter();
+  const [preguntaSalir, setPreguntaSalir] = useState(false);
+
+  const salir = async () => {
+    setPreguntaSalir(false);
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <div className="fixed inset-0 flex flex-col bg-white">
       {/* Encabezado */}
       <div className="px-5 pt-14 shrink-0">
         <div className="flex items-center justify-end max-w-[430px] mx-auto">
-          <button
-            onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST" });
-              router.push("/login");
-              router.refresh();
-            }}
-            className={`${ENLACE} min-h-[44px] pl-2`}
-          >
+          {/* «Salir» borra el pase y deja a papá frente al teclado del PIN.
+              Estaba a un toque, del mismo tamaño que todo lo demás. */}
+          <button onClick={() => setPreguntaSalir(true)} className={`${ENLACE} min-h-[44px] pl-2`}>
             Salir
           </button>
         </div>
@@ -79,6 +84,16 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      <HojaAbajo
+        abierta={preguntaSalir}
+        onCerrar={() => setPreguntaSalir(false)}
+        encabezado={<>Al salir, la próxima vez hay que poner el PIN.</>}
+        opciones={[
+          { texto: "Salir", tono: "rojo", onClick: salir },
+          { texto: "Quedarme aquí", tono: "fuerte", onClick: () => setPreguntaSalir(false) },
+        ]}
+      />
     </div>
   );
 }

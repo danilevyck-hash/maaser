@@ -200,31 +200,61 @@ El candado `maaser-compromisos-y-anio.test.tsx` pasó a `maaser-el-anio.test.tsx
 ⚠️ **La tabla NO se borró**: sigue en la base, vacía. Lo que se fue es la
 pantalla. Para volver, hay que reescribir la ruta y la UI.
 
-### 🟡 `NEXT_PUBLIC_MAASER_AUDITORIA` — PROPUESTA, APAGADA
+### ✅ `NEXT_PUBLIC_MAASER_AUDITORIA` — PRENDIDO el 6-oct-2026
 
-`AUDITORIA` en `interruptores.ts`. **Al revés que los otros dos, nace en cero**:
-sin `NEXT_PUBLIC_MAASER_AUDITORIA=1` la app es byte por byte la publicada.
-Candados: `maaser-auditoria.test.tsx` (las dos posiciones) y
-`orden-y-cheque.test.ts` (el módulo puro).
+`AUDITORIA` en `interruptores.ts`. Nació apagado como propuesta y **se prendió
+el mismo día con su sí** («lo demás de la auditoría está aprobado: empezá a
+aplicarlo»). **Para apagarlo: `NEXT_PUBLIC_MAASER_AUDITORIA=0`** y volver a
+publicar — las pantallas vuelven a ser BYTE por BYTE las de la mañana. Candados:
+`maaser-auditoria.test.tsx` (las dos posiciones) y `orden-y-cheque.test.ts`
+(el módulo puro). Capturas ANTES vs AHORA en
+`.claude/jobs/c25ab4e9/tmp/maaser-audit/index.html` (56 a 390 px, solo lectura).
 
-- **Buscar por número de cheque** (`filtrarPorNombreOCheque`): hoy escribir
-  «2936» contesta «Ningún nombre coincide», y el cheque es con lo que cuadra con
-  el banco (123 de 266 donaciones lo llevan). El buscador dice «Buscar un nombre
-  o un cheque».
-- **El cheque en tinta negra y negrita** en la fila (`partesDeLaFila`, que ahora
-  es la fuente de `lineaDeLaFila`).
-- **«Guardar los cambios»** en vez de «Listo, anotar» al cambiar una donación.
-- **La hoja de borrar dice QUÉ borra**: «Se borra la donación de Iosef
-  Milszteln · $101 · 22 de septiembre.»
+**Los dos ajustes que pidió sobre la auditoría:**
+- **Las fechas, cortas.** `rangoEnPalabras()` → «12 sep – 11 oct»; el año SOLO
+  cuando el mes cruza («11 dic 2026 – 8 ene 2027»). La versión larga («Del 12 de
+  septiembre…») duró medio día: «más minimalista».
+- **Manda el MONTO.** `src/components/maaser/FilaDonacion.tsx` (nuevo, lo usan
+  el inicio y el año): arriba cuándo fue y el cheque EN NEGRO; abajo, en gris y
+  a 14 px, a quién y por qué; a la derecha el monto a 20 px en negrita
+  (`MONTO_FUERTE`). Daniel: «nada de "rab gil", pon nombre o motivo en gris».
 
-**Lo que la auditoría encontró y NO está programado** (capturas y detalle en
-`.claude/jobs/c25ab4e9/tmp/maaser-audit/index.html`, 29 capturas a 390 px en
-solo lectura): `gastos_anuales` ($800,000) solo se puede cambiar en la base, no
-hay pantalla; `ExportModal` es lo único con la paleta vieja; «Ver cuánto le
-diste a cada persona» tiene dos «‹» y sin título; «No se pudo guardar» no dice
-qué hacer; «Yappy» y «Transferencia» guardan lo mismo; el login dice «Mis
-Registros»; «Salir» no pregunta; un año recién empezado son doce renglones de
-«No diste nada».
+**Lo demás que entró con el interruptor:**
+- **Buscar por número de cheque** (`filtrarPorNombreOCheque`): un texto de puros
+  números busca también el cheque. «Buscar un nombre o un cheque».
+- **El gasto anual se cambia DESDE la pantalla**: la línea «Debes dar $X este
+  año» se toca y abre la hoja «Gasto anual · 5787» → `PUT /api/goal`. Sin el
+  dato, la línea dice «Poner el gasto anual» (antes no se dibujaba NADA). El
+  10 % y «te faltan» se recalculan solos: la línea se deriva del dato.
+  🔴 El rótulo es **«Gasto anual»**, no «Meta 10 %»: lo que se escribe es lo que
+  gasta, el maaser es el resultado.
+- **«Guardar los cambios»** al cambiar una donación, y la hoja de borrar dice
+  QUÉ borra (nombre · monto · día).
+- **«Cuánto le diste a cada persona»**: un solo «‹» (el de arriba vuelve al
+  año), su título y la flecha en cada fila.
+
+### Lo que entró SIN interruptor (son arreglos, no diseño)
+
+- **Un solo botón para Yappy y transferencia** (`CHIPS_METODO`): eran dos que
+  guardaban `transferencia`. Ahora «Yappy o transferencia», a todo el ancho (el
+  último de tres en una rejilla de dos lleva `col-span-2`). `METODOS_PAGO` usa
+  el mismo nombre. **Las donaciones viejas no cambian de valor.**
+- **Los avisos rojos dicen qué hacer**: «No se pudo guardar. Revisa el internet
+  y vuelve a tocar «Listo, anotar». **No se perdió nada**.»
+- **`ExportModal` con la cara del resto de la app**: era lo último con botón
+  verde, botón azul, fondo gris y fechas en números. Título «Guardar la lista»,
+  «Otras fechas» en vez de «Personalizado», PDF como acción principal.
+- **El login dice cuántos intentos quedan** y cuántos minutos dura el freno: el
+  servidor ya lo mandaba (`intentosRestantes`, 429) y la pantalla lo tiraba.
+- **«Salir» pregunta** antes de borrar el pase (`src/app/page.tsx`).
+- 🔴 **La app se sigue llamando «Mis Registros»** en la puerta y en el inicio:
+  es el nombre del manifest y del ícono del teléfono. Ponerle «Maaser» sería
+  ponerle a la puerta el nombre de uno de los cinco módulos. Si se decide
+  renombrar, hay que tocar también `public/manifest.json` y `layout.tsx`.
+
+**Pendiente, esperando su sí:** un año recién empezado son doce renglones de
+«No diste nada este mes». Juntar en una línea los meses que todavía no
+llegaron, dejando uno por uno los del pasado (ahí el cero es información).
 
 ### Migraciones — al día (medido el 6-oct-2026, en producción)
 
@@ -232,7 +262,7 @@ Registros»; «Salir» no pregunta; un año recién empezado son doce renglones 
 |---|---|
 | `donations.check_number` | ✅ existe · 123 de 266 con número |
 | `donations.metodo` | ✅ existe · **266 en NULL: nadie la usa** |
-| `annual_goals.gastos_anuales` | ✅ existe · 5787 = $800,000 (escrito a mano en la base) |
+| `annual_goals.gastos_anuales` | ✅ existe · 5787 = $800,000 · **ya se edita desde la pantalla** |
 | `maaser_login_intentos` | ✅ existe · vacía (el freno funciona) |
 | `maaser_compromisos` | ✅ existe · **vacía, sin pantalla desde el 6-oct** |
 
@@ -331,7 +361,7 @@ Registros»; «Salir» no pregunta; un año recién empezado son doce renglones 
 
 ## Pruebas
 ```bash
-npx vitest run   # 234 pruebas
+npx vitest run   # 237 pruebas
 npx next build   # tiene que pasar antes de subir
 ```
 Los módulos de Maaser son **puros y con prueba**: `fecha-panama` · `montos-frecuentes` ·

@@ -153,7 +153,8 @@ describe("Maaser · el año, mes por mes", () => {
     fireEvent.click(screen.getByText("Ver cuánto le diste a cada persona"));
     await waitFor(() => expect(screen.getByRole("button", { name: /Rab Gil/ })).toBeDefined());
     fireEvent.click(screen.getByRole("button", { name: /Rab Gil/ }));
-    const filas = await screen.findAllByRole("button", { name: /Rab Gil 25 may/ });
+    // La fila dice primero cuándo y después, en gris, a quién.
+    const filas = await screen.findAllByRole("button", { name: /25 may.*Rab Gil/ });
     fireEvent.click(filas[0]);
     await waitFor(() => expect(screen.getByLabelText("Cuánto")).toBeDefined());
     expect((screen.getByLabelText("Cuánto") as HTMLInputElement).value).toBe("1000");

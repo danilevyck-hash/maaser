@@ -32,8 +32,18 @@ import {
 import { dinero } from "@/lib/maaser/dinero";
 import { fechaDeLaFila, rangoEnPalabras } from "@/lib/maaser/fecha-en-palabras";
 import { AUDITORIA, HISTORIAL_ORDENADO, SIMPLE } from "@/lib/maaser/interruptores";
-import { lineaDeLaFila, nombreEnPantalla, partesDeLaFila } from "@/lib/maaser/renglon";
-import { AZUL, ENLACE, MONTO, RENGLON, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
+import { lineaDeLaFila, nombreEnPantalla } from "@/lib/maaser/renglon";
+import FilaNueva from "@/components/maaser/FilaDonacion";
+import {
+  AZUL,
+  ENLACE,
+  MONTO,
+  MONTO_FUERTE,
+  RENGLON,
+  TEXTO_2,
+  TEXTO_3,
+  TITULO,
+} from "@/lib/ui/apple";
 
 export default function ElAnio({
   donaciones,
@@ -83,8 +93,13 @@ export default function ElAnio({
     <div className="fixed inset-0 flex flex-col bg-white z-[140]">
       <div className="px-5 pt-14 shrink-0 bg-white">
         <div className="flex items-center justify-between max-w-[430px] mx-auto">
-          <button onClick={onVolver} className={`${ENLACE} min-h-[44px]`}>
-            &lsaquo; Maaser
+          {/* Un solo camino de vuelta: dentro de «cada persona», el «‹» de
+              arriba es el que devuelve al año. */}
+          <button
+            onClick={AUDITORIA && porQuien ? () => setPorQuien(false) : onVolver}
+            className={`${ENLACE} min-h-[44px]`}
+          >
+            &lsaquo; {AUDITORIA && porQuien ? `Año ${anio}` : "Maaser"}
           </button>
           {/* Sin «···»: las dos cosas que escondía viven abajo, con palabras. */}
           {SIMPLE ? (
@@ -371,24 +386,16 @@ function FilaDonacion({
   onAbrir: (d: Donation) => void;
   sangria?: boolean;
 }) {
-  const partes = partesDeLaFila(donacion, hoy, { cheque: true });
-  const segundaLinea = !HISTORIAL_ORDENADO ? (
-    fechaDeLaFila(donacion.date, hoy)
-  ) : !AUDITORIA ? (
-    lineaDeLaFila(donacion, hoy, { cheque: true })
-  ) : (
-    /* El cheque, en tinta negra: lo usa para cuadrar con el banco. */
-    <>
-      {partes.cuando}
-      {partes.cheque && (
-        <>
-          {" · "}
-          <b className="font-semibold text-[#1C1C1E]">Cheque {partes.cheque}</b>
-        </>
-      )}
-      {partes.nota && ` · ${partes.nota}`}
-    </>
-  );
+  /* Con la auditoría prendida, la fila es la misma que en el inicio: manda el
+     monto y el nombre baja a la segunda línea, en gris. */
+  if (AUDITORIA) {
+    return (
+      <FilaNueva donacion={donacion} hoy={hoy} onAbrir={onAbrir} sangria={sangria} />
+    );
+  }
+  const segundaLinea = HISTORIAL_ORDENADO
+    ? lineaDeLaFila(donacion, hoy, { cheque: true })
+    : fechaDeLaFila(donacion.date, hoy);
   return (
     <button
       onClick={() => onAbrir(donacion)}
@@ -423,10 +430,17 @@ function PorBeneficiario({
   const [abierto, setAbierto] = useState<string | null>(null);
   return (
     <>
-      <div className="px-5 pt-1">
-        <button onClick={volver} className={`${ENLACE} min-h-[44px]`}>
-          &lsaquo; El año {anio}
-        </button>
+      {/* Antes había dos «‹» seguidos —«‹ Maaser» arriba y «‹ El año» aquí— y
+          la pantalla no decía cómo se llamaba. */}
+      <div className="px-5">
+        {!AUDITORIA && (
+          <button onClick={volver} className={`${ENLACE} min-h-[44px]`}>
+            &lsaquo; El año {anio}
+          </button>
+        )}
+        {AUDITORIA && (
+          <h1 className={`${TITULO} pb-2`}>Cuánto le diste a cada persona</h1>
+        )}
       </div>
       {quienes.length === 0 ? (
         <p className={`${TEXTO_2} px-5 py-8`}>Sin donaciones en {anio}.</p>
@@ -445,7 +459,15 @@ function PorBeneficiario({
                   {q.veces} {q.veces === 1 ? "vez" : "veces"}
                 </span>
               </span>
-              <span className={MONTO}>{dinero(q.total)}</span>
+              <span className={AUDITORIA ? MONTO_FUERTE : MONTO}>{dinero(q.total)}</span>
+              {AUDITORIA && (
+                <span
+                  className="text-[17px] text-[#AEAEB2] shrink-0 transition-transform duration-200"
+                  style={{ transform: abierto === q.clave ? "rotate(90deg)" : "none" }}
+                >
+                  &rsaquo;
+                </span>
+              )}
             </button>
             {abierto === q.clave && (
               <div className="px-5">

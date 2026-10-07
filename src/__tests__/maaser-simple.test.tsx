@@ -160,16 +160,19 @@ describe("prendido: palabras en vez de íconos", () => {
     expect(screen.getByText("Tishrei")).toBeTruthy();
   });
 
-  // Daniel, 6-oct-2026: «debajo de cada mes, la fecha en español».
-  it("cada mes dice debajo de cuándo a cuándo fue, en español", async () => {
+  // Daniel, 6-oct-2026: «debajo de cada mes, la fecha» · «más minimalista,
+  // 2 feb – 5 oct». El año SOLO cuando el mes cruza de año.
+  it("cada mes dice debajo de cuándo a cuándo fue, corto", async () => {
     await abrir(true);
     fireEvent.click(screen.getByLabelText("Ver el año 5786"));
     await waitFor(() => expect(screen.getByText("Año 5786")).toBeTruthy());
 
-    // Tishrei de 5786: del 23 de septiembre al 22 de octubre de 2025.
-    expect(screen.getByText(/Del 23 de septiembre al 22 de octubre de 2025/)).toBeTruthy();
-    // Nada abreviado ni en inglés: ningún «sep – oct» suelto.
-    expect(screen.queryByText(/sep – oct/)).toBeNull();
+    // Tishrei de 5786: 23 sep – 22 oct, sin año porque no cruza.
+    expect(screen.getByText("23 sep – 22 oct")).toBeTruthy();
+    // Tévet sí cruza de año: lleva los dos.
+    expect(screen.getByText("21 dic 2025 – 18 ene 2026")).toBeTruthy();
+    // Y nada de la versión larga.
+    expect(screen.queryByText(/Del 23 de septiembre/)).toBeNull();
   });
 
   // Daniel, 6-oct-2026: «que se sienta, desplegar, se siente todo igual un poco».

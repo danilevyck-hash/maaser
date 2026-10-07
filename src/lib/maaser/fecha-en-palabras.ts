@@ -32,22 +32,21 @@ export function diaYMesCorto(fechaISO: string): string {
 }
 
 /**
- * Un mes hebreo dicho con fechas de verdad, en español y sin abreviar:
- * "Del 16 de septiembre al 15 de octubre de 2026".
+ * Un mes hebreo dicho corto: "12 sep – 11 oct".
  *
  * Los meses hebreos no caen en los meses del calendario de la pared, así que
- * debajo de "Tishrei" hace falta decir de cuándo a cuándo fue. Cuando el mes
- * cruza de un año a otro, los DOS años se dicen: "Del 20 de diciembre de 2026
- * al 18 de enero de 2027".
+ * debajo de "Tishrei" hace falta decir de cuándo a cuándo fue. **El año solo
+ * cuando el mes cruza de un año al otro**: "21 dic 2025 – 18 ene 2026".
+ * (Daniel, 6-oct-2026: «más minimalista, 2 feb – 5 oct».)
  */
 export function rangoEnPalabras(desdeISO: string, hastaISO: string): string {
-  const anioDesde = (desdeISO || "").slice(0, 4);
-  const anioHasta = (hastaISO || "").slice(0, 4);
-  const desde = diaYMesLargo(desdeISO);
-  const hasta = diaYMesLargo(hastaISO);
+  const desde = diaYMesCorto(desdeISO);
+  const hasta = diaYMesCorto(hastaISO);
   if (!desde || !hasta || desde === desdeISO || hasta === hastaISO) return "";
-  if (anioDesde === anioHasta) return `Del ${desde} al ${hasta} de ${anioHasta}`;
-  return `Del ${desde} de ${anioDesde} al ${hasta} de ${anioHasta}`;
+  const anioDesde = desdeISO.slice(0, 4);
+  const anioHasta = hastaISO.slice(0, 4);
+  if (anioDesde === anioHasta) return `${desde} – ${hasta}`;
+  return `${desde} ${anioDesde} – ${hasta} ${anioHasta}`;
 }
 
 /** El día anterior, como AAAA-MM-DD. Sin tocar el reloj de nadie. */

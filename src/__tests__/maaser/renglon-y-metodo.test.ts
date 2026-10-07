@@ -17,7 +17,7 @@ describe("cómo pagó", () => {
     expect(normalizarMetodo("cheque")).toBe("cheque");
     expect(normalizarMetodo("Transferencia")).toBe("transferencia");
     expect(normalizarMetodo("  TARJETA ")).toBe("tarjeta");
-    expect(etiquetaMetodo("transferencia")).toBe("Transferencia / Yappy");
+    expect(etiquetaMetodo("transferencia")).toBe("Yappy o transferencia");
   });
 
   it("un valor raro no se guarda ni revienta", () => {
@@ -53,7 +53,7 @@ describe("el renglón de la lista", () => {
   it("sin cheque, muestra cómo pagó", () => {
     expect(
       subtituloRenglon({ date: "2026-09-23", amount: 144, metodo: "transferencia" })
-    ).toBe("23 sep · Transferencia / Yappy");
+    ).toBe("23 sep · Yappy o transferencia");
   });
 
   it("la nota larga se corta", () => {
@@ -103,20 +103,15 @@ describe("lo que le diste antes a ese beneficiario", () => {
   });
 });
 
-// El mes hebreo, dicho con fechas de verdad (Daniel, 6-oct-2026: «debajo de
-// cada mes, la fecha en español»). «16 sep – 15 oct» era abreviado y no
-// decía de qué año.
-describe("el rango de un mes, en español", () => {
-  it("dentro del mismo año, el año se dice una vez", () => {
-    expect(rangoEnPalabras("2026-09-16", "2026-10-15")).toBe(
-      "Del 16 de septiembre al 15 de octubre de 2026",
-    );
+// El mes hebreo, dicho con fechas de verdad y CORTO (Daniel, 6-oct-2026:
+// «debajo de cada mes, la fecha» · «más minimalista, 2 feb – 5 oct»).
+describe("el rango de un mes, corto", () => {
+  it("dentro del mismo año, sin año", () => {
+    expect(rangoEnPalabras("2026-09-16", "2026-10-15")).toBe("16 sep – 15 oct");
   });
 
-  it("cuando el mes cruza de año, se dicen los DOS años", () => {
-    expect(rangoEnPalabras("2026-12-20", "2027-01-18")).toBe(
-      "Del 20 de diciembre de 2026 al 18 de enero de 2027",
-    );
+  it("cuando el mes cruza de año, los DOS años", () => {
+    expect(rangoEnPalabras("2025-12-21", "2026-01-18")).toBe("21 dic 2025 – 18 ene 2026");
   });
 
   it("sin fechas no inventa nada", () => {

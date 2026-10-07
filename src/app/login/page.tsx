@@ -24,12 +24,28 @@ export default function LoginPage() {
           router.push("/");
           router.refresh();
         } else {
+          /**
+           * El servidor ya decía cuántos intentos quedan y cuántos minutos
+           * dura el freno; la pantalla lo tiraba a la basura y siempre decía
+           * «PIN incorrecto». Cinco fallos cierran la puerta 15 minutos: eso
+           * hay que decirlo ANTES, no después.
+           */
+          const datos = await res.json().catch(() => null);
+          const quedan = datos?.intentosRestantes;
           setPin("");
-          setError("PIN incorrecto");
+          if (res.status === 429) {
+            setError(datos?.error || "Demasiados intentos. Vuelve a probar en 15 minutos.");
+          } else if (typeof quedan === "number" && quedan > 0) {
+            setError(
+              `PIN incorrecto. Te quedan ${quedan} ${quedan === 1 ? "intento" : "intentos"} antes de esperar 15 minutos.`,
+            );
+          } else {
+            setError("PIN incorrecto");
+          }
         }
       } catch {
         setPin("");
-        setError("Error de conexion");
+        setError("No hay internet. Revisa la conexión y vuelve a intentar.");
       } finally {
         setLoading(false);
       }

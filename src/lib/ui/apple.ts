@@ -36,6 +36,9 @@ export const TEXTO_FUERTE = "text-[17px] font-medium text-[#1C1C1E]";
 export const TEXTO_2 = "text-[15px] text-[#6E6E73]";
 export const TEXTO_3 = "text-[14px] text-[#6E6E73]";
 export const MONTO = "text-[17px] text-[#1C1C1E] tabular-nums whitespace-nowrap";
+/** El monto cuando ES la respuesta de la fila: manda sobre el nombre. */
+export const MONTO_FUERTE =
+  "text-[20px] font-semibold text-[#1C1C1E] tabular-nums whitespace-nowrap shrink-0";
 
 /* ── Listas ───────────────────────────────────────────────────────── */
 /** Una raya de 1 px arriba de cada renglón: sin tarjetas, sin sombras. */

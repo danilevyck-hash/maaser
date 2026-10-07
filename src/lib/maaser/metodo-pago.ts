@@ -4,7 +4,7 @@
 
 export const METODOS_PAGO = [
   { id: "cheque", etiqueta: "Cheque" },
-  { id: "transferencia", etiqueta: "Transferencia / Yappy" },
+  { id: "transferencia", etiqueta: "Yappy o transferencia" },
   { id: "tarjeta", etiqueta: "Tarjeta" },
 ] as const;
 

@@ -161,7 +161,7 @@ describe("Maaser · anotar una donación", () => {
     await waitFor(() => expect(cheque.value).toBe("2937"));
 
     // Y si al final pagó por Yappy, el campo se va y el número no se guarda.
-    fireEvent.click(screen.getByRole("button", { name: "Yappy" }));
+    fireEvent.click(screen.getByRole("button", { name: "Yappy o transferencia" }));
     await waitFor(() => expect(screen.queryByLabelText("Número de cheque")).toBeNull());
     escribir("Cuánto", "72");
     fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
