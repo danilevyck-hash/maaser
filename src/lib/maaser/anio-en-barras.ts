@@ -77,6 +77,30 @@ export function mesMasFuerte<T extends DonacionMinima>(
   return mejor;
 }
 
+/**
+ * Los meses del FINAL del año que todavía no llegaron y están en cero.
+ *
+ * Solo la cola: si un mes de más adelante ya tiene una donación con fecha
+ * futura, se corta ahí y ese mes sigue siendo su propio renglón. Un mes que
+ * YA empezó —el que corre— nunca entra: su cero es información.
+ */
+export function mesesPorLlegar<T extends DonacionMinima>(
+  meses: MesDelAnio<T>[],
+  hoy: string
+): MesDelAnio<T>[] {
+  let i = meses.length;
+  while (i > 0 && meses[i - 1].desde > hoy && meses[i - 1].cantidad === 0) i--;
+  return meses.slice(i);
+}
+
+/** «Jeshván a Elul · todavía no llegaron». Sin meses, cadena vacía. */
+export function lineaPorLlegar(meses: { nombre: string }[]): string {
+  if (meses.length === 0) return "";
+  const primero = meses[0].nombre;
+  if (meses.length === 1) return `${primero} · todavía no llegó`;
+  return `${primero} a ${meses[meses.length - 1].nombre} · todavía no llegaron`;
+}
+
 export type FilaBeneficiario<T extends DonacionMinima = DonacionMinima> = {
   clave: string;
   nombre: string;

@@ -32,6 +32,9 @@ vi.mock("next/navigation", () => ({
 
 const interruptor = { auditoria: false };
 vi.mock("@/lib/maaser/interruptores", () => ({
+  // Los meses que no llegaron: candado aparte. Aquí queda apagado, para que
+  // esta prueba siga viendo el año mes por mes.
+  MESES_POR_LLEGAR: false,
   HISTORIAL_ORDENADO: true,
   SIMPLE: true,
   get AUDITORIA() {

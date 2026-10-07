@@ -17,6 +17,11 @@
  *
  * ⚠️ No siempre son doce barras: un año hebreo bisiesto tiene TRECE meses
  * (Adar I y Adar II), y 5787 es uno. Las barras salen de los meses del año.
+ *
+ * ⏳ Con `MESES_POR_LLEGAR` prendido, los meses del final del año que todavía
+ * no llegaron se juntan en UNA línea gris: en un año recién empezado eran
+ * trece renglones iguales de «No diste nada este mes». Los que ya pasaron en
+ * cero siguen uno por uno — ahí el cero es información.
  */
 
 import { useMemo, useState } from "react";
@@ -24,14 +29,21 @@ import type { Donation } from "@/lib/supabase";
 import HojaAbajo from "@/components/propiedades/HojaAbajo";
 import { getHebrewYearData } from "@/lib/hebrew-year";
 import {
+  lineaPorLlegar,
   mesesDelAnio,
+  mesesPorLlegar,
   mesMasFuerte,
   porBeneficiario,
   type FilaBeneficiario,
 } from "@/lib/maaser/anio-en-barras";
 import { dinero } from "@/lib/maaser/dinero";
 import { fechaDeLaFila, rangoEnPalabras } from "@/lib/maaser/fecha-en-palabras";
-import { AUDITORIA, HISTORIAL_ORDENADO, SIMPLE } from "@/lib/maaser/interruptores";
+import {
+  AUDITORIA,
+  HISTORIAL_ORDENADO,
+  MESES_POR_LLEGAR,
+  SIMPLE,
+} from "@/lib/maaser/interruptores";
 import { lineaDeLaFila, nombreEnPantalla } from "@/lib/maaser/renglon";
 import FilaNueva from "@/components/maaser/FilaDonacion";
 import {
@@ -78,6 +90,14 @@ export default function ElAnio({
   const total = delAnio.reduce((s, d) => s + d.amount, 0);
   const meses = useMemo(() => mesesDelAnio(delAnio, datos.months), [delAnio, datos.months]);
   const masFuerte = useMemo(() => mesMasFuerte(meses), [meses]);
+
+  /* Los meses del final del año que todavía no llegaron: una sola línea en
+     vez de trece renglones iguales de «No diste nada este mes». */
+  const porLlegar = useMemo(
+    () => (MESES_POR_LLEGAR ? mesesPorLlegar(meses, hoy) : []),
+    [meses, hoy]
+  );
+  const mesesEnLista = porLlegar.length > 0 ? meses.slice(0, -porLlegar.length) : meses;
 
   const abierto = meses.find((m) => m.nombre === mesElegido) ?? masFuerte;
   const quienes = useMemo(() => porBeneficiario(delAnio), [delAnio]);
@@ -177,7 +197,7 @@ export default function ElAnio({
                   9 px y las barras no decían de qué mes eran. */}
               {SIMPLE && (
                 <div className="pt-2">
-                  {meses.map((m) => {
+                  {mesesEnLista.map((m) => {
                     const estaAbierto = mesElegido === m.nombre && verDonaciones;
                     /* Debajo del nombre, de cuándo a cuándo fue ese mes: el mes
                        hebreo no es el mes del calendario de la pared. */
@@ -264,6 +284,16 @@ export default function ElAnio({
                       </div>
                     );
                   })}
+
+                  {/* No se toca y no lleva monto: no hay nada que abrir. */}
+                  {porLlegar.length > 0 && (
+                    <div
+                      data-por-llegar={porLlegar.length}
+                      className={`px-5 py-3.5 border-t border-[#E5E5EA] ${TEXTO_3}`}
+                    >
+                      {lineaPorLlegar(porLlegar)}
+                    </div>
+                  )}
 
                   {/* Lo que el «···» escondía, ahora a la vista y con palabras. */}
                   <div className="mt-8">

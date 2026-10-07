@@ -36,6 +36,9 @@ vi.mock("next/navigation", () => ({
 // como está en producción desde el 6-oct-2026.
 const interruptor = { simple: false };
 vi.mock("@/lib/maaser/interruptores", () => ({
+  // Los meses que no llegaron: candado aparte. Aquí queda apagado, para que
+  // esta prueba siga viendo el año mes por mes.
+  MESES_POR_LLEGAR: false,
   // La propuesta de la auditoría nace APAGADA.
   AUDITORIA: false,
   HISTORIAL_ORDENADO: true,

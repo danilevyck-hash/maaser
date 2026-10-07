@@ -67,3 +67,21 @@ export const SIMPLE = process.env.NEXT_PUBLIC_MAASER_SIMPLE !== "0";
  *    flecha en cada fila.
  */
 export const AUDITORIA = process.env.NEXT_PUBLIC_MAASER_AUDITORIA !== "0";
+
+/**
+ * 🔴 `MESES_POR_LLEGAR` (7-oct-2026): un año recién empezado son trece
+ * renglones iguales de «No diste nada este mes», uno por cada mes del año
+ * hebreo, incluidos los que todavía no llegaron. Eso es ruido: nadie pudo
+ * haber dado nada en un mes que no existe aún.
+ *
+ * Los meses que YA pasaron sin donación siguen renglón por renglón: ahí el
+ * cero es información de verdad. Los del final del año que no llegaron se
+ * juntan en UNA línea gris.
+ *
+ * ✅ **PRENDIDO el 7-oct-2026 con su sí** («aprobó la línea única»):
+ * `NEXT_PUBLIC_MAASER_MESES=1` en Vercel producción. **Para apagarlo:
+ * borrar la variable o ponerla en `0`** y volver a publicar — la pantalla
+ * vuelve a ser BYTE por BYTE la de antes, sin tocar código. Candado:
+ * `maaser-meses-por-llegar.test.tsx` (las dos posiciones).
+ */
+export const MESES_POR_LLEGAR = process.env.NEXT_PUBLIC_MAASER_MESES === "1";

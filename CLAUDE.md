@@ -252,9 +252,32 @@ publicar — las pantallas vuelven a ser BYTE por BYTE las de la mañana. Candad
   ponerle a la puerta el nombre de uno de los cinco módulos. Si se decide
   renombrar, hay que tocar también `public/manifest.json` y `layout.tsx`.
 
-**Pendiente, esperando su sí:** un año recién empezado son doce renglones de
-«No diste nada este mes». Juntar en una línea los meses que todavía no
-llegaron, dejando uno por uno los del pasado (ahí el cero es información).
+## Maaser — los meses que todavía no llegaron (7-oct-2026)
+
+### ✅ `NEXT_PUBLIC_MAASER_MESES` — PRENDIDO el 7-oct-2026
+
+`MESES_POR_LLEGAR` en `interruptores.ts`. Nació apagado como propuesta y **se
+prendió con su sí** («Daniel aprobó la línea única»). La variable está en `1` en
+Vercel producción. **Para apagarlo: borrarla o ponerla en `0`** y volver a
+publicar — la pantalla del año vuelve a ser BYTE por BYTE la de antes, sin tocar
+código. Candado: `maaser-meses-por-llegar.test.tsx` (las dos posiciones).
+
+**El problema:** un año recién empezado son TRECE renglones iguales de «No diste
+nada este mes» —5787 es bisiesto (Adar I y Adar II)— incluidos los meses que
+todavía no llegaron. Eso es ruido: nadie pudo haber dado nada en un mes que no
+existe aún.
+
+- **Los meses de la COLA que no llegaron se juntan en UNA línea gris**:
+  «Jeshván a Elul · todavía no llegaron» (`lineaPorLlegar()`). Con uno solo,
+  «todavía no llegó», en singular. Es texto, no un botón: no hay nada que abrir
+  y no lleva monto.
+- 🔴 **El mes QUE CORRE nunca se esconde, ni en cero**: ahí el cero es
+  información de verdad (ese mes ya empezó y no se dio nada). `mesesPorLlegar()`
+  en `anio-en-barras.ts` solo se come la cola, mes a mes desde el final, mientras
+  `desde > hoy` **y** `cantidad === 0`; si un mes de más adelante ya tiene una
+  donación con fecha futura, se corta ahí y ese mes sigue siendo su renglón.
+- **Un año ya cerrado no cambia**: 5786 sigue mes por mes, sus doce renglones.
+- `hoy` es la fecha de **Panamá** (`hoyPanamaISO()`), como todo lo que dice «hoy».
 
 ### Migraciones — al día (medido el 6-oct-2026, en producción)
 
@@ -361,7 +384,7 @@ llegaron, dejando uno por uno los del pasado (ahí el cero es información).
 
 ## Pruebas
 ```bash
-npx vitest run   # 237 pruebas
+npx vitest run   # 241 pruebas
 npx next build   # tiene que pasar antes de subir
 ```
 Los módulos de Maaser son **puros y con prueba**: `fecha-panama` · `montos-frecuentes` ·

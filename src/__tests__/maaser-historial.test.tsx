@@ -33,6 +33,9 @@ vi.mock("next/navigation", () => ({
 // El interruptor se mueve desde la prueba: el módulo es el único lugar donde vive.
 const interruptor = { prendido: false };
 vi.mock("@/lib/maaser/interruptores", () => ({
+  // Los meses que no llegaron: candado aparte. Aquí queda apagado, para que
+  // esta prueba siga viendo el año mes por mes.
+  MESES_POR_LLEGAR: false,
   // La propuesta de la auditoría nace APAGADA.
   AUDITORIA: false,
   get HISTORIAL_ORDENADO() {
