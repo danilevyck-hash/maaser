@@ -72,13 +72,9 @@ candado `maaser-historial.test.tsx` cuida las dos posiciones.
 - **El buscador** deja de esconderse con más de 20 donaciones, y vive **debajo de
   «Anotar»**, nunca arriba: el número grande es la respuesta de la pantalla.
 
-⚠️ **SQL pendiente (escrito, NO aplicado — lo corre Daniel):** `supabase/*.sql`.
-El código **falla ABIERTO** sin los tres: la app funciona igual.
-| Archivo | Qué hace | Sin él |
-|---|---|---|
-| `20260923-annual-goals-gastos.sql` | columna `gastos_anuales` | no sale el 10 %; la tarjeta dice "poner lo que gastas ›" |
-| ~~`20260923-donations-metodo.sql`~~ | columna `metodo` | ✅ **ya aplicada** (medido el 6-oct-2026). Queda como historia. |
-| `20260923-login-intentos.sql` | tabla del freno de PIN | no se frena a nadie |
+✅ **Las migraciones YA están todas aplicadas** (medido el 6-oct-2026 contra
+producción). Los `supabase/*.sql` quedan como historia. Ver la tabla «Migraciones
+— al día» más abajo.
 
 ## Maaser — el duplicado y «para un señor de 70 años» (6-oct-2026)
 
@@ -155,6 +151,90 @@ cuánto le diste a cada persona».
 🔴 **`src/app/not-found.tsx`**: el historial del teléfono todavía abre esas direcciones.
 Antes caían en el 404 de fábrica, en inglés y sin salida. Ahora caen en una pantalla en
 español con «Ir a Maaser» e «Ir al inicio». Vale para cualquier dirección equivocada.
+
+## Maaser — los cuatro arreglos y la auditoría (6-oct-2026)
+
+Daniel probó el rediseño en vivo. **Los cuatro arreglos van SIN interruptor**
+(son arreglos de lo publicado); la auditoría entró **apagada**.
+
+### Los cuatro arreglos · ✅ PUBLICADOS
+
+1. **La fecha de cada mes, en español y completa.** `rangoEnPalabras()` en
+   `fecha-en-palabras.ts`: «Del 12 de septiembre al 11 de octubre de 2026», y
+   los DOS años cuando el mes cruza («Del 11 de diciembre de 2026 al 8 de enero
+   de 2027»). El `label` de `hebrew-year.ts` («23 sep – 22 oct») queda para el
+   estado apagado.
+2. **Se siente al abrir un mes.** Fondo `#F2F2F7`, barra azul de 3 px a la
+   izquierda (`boxShadow: inset`), nombre en negrita, la flecha gira 90° y las
+   filas entran con `.animate-desplegar` (0.18 s, en `globals.css`).
+   🔴 **Un mes con 0 donaciones ya NO es un botón**: es un `<div>`. Tocarlo no
+   hacía nada y parecía que la app se trababa. Conserva `data-mes`/`data-total`.
+3. **El número de cheque SOLO si la forma de pago es cheque.** «Cómo pagaste»
+   pasó ARRIBA del campo; `pideCheque = chip === "Cheque" || (editando && cheque)`.
+   Elegir otro método BORRA el número. Al abrir una donación vieja con número y
+   `metodo` NULL, el chip «Con cheque» se marca solo: **un cheque guardado dice
+   que se pagó con cheque** (no se inventa, se lee del dato).
+   ⚠️ **Medido: las 266 donaciones tienen `metodo` en NULL.** Nadie tocó nunca
+   esos botones; el método se escribe a mano en la nota («Tarjeta», «Yappy»,
+   «TRANFERENCIA», «Ach»). Si papá no encuentra el campo del cheque detrás de
+   «Con cheque», el plan B es dejarlo siempre a la vista.
+4. **El día, de UN SOLO TOQUE.** El renglón es un `<label>` con un
+   `<input type="date">` invisible encima (`absolute inset-0 opacity-0`): el
+   calendario del teléfono se abre al tocar cualquier parte del renglón. Se fue
+   la hoja de abajo (vive solo con el interruptor apagado). **«Volver a hoy»
+   solo al anotar una nueva**, nunca al cambiar una vieja: ahí mandaría una
+   donación de septiembre a octubre.
+
+### 🔴 Los «compromisos mensuales» SE FUERON (con su sí)
+
+**Medido el 6-oct-2026: `maaser_compromisos` existe en producción y tiene CERO
+filas.** Desde el 24-sep nadie creó uno solo. Daniel: «no sé, ¿se usa? ¿qué
+compromisos?» → «dale, quítalos si están vacíos».
+
+Se borraron: `src/lib/maaser/compromisos.ts`, `src/app/api/maaser/compromisos/`,
+el interruptor «Se repite cada mes» de Anotar, la línea de pendientes del
+inicio, su botón «Anotar», la hoja «Ya no se repite», el dibujo `m-repite` y su
+página del paseo de bienvenida. `LoQueSeGuarda` ya no lleva `repetirCadaMes`.
+El candado `maaser-compromisos-y-anio.test.tsx` pasó a `maaser-el-anio.test.tsx`.
+
+⚠️ **La tabla NO se borró**: sigue en la base, vacía. Lo que se fue es la
+pantalla. Para volver, hay que reescribir la ruta y la UI.
+
+### 🟡 `NEXT_PUBLIC_MAASER_AUDITORIA` — PROPUESTA, APAGADA
+
+`AUDITORIA` en `interruptores.ts`. **Al revés que los otros dos, nace en cero**:
+sin `NEXT_PUBLIC_MAASER_AUDITORIA=1` la app es byte por byte la publicada.
+Candados: `maaser-auditoria.test.tsx` (las dos posiciones) y
+`orden-y-cheque.test.ts` (el módulo puro).
+
+- **Buscar por número de cheque** (`filtrarPorNombreOCheque`): hoy escribir
+  «2936» contesta «Ningún nombre coincide», y el cheque es con lo que cuadra con
+  el banco (123 de 266 donaciones lo llevan). El buscador dice «Buscar un nombre
+  o un cheque».
+- **El cheque en tinta negra y negrita** en la fila (`partesDeLaFila`, que ahora
+  es la fuente de `lineaDeLaFila`).
+- **«Guardar los cambios»** en vez de «Listo, anotar» al cambiar una donación.
+- **La hoja de borrar dice QUÉ borra**: «Se borra la donación de Iosef
+  Milszteln · $101 · 22 de septiembre.»
+
+**Lo que la auditoría encontró y NO está programado** (capturas y detalle en
+`.claude/jobs/c25ab4e9/tmp/maaser-audit/index.html`, 29 capturas a 390 px en
+solo lectura): `gastos_anuales` ($800,000) solo se puede cambiar en la base, no
+hay pantalla; `ExportModal` es lo único con la paleta vieja; «Ver cuánto le
+diste a cada persona» tiene dos «‹» y sin título; «No se pudo guardar» no dice
+qué hacer; «Yappy» y «Transferencia» guardan lo mismo; el login dice «Mis
+Registros»; «Salir» no pregunta; un año recién empezado son doce renglones de
+«No diste nada».
+
+### Migraciones — al día (medido el 6-oct-2026, en producción)
+
+| Tabla / columna | Estado |
+|---|---|
+| `donations.check_number` | ✅ existe · 123 de 266 con número |
+| `donations.metodo` | ✅ existe · **266 en NULL: nadie la usa** |
+| `annual_goals.gastos_anuales` | ✅ existe · 5787 = $800,000 (escrito a mano en la base) |
+| `maaser_login_intentos` | ✅ existe · vacía (el freno funciona) |
+| `maaser_compromisos` | ✅ existe · **vacía, sin pantalla desde el 6-oct** |
 
 ## Auth
 - Login con PIN de 4 dígitos (página `/login`)
@@ -251,7 +331,7 @@ español con «Ir a Maaser» e «Ir al inicio». Vale para cualquier dirección 
 
 ## Pruebas
 ```bash
-npx vitest run   # 225 pruebas (eran 213)
+npx vitest run   # 234 pruebas
 npx next build   # tiene que pasar antes de subir
 ```
 Los módulos de Maaser son **puros y con prueba**: `fecha-panama` · `montos-frecuentes` ·

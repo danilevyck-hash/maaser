@@ -78,12 +78,7 @@ export const BIENVENIDA_MAASER: Bienvenida = {
     {
       dibujo: "m-anotar",
       titulo: "Anotar es una sola pantalla",
-      texto: "El monto, a quién, el cheque, cómo pagaste y una nota. Los montos de siempre están en botones y el cheque se propone solo.",
-    },
-    {
-      dibujo: "m-repite",
-      titulo: "Prende «Se repite cada mes»",
-      texto: "Lo que das todos los meses te espera arriba, listo para anotarlo de un toque.",
+      texto: "El monto, a quién, cómo pagaste y una nota. Los montos de siempre están en botones, y si pagaste con cheque te pide el número.",
     },
     {
       dibujo: "m-anio",

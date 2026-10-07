@@ -43,9 +43,6 @@ function montarFetch(gastosAnuales: number | null) {
           json: async () => ({ year: 5787, goal_amount: 0, gastos_anuales: gastosAnuales, columna_gastos: true }),
         } as Response;
       }
-      if (url.startsWith("/api/maaser/compromisos")) {
-        return { ok: true, json: async () => ({ hay_tabla: false, compromisos: [] }) } as Response;
-      }
       return { ok: true, json: async () => [] } as Response;
     }),
   );

@@ -5,15 +5,15 @@
 // Lo que cuida:
 //  1. Los cinco chips de monto SALEN DE LA BASE, dejando afuera la carga
 //     inicial del 22-mar-2026 (beneficiary = «Donación»).
-//  2. El cheque propone el siguiente al mayor usado.
+//  2. El número de cheque SOLO se pregunta si se pagó con cheque, y ahí
+//     propone el siguiente al mayor usado (Daniel, 6-oct-2026: «el número de
+//     cheque solo aparece si la forma de pago es cheque»).
 //  3. Un cheque repetido se dice en rojo, con el nombre y la fecha, y el botón
 //     de guardar SIGUE ACTIVO: la chequera se usa salteada.
 //  4. «Listo» guarda con el día de PANAMÁ. A las 9 de la noche de Panamá la
 //     fecha es la de HOY, nunca la de mañana (el defecto medido: 12 donaciones
 //     quedaron con la fecha corrida).
-//  5. Tocar la FECHA del botón permite guardar con otro día.
-//  6. El interruptor «Se repite cada mes» crea el compromiso; sin la tabla no
-//     se dibuja y guardar la donación funciona igual.
+//  5. El día se cambia de UN SOLO TOQUE, y «Volver a hoy» deshace el error.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, cleanup, fireEvent } from "@testing-library/react";
 import { ToastProvider } from "@/components/Toast";
@@ -78,7 +78,7 @@ const DONACIONES: Fila[] = [
 type Escritura = { url: string; metodo: string; cuerpo: Record<string, unknown> };
 let escrituras: Escritura[] = [];
 
-function montarFetch(hayTabla: boolean) {
+function montarFetch() {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -94,19 +94,13 @@ function montarFetch(hayTabla: boolean) {
       if (url.startsWith("/api/goal")) {
         return { ok: true, json: async () => ({ gastos_anuales: null, columna_gastos: true }) } as Response;
       }
-      if (url.startsWith("/api/maaser/compromisos")) {
-        return {
-          ok: true,
-          json: async () => ({ hay_tabla: hayTabla, compromisos: [] }),
-        } as Response;
-      }
       return { ok: true, json: async () => [] } as Response;
     }),
   );
 }
 
-async function abrirAnotar(hayTabla = true) {
-  montarFetch(hayTabla);
+async function abrirAnotar() {
+  montarFetch();
   render(
     <ToastProvider>
       <MaaserPage />
@@ -153,20 +147,34 @@ describe("Maaser · anotar una donación", () => {
     expect((screen.getByLabelText("Cuánto") as HTMLInputElement).value).toBe("54");
   });
 
-  it("el cheque propone el siguiente al mayor usado", async () => {
+  it("el número de cheque SOLO se pregunta si se pagó con cheque", async () => {
     await abrirAnotar();
-    const cheque = screen.getByLabelText("Número de cheque") as HTMLInputElement;
-    // El marcador dice para qué es el campo; el número lo propone el botón.
-    expect(cheque.placeholder).toBe("Si pagaste con cheque");
+    // Al abrir no hay campo de cheque: salía siempre y casi nunca iba nada.
+    expect(screen.queryByLabelText("Número de cheque")).toBeNull();
+    expect(screen.queryByRole("button", { name: /Poner el/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Con cheque" }));
+    const cheque = (await screen.findByLabelText("Número de cheque")) as HTMLInputElement;
     expect(cheque.value).toBe("");
     // Ya no se escribe solo al tocar el campo: lo pone un botón que lo dice.
     fireEvent.click(screen.getByRole("button", { name: "Poner el 2937" }));
     await waitFor(() => expect(cheque.value).toBe("2937"));
+
+    // Y si al final pagó por Yappy, el campo se va y el número no se guarda.
+    fireEvent.click(screen.getByRole("button", { name: "Yappy" }));
+    await waitFor(() => expect(screen.queryByLabelText("Número de cheque")).toBeNull());
+    escribir("Cuánto", "72");
+    fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
+    await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
+    expect(donacionesEscritas()[0].cuerpo.check_number).toBeUndefined();
+    expect(donacionesEscritas()[0].cuerpo.metodo).toBe("transferencia");
   });
 
   it("un cheque repetido se avisa en rojo y NO frena", async () => {
     await abrirAnotar();
     escribir("Cuánto", "101");
+    fireEvent.click(screen.getByRole("button", { name: "Con cheque" }));
+    await screen.findByLabelText("Número de cheque");
     escribir("Número de cheque", "2936");
     await waitFor(() =>
       expect(screen.getByText("Ya lo usaste con Iosef Milszteln el 22 sep")).toBeDefined(),
@@ -199,40 +207,47 @@ describe("Maaser · anotar una donación", () => {
     expect(donacionesEscritas()[0].cuerpo.beneficiary).toBe("Donación");
   });
 
-  it("tocar la fecha del botón permite guardar con otro día", async () => {
+  it("el día se cambia de UN SOLO TOQUE, sin hojas de por medio", async () => {
     await abrirAnotar();
     escribir("Cuánto", "500");
-    fireEvent.click(screen.getByRole("button", { name: "Cambiar el día" }));
-    await waitFor(() => expect(screen.getByLabelText("Día de la donación")).toBeDefined());
+    // El calendario está en el renglón mismo: no hay que abrir ninguna hoja
+    // ni confirmar con «Listo» (antes eran tres toques).
+    expect(screen.getByLabelText("Día de la donación")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Listo" })).toBeNull();
     escribir("Día de la donación", "2026-04-02");
-    fireEvent.click(screen.getByRole("button", { name: "Listo" }));
     await waitFor(() => expect(screen.getByText("2 de abril")).toBeDefined());
+    // Y si se tocó por error, «Volver a hoy» lo deshace de un toque.
+    expect(screen.getByRole("button", { name: "Volver a hoy" })).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
     await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
     expect(donacionesEscritas()[0].cuerpo.date).toBe("2026-04-02");
   });
 
-  it("«Se repite cada mes» crea el compromiso", async () => {
-    await abrirAnotar(true);
-    escribir("Cuánto", "500");
-    escribir("A quién", "Rab Gil");
-    fireEvent.click(screen.getByRole("switch", { name: "Se repite cada mes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
-    await waitFor(() =>
-      expect(escrituras.some((e) => e.url.startsWith("/api/maaser/compromisos"))).toBe(true),
+  it("al CAMBIAR una donación vieja no se ofrece «Volver a hoy»", async () => {
+    montarFetch();
+    render(
+      <ToastProvider>
+        <MaaserPage />
+      </ToastProvider>,
     );
-    const compromiso = escrituras.find((e) => e.url.startsWith("/api/maaser/compromisos"))!;
-    expect(compromiso.metodo).toBe("POST");
-    expect(compromiso.cuerpo).toMatchObject({ beneficiary: "Rab Gil", amount: 500 });
-    expect(donacionesEscritas()).toHaveLength(1);
+    await waitFor(() => expect(screen.getByText("Iosef Milszteln")).toBeDefined());
+    fireEvent.click(screen.getByRole("button", { name: /Iosef Milszteln/ }));
+    await waitFor(() => expect(screen.getByText("Cambiar la donación")).toBeDefined());
+    // Es del 22 de septiembre: «hoy» mandaría la donación a otro mes.
+    expect(screen.getByText("22 de septiembre")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Volver a hoy" })).toBeNull();
   });
 
-  it("sin la tabla, el interruptor no se dibuja y la donación se guarda igual", async () => {
-    await abrirAnotar(false);
-    expect(screen.queryByRole("switch")).toBeNull();
-    escribir("Cuánto", "72");
+  it("«Volver a hoy» deshace un día tocado por error", async () => {
+    await abrirAnotar();
+    escribir("Cuánto", "500");
+    escribir("Día de la donación", "2026-04-02");
+    await waitFor(() => expect(screen.getByText("2 de abril")).toBeDefined());
+    fireEvent.click(screen.getByRole("button", { name: "Volver a hoy" }));
+    await waitFor(() => expect(screen.getByText("hoy 23 de septiembre")).toBeDefined());
     fireEvent.click(screen.getByRole("button", { name: "Listo, anotar" }));
     await waitFor(() => expect(donacionesEscritas()).toHaveLength(1));
-    expect(escrituras.some((e) => e.url.startsWith("/api/maaser/compromisos"))).toBe(false);
+    expect(donacionesEscritas()[0].cuerpo.date).toBe("2026-09-23");
   });
+
 });

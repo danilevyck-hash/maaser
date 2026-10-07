@@ -48,6 +48,13 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* Un mes que se abre: se tiene que SENTIR que algo se desplegó. */
+@keyframes desplegar {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-desplegar { animation: desplegar 0.18s ease-out; }
+
 @keyframes por-cobrar-fadein {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }

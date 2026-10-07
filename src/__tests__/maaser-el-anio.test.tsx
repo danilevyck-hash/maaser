@@ -1,14 +1,9 @@
 // @vitest-environment jsdom
 //
-// CANDADO — «los compromisos y el año, mes por mes» (24-sep-2026,
-// al día con el rediseño simple del 6-oct-2026).
+// CANDADO — «el año, mes por mes» (24-sep-2026, al día con los arreglos del
+// 6-oct-2026; los «compromisos» se fueron: la tabla estaba vacía).
 //
 // Lo que cuida:
-//  1. Un compromiso al que todavía no se le dio ESTE MES hebreo sale arriba de
-//     la lista, con un botón que dice «Anotar».
-//  2. Si ya hay una donación de ese beneficiario en el mes, NO sale. Y no
-//     queda debiendo nada: el mes que termina se lo lleva sin aviso.
-//  3. Tocar ese botón escribe UNA donación, con la fecha de hoy en Panamá.
 //  4. Tocar el número grande abre el año EN CURSO. Se cambia de año con «‹» y
 //     «›», como los meses de Propiedades, y NUNCA hay flecha a un año futuro.
 //  5. Un renglón por mes hebreo (5786 tiene doce) y el mes más fuerte se
@@ -36,27 +31,10 @@ vi.mock("next/navigation", () => ({
 
 import MaaserPage from "@/app/maaser/page";
 
-const COMPROMISO = {
-  id: 1,
-  beneficiary: "Rab Gil",
-  amount: 1000,
-  metodo: null,
-  activo: true,
-};
-
-/** Rab Gil, dentro de Tishrei de 5787 (12 sep – 11 oct de 2026). */
-const YA_LE_DIO_ESTE_MES = {
-  id: 999,
-  date: "2026-09-20",
-  beneficiary: "Rab Gil",
-  amount: 1000,
-  status: "valido" as const,
-};
-
 type Escritura = { url: string; metodo: string; cuerpo: Record<string, unknown> };
 let escrituras: Escritura[] = [];
 
-function montar({ donaciones = TODAS, compromisos = [COMPROMISO], hayTabla = true } = {}) {
+function montar({ donaciones = TODAS } = {}) {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -71,9 +49,6 @@ function montar({ donaciones = TODAS, compromisos = [COMPROMISO], hayTabla = tru
       }
       if (url.startsWith("/api/goal")) {
         return { ok: true, json: async () => ({ gastos_anuales: null }) } as Response;
-      }
-      if (url.startsWith("/api/maaser/compromisos")) {
-        return { ok: true, json: async () => ({ hay_tabla: hayTabla, compromisos }) } as Response;
       }
       return { ok: true, json: async () => [] } as Response;
     }),
@@ -91,62 +66,6 @@ async function abrir(opciones = {}) {
 }
 
 const meses = () => Array.from(document.querySelectorAll<HTMLElement>("[data-mes]"));
-
-describe("Maaser · los compromisos del mes", () => {
-  beforeEach(() => {
-    escrituras = [];
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    vi.setSystemTime(new Date("2026-09-23T17:00:00Z"));
-  });
-
-  afterEach(() => {
-    cleanup();
-    vi.unstubAllGlobals();
-    vi.useRealTimers();
-  });
-
-  it("uno sin donación este mes sale arriba, con su botón «Anotar»", async () => {
-    await abrir();
-    expect(screen.getByText("Todos los meses · este mes falta")).toBeDefined();
-    expect(screen.getByRole("button", { name: "Anotar Rab Gil" })).toBeDefined();
-    expect(screen.getAllByText("$1,000").length).toBeGreaterThan(0);
-  });
-
-  it("si ya se le dio este mes, no sale", async () => {
-    await abrir({ donaciones: [...TODAS, YA_LE_DIO_ESTE_MES] });
-    expect(screen.queryByText("Todos los meses · este mes falta")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Anotar Rab Gil" })).toBeNull();
-  });
-
-  it("sin la tabla no se dibuja ninguna línea de compromiso", async () => {
-    await abrir({ hayTabla: false, compromisos: [] });
-    expect(screen.queryByText("Todos los meses · este mes falta")).toBeNull();
-  });
-
-  it("tocar «Anotar» escribe UNA donación con la fecha de hoy", async () => {
-    await abrir();
-    fireEvent.click(screen.getByRole("button", { name: "Anotar Rab Gil" }));
-    await waitFor(() => expect(escrituras).toHaveLength(1));
-    expect(escrituras[0].url).toBe("/api/donations");
-    expect(escrituras[0].metodo).toBe("POST");
-    expect(escrituras[0].cuerpo).toMatchObject({
-      date: "2026-09-23",
-      beneficiary: "Rab Gil",
-      amount: 1000,
-    });
-  });
-
-  it("«Ya no se repite» lo apaga, no lo borra", async () => {
-    await abrir();
-    fireEvent.click(screen.getByRole("button", { name: /^Rab Gil Todos los meses/ }));
-    await waitFor(() => expect(screen.getByText("Ya no se repite")).toBeDefined());
-    fireEvent.click(screen.getByText("Ya no se repite"));
-    await waitFor(() => expect(escrituras).toHaveLength(1));
-    expect(escrituras[0].url).toBe("/api/maaser/compromisos");
-    expect(escrituras[0].metodo).toBe("PUT");
-    expect(escrituras[0].cuerpo).toMatchObject({ id: 1, activo: false });
-  });
-});
 
 describe("Maaser · el año, mes por mes", () => {
   beforeEach(() => {

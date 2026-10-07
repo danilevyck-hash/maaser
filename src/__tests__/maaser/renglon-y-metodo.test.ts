@@ -6,6 +6,7 @@ import {
   nombreEnPantalla,
   subtituloRenglon,
 } from "@/lib/maaser/renglon";
+import { rangoEnPalabras } from "@/lib/maaser/fecha-en-palabras";
 import {
   anterioresDelBeneficiario,
   textoAnteriores,
@@ -99,5 +100,27 @@ describe("lo que le diste antes a ese beneficiario", () => {
   it("sin nombre o sin historia, no dice nada", () => {
     expect(anterioresDelBeneficiario(donaciones, "  ")).toEqual([]);
     expect(textoAnteriores("Nadie", [])).toBeNull();
+  });
+});
+
+// El mes hebreo, dicho con fechas de verdad (Daniel, 6-oct-2026: «debajo de
+// cada mes, la fecha en español»). «16 sep – 15 oct» era abreviado y no
+// decía de qué año.
+describe("el rango de un mes, en español", () => {
+  it("dentro del mismo año, el año se dice una vez", () => {
+    expect(rangoEnPalabras("2026-09-16", "2026-10-15")).toBe(
+      "Del 16 de septiembre al 15 de octubre de 2026",
+    );
+  });
+
+  it("cuando el mes cruza de año, se dicen los DOS años", () => {
+    expect(rangoEnPalabras("2026-12-20", "2027-01-18")).toBe(
+      "Del 20 de diciembre de 2026 al 18 de enero de 2027",
+    );
+  });
+
+  it("sin fechas no inventa nada", () => {
+    expect(rangoEnPalabras("", "")).toBe("");
+    expect(rangoEnPalabras("cualquiera", "2027-01-18")).toBe("");
   });
 });

@@ -30,9 +30,9 @@ import {
   type FilaBeneficiario,
 } from "@/lib/maaser/anio-en-barras";
 import { dinero } from "@/lib/maaser/dinero";
-import { fechaDeLaFila } from "@/lib/maaser/fecha-en-palabras";
-import { HISTORIAL_ORDENADO, SIMPLE } from "@/lib/maaser/interruptores";
-import { lineaDeLaFila, nombreEnPantalla } from "@/lib/maaser/renglon";
+import { fechaDeLaFila, rangoEnPalabras } from "@/lib/maaser/fecha-en-palabras";
+import { AUDITORIA, HISTORIAL_ORDENADO, SIMPLE } from "@/lib/maaser/interruptores";
+import { lineaDeLaFila, nombreEnPantalla, partesDeLaFila } from "@/lib/maaser/renglon";
 import { AZUL, ENLACE, MONTO, RENGLON, TEXTO_2, TEXTO_3, TITULO } from "@/lib/ui/apple";
 
 export default function ElAnio({
@@ -162,21 +162,22 @@ export default function ElAnio({
                   9 px y las barras no decían de qué mes eran. */}
               {SIMPLE && (
                 <div className="pt-2">
-                  {meses.map((m) => (
-                    <div key={m.nombre}>
-                      <button
-                        onClick={() => {
-                          const mismo = mesElegido === m.nombre && verDonaciones;
-                          setMesElegido(m.nombre);
-                          setVerDonaciones(!mismo && m.cantidad > 0);
-                        }}
-                        data-mes={m.nombre}
-                        data-total={m.total}
-                        className={RENGLON}
-                      >
+                  {meses.map((m) => {
+                    const estaAbierto = mesElegido === m.nombre && verDonaciones;
+                    /* Debajo del nombre, de cuándo a cuándo fue ese mes: el mes
+                       hebreo no es el mes del calendario de la pared. */
+                    const adentro = (
+                      <>
                         <span className="flex-1 min-w-0">
-                          <span className="block text-[17px] font-medium text-[#1C1C1E]">
+                          <span
+                            className={`block text-[17px] text-[#1C1C1E] ${
+                              estaAbierto ? "font-semibold" : "font-medium"
+                            }`}
+                          >
                             {m.nombre}
+                          </span>
+                          <span className={`block ${TEXTO_3}`}>
+                            {rangoEnPalabras(m.desde, m.hasta)}
                           </span>
                           <span className={`block ${TEXTO_3}`}>
                             {m.cantidad === 0
@@ -190,26 +191,64 @@ export default function ElAnio({
                         >
                           {dinero(m.total)}
                         </span>
-                        {m.cantidad > 0 && (
-                          <span className="text-[17px] text-[#AEAEB2] shrink-0">
-                            {mesElegido === m.nombre && verDonaciones ? "⌃" : "›"}
-                          </span>
-                        )}
-                      </button>
-                      {mesElegido === m.nombre &&
-                        verDonaciones &&
-                        m.donaciones.map((d) => (
-                          <div key={d.id} className="px-5">
-                            <FilaDonacion
-                              donacion={d}
-                              hoy={hoy}
-                              onAbrir={onAbrirDonacion}
-                              sangria
-                            />
+                      </>
+                    );
+                    return (
+                      <div
+                        key={m.nombre}
+                        /* El mes abierto se ve abierto: fondo gris y una barra
+                           azul a la izquierda, de la cabecera y de sus filas. */
+                        className={estaAbierto ? "bg-[#F2F2F7]" : undefined}
+                        style={estaAbierto ? { boxShadow: `inset 3px 0 0 ${AZUL}` } : undefined}
+                      >
+                        {/* Un mes sin donaciones NO se toca: tocarlo no hacía
+                            nada y parecía que la app se había trabado. */}
+                        {m.cantidad === 0 ? (
+                          <div
+                            data-mes={m.nombre}
+                            data-total={m.total}
+                            className="w-full flex items-center gap-4 px-5 py-3.5 min-h-[56px] border-t border-[#E5E5EA]"
+                          >
+                            {adentro}
                           </div>
-                        ))}
-                    </div>
-                  ))}
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setMesElegido(m.nombre);
+                              setVerDonaciones(!estaAbierto);
+                            }}
+                            aria-expanded={estaAbierto}
+                            data-mes={m.nombre}
+                            data-total={m.total}
+                            className={RENGLON}
+                          >
+                            {adentro}
+                            {/* La flecha gira al abrir: cerrado apunta a la
+                                derecha, abierto apunta para abajo. */}
+                            <span
+                              className="text-[17px] text-[#AEAEB2] shrink-0 transition-transform duration-200"
+                              style={{ transform: estaAbierto ? "rotate(90deg)" : "none" }}
+                            >
+                              &rsaquo;
+                            </span>
+                          </button>
+                        )}
+                        {estaAbierto && (
+                          <div className="px-5 pb-1 animate-desplegar">
+                            {m.donaciones.map((d) => (
+                              <FilaDonacion
+                                key={d.id}
+                                donacion={d}
+                                hoy={hoy}
+                                onAbrir={onAbrirDonacion}
+                                sangria
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
 
                   {/* Lo que el «···» escondía, ahora a la vista y con palabras. */}
                   <div className="mt-8">
@@ -332,6 +371,24 @@ function FilaDonacion({
   onAbrir: (d: Donation) => void;
   sangria?: boolean;
 }) {
+  const partes = partesDeLaFila(donacion, hoy, { cheque: true });
+  const segundaLinea = !HISTORIAL_ORDENADO ? (
+    fechaDeLaFila(donacion.date, hoy)
+  ) : !AUDITORIA ? (
+    lineaDeLaFila(donacion, hoy, { cheque: true })
+  ) : (
+    /* El cheque, en tinta negra: lo usa para cuadrar con el banco. */
+    <>
+      {partes.cuando}
+      {partes.cheque && (
+        <>
+          {" · "}
+          <b className="font-semibold text-[#1C1C1E]">Cheque {partes.cheque}</b>
+        </>
+      )}
+      {partes.nota && ` · ${partes.nota}`}
+    </>
+  );
   return (
     <button
       onClick={() => onAbrir(donacion)}
@@ -343,11 +400,7 @@ function FilaDonacion({
         <span className="block text-[17px] text-[#1C1C1E] truncate">
           {nombreEnPantalla(donacion)}
         </span>
-        <span className={`block ${TEXTO_3} truncate`}>
-          {HISTORIAL_ORDENADO
-            ? lineaDeLaFila(donacion, hoy, { cheque: true })
-            : fechaDeLaFila(donacion.date, hoy)}
-        </span>
+        <span className={`block ${TEXTO_3} truncate`}>{segundaLinea}</span>
       </span>
       <span className={MONTO}>{dinero(donacion.amount)}</span>
     </button>

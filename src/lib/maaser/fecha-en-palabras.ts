@@ -31,6 +31,25 @@ export function diaYMesCorto(fechaISO: string): string {
   return `${dia} ${MESES_CORTOS[mes - 1]}`;
 }
 
+/**
+ * Un mes hebreo dicho con fechas de verdad, en español y sin abreviar:
+ * "Del 16 de septiembre al 15 de octubre de 2026".
+ *
+ * Los meses hebreos no caen en los meses del calendario de la pared, así que
+ * debajo de "Tishrei" hace falta decir de cuándo a cuándo fue. Cuando el mes
+ * cruza de un año a otro, los DOS años se dicen: "Del 20 de diciembre de 2026
+ * al 18 de enero de 2027".
+ */
+export function rangoEnPalabras(desdeISO: string, hastaISO: string): string {
+  const anioDesde = (desdeISO || "").slice(0, 4);
+  const anioHasta = (hastaISO || "").slice(0, 4);
+  const desde = diaYMesLargo(desdeISO);
+  const hasta = diaYMesLargo(hastaISO);
+  if (!desde || !hasta || desde === desdeISO || hasta === hastaISO) return "";
+  if (anioDesde === anioHasta) return `Del ${desde} al ${hasta} de ${anioHasta}`;
+  return `Del ${desde} de ${anioDesde} al ${hasta} de ${anioHasta}`;
+}
+
 /** El día anterior, como AAAA-MM-DD. Sin tocar el reloj de nadie. */
 export function diaAntes(fechaISO: string): string {
   const t = Date.parse(`${fechaISO}T00:00:00.000Z`);

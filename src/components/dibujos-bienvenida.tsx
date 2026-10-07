@@ -208,18 +208,6 @@ const DIBUJOS = {
       <rect x="22" y="166" width="116" height="18" rx="9" fill={TINTA} />
     </Lienzo>
   ),
-  "m-repite": (
-    <Lienzo>
-      <T x={22} y={30} w={50} h={9} c={TINTA} />
-      <Formulario desde={56} cuantos={2} />
-      <line x1="16" y1="112" x2="144" y2="112" stroke={RAYA} />
-      <T x={22} y={124} w={62} h={6} c={TINTA} />
-      <rect x="106" y="120" width="32" height="18" rx="9" fill={VERDE} />
-      <circle cx="130" cy="129" r="7" fill="#fff" />
-      <T x={22} y={156} w={92} h={5} c={GRIS} />
-      <T x={22} y={168} w={68} h={5} c={GRIS} />
-    </Lienzo>
-  ),
   "m-anio": (
     <Lienzo>
       <T x={30} y={24} w={20} h={5} c={GRIS} />

@@ -4,12 +4,12 @@
  * Anotar una donación — una pantalla, sin rótulos con signo de pregunta.
  *
  * El monto primero y grande: cinco chips explican el 70 % de lo que da.
- * Después el nombre (y la app le recuerda cuánto le dio la última vez), el
- * cheque (propone el siguiente; uno repetido AVISA y no frena), cómo pagó,
- * la nota y el interruptor de "se repite cada mes".
+ * Después el nombre (y la app le recuerda cuánto le dio la última vez), cómo
+ * pagó y —SOLO si pagó con cheque— el número de cheque (propone el siguiente;
+ * uno repetido AVISA y no frena), la nota y el día.
  *
- * El botón negro dice la fecha: tocar la FECHA la cambia, tocar "Listo"
- * guarda con el día de HOY en Panamá.
+ * El día se cambia de UN SOLO TOQUE sobre su renglón: el calendario del
+ * teléfono se abre solo. Sin tocarlo, se guarda con el día de HOY en Panamá.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -17,11 +17,12 @@ import type { Donation } from "@/lib/supabase";
 import HojaAbajo from "@/components/propiedades/HojaAbajo";
 import { avisoDeChequeRepetido, siguienteCheque } from "@/lib/maaser/cheque";
 import { CHIPS_METODO, chipDeLoGuardado } from "@/lib/maaser/chips-metodo";
-import { fechaDelBoton } from "@/lib/maaser/fecha-en-palabras";
+import { diaYMesLargo, fechaDelBoton } from "@/lib/maaser/fecha-en-palabras";
 import { montosParaChips, NOMBRE_CARGA_INICIAL } from "@/lib/maaser/montos-frecuentes";
 import { nombresSugeridos, textoUltimaDonacion } from "@/lib/maaser/sugerencias-nombre";
 import { normalizarMetodo } from "@/lib/maaser/metodo-pago";
-import { SIMPLE } from "@/lib/maaser/interruptores";
+import { AUDITORIA, SIMPLE } from "@/lib/maaser/interruptores";
+import { dinero } from "@/lib/maaser/dinero";
 import {
   AZUL,
   BOTON_PRINCIPAL,
@@ -35,7 +36,6 @@ import {
 
 export type LoQueSeGuarda = {
   donacion: Partial<Donation>;
-  repetirCadaMes: boolean;
 };
 
 /**
@@ -53,7 +53,6 @@ export default function Anotar({
   donaciones,
   editando,
   hoy,
-  hayCompromisos,
   guardando,
   borrando,
   onCancelar,
@@ -63,7 +62,6 @@ export default function Anotar({
   donaciones: Donation[];
   editando: Donation | null;
   hoy: string;
-  hayCompromisos: boolean;
   guardando?: boolean;
   borrando?: boolean;
   onCancelar: () => void;
@@ -75,7 +73,6 @@ export default function Anotar({
   const [cheque, setCheque] = useState("");
   const [chip, setChip] = useState<string | null>(null);
   const [nota, setNota] = useState("");
-  const [repetir, setRepetir] = useState(false);
   const [fecha, setFecha] = useState(hoy);
   const [hoja, setHoja] = useState<null | "fecha" | "borrar">(null);
   const [falta, setFalta] = useState("");
@@ -85,7 +82,13 @@ export default function Anotar({
       setMonto(String(editando.amount ?? ""));
       setNombre(editando.beneficiary || "");
       setCheque(editando.check_number || "");
-      setChip(chipDeLoGuardado(editando.metodo));
+      /* Las 266 donaciones de la base tienen `metodo` en NULL y 123 llevan
+         número de cheque: una donación con cheque SE PAGÓ con cheque. Eso no
+         se inventa, se lee del número que ya está guardado. */
+      setChip(
+        chipDeLoGuardado(editando.metodo) ??
+          (parseInt(String(editando.check_number ?? ""), 10) > 0 ? "Cheque" : null)
+      );
       setNota(editando.notes || "");
       setFecha(editando.date);
     } else {
@@ -96,7 +99,6 @@ export default function Anotar({
       setNota("");
       setFecha(hoy);
     }
-    setRepetir(false);
     setFalta("");
   }, [editando, hoy]);
 
@@ -137,8 +139,94 @@ export default function Anotar({
       metodo,
     };
     if (editando) donacion.id = editando.id;
-    onGuardar({ donacion, repetirCadaMes: repetir && !!nombre.trim() });
+    onGuardar({ donacion });
   };
+
+  /**
+   * El número de cheque SOLO se pregunta si se pagó con cheque. Antes el campo
+   * salía siempre, entre el nombre y cómo pagaste, y en nueve de cada diez
+   * casos no iba nada ahí.
+   *
+   * Una donación vieja que tiene número guardado y no tiene método igual lo
+   * muestra: si no, el número quedaría escondido y sin forma de corregirlo.
+   */
+  const pideCheque = chip === "Cheque" || (!!editando && !!cheque);
+
+  const bloqueCheque = (
+    <div key="cheque">
+      <div className={BLOQUE_CAMPO}>
+        <label className={ROTULO_CAMPO} htmlFor="maaser-cheque">
+          {SIMPLE ? "Número de cheque" : "Cheque"}
+        </label>
+        <input
+          id="maaser-cheque"
+          inputMode="numeric"
+          value={cheque}
+          /* El número ya NO se llena solo al tocar el campo: aparecía de la
+             nada. Ahora hay un botón que dice qué número va a poner. */
+          onFocus={
+            SIMPLE
+              ? undefined
+              : () => {
+                  if (!cheque && !editando && proximoCheque) setCheque(proximoCheque);
+                }
+          }
+          onChange={(e) => setCheque(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          placeholder={SIMPLE ? "El número del cheque que diste" : proximoCheque ?? "opcional"}
+          className={CAMPO_LIMPIO}
+          style={avisoCheque ? { color: ROJO } : undefined}
+        />
+      </div>
+      {SIMPLE && !cheque && !editando && proximoCheque && (
+        <div className="px-5 pb-1">
+          <button
+            onClick={() => setCheque(proximoCheque)}
+            className={`${FICHA} !rounded-full !px-3.5`}
+          >
+            Poner el {proximoCheque}
+          </button>
+        </div>
+      )}
+      {avisoCheque && (
+        <p className="px-5 pb-2 text-[14px] leading-snug" style={{ color: ROJO }}>
+          {avisoCheque}
+        </p>
+      )}
+    </div>
+  );
+
+  const bloqueMetodo = (
+    <div key="metodo">
+      {SIMPLE && <p className={`${ROTULO_CAMPO} px-5 pt-4`}>Cómo pagaste</p>}
+      <div
+        className={
+          SIMPLE ? "grid grid-cols-2 gap-2 px-5 pb-1" : "flex gap-1.5 px-5 pt-2 pb-1"
+        }
+      >
+        {CHIPS_METODO.map((c) => (
+          <button
+            key={c.etiqueta}
+            onClick={() => {
+              const elegido = chip === c.etiqueta ? null : c.etiqueta;
+              setChip(elegido);
+              // Si no se pagó con cheque, no hay número de cheque que guardar.
+              if (SIMPLE && elegido !== "Cheque") setCheque("");
+            }}
+            className={`${SIMPLE ? "min-h-[48px] text-[16px]" : "flex-1 text-[13px]"} rounded-[10px] border cursor-pointer transition-colors ${
+              SIMPLE ? "" : "min-h-[44px]"
+            } ${
+              chip === c.etiqueta
+                ? "border-[#1C1C1E] text-[#1C1C1E] font-semibold bg-white"
+                : "border-[#E5E5EA] text-[#6E6E73] bg-white"
+            }`}
+          >
+            {/* «Cheque» ya es el rótulo del campo que aparece debajo. */}
+            {SIMPLE && c.etiqueta === "Cheque" ? "Con cheque" : c.etiqueta}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 flex flex-col bg-white z-[150]">
@@ -218,75 +306,20 @@ export default function Anotar({
             </p>
           )}
 
-          {/* Cheque */}
-          <div className={BLOQUE_CAMPO}>
-            <label className={ROTULO_CAMPO} htmlFor="maaser-cheque">
-              {SIMPLE ? "Número de cheque" : "Cheque"}
-            </label>
-            <input
-              id="maaser-cheque"
-              inputMode="numeric"
-              value={cheque}
-              /* El número ya NO se llena solo al tocar el campo: aparecía de la
-                 nada. Ahora hay un botón que dice qué número va a poner. */
-              onFocus={
-                SIMPLE
-                  ? undefined
-                  : () => {
-                      if (!cheque && !editando && proximoCheque) setCheque(proximoCheque);
-                    }
-              }
-              onChange={(e) => setCheque(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder={SIMPLE ? "Si pagaste con cheque" : proximoCheque ?? "opcional"}
-              className={CAMPO_LIMPIO}
-              style={avisoCheque ? { color: ROJO } : undefined}
-            />
-          </div>
-          {SIMPLE && !cheque && !editando && proximoCheque && (
-            <div className="px-5 pb-1">
-              <button
-                onClick={() => setCheque(proximoCheque)}
-                className={`${FICHA} !rounded-full !px-3.5`}
-              >
-                Poner el {proximoCheque}
-              </button>
-            </div>
-          )}
-          {avisoCheque && (
-            <p className="px-5 pb-2 text-[14px] leading-snug" style={{ color: ROJO }}>
-              {avisoCheque}
-            </p>
-          )}
-
-          {/* Cómo pagó. Los cuatro en una fila a 390 px dejaban
+          {/* Cómo pagó va PRIMERO: de ahí depende que se pregunte el número
+              de cheque. Los cuatro en una fila a 390 px dejaban
               «Transferencia» en 13 px y apretado: pasan a dos y dos. */}
-          {SIMPLE && (
-            <p className={`${ROTULO_CAMPO} px-5 pt-4`}>Cómo pagaste</p>
+          {SIMPLE ? (
+            <>
+              {bloqueMetodo}
+              {pideCheque && bloqueCheque}
+            </>
+          ) : (
+            <>
+              {bloqueCheque}
+              {bloqueMetodo}
+            </>
           )}
-          <div
-            className={
-              SIMPLE
-                ? "grid grid-cols-2 gap-2 px-5 pb-1"
-                : "flex gap-1.5 px-5 pt-2 pb-1"
-            }
-          >
-            {CHIPS_METODO.map((c) => (
-              <button
-                key={c.etiqueta}
-                onClick={() => setChip(chip === c.etiqueta ? null : c.etiqueta)}
-                className={`${SIMPLE ? "min-h-[48px] text-[16px]" : "flex-1 text-[13px]"} rounded-[10px] border cursor-pointer transition-colors ${
-                  SIMPLE ? "" : "min-h-[44px]"
-                } ${
-                  chip === c.etiqueta
-                    ? "border-[#1C1C1E] text-[#1C1C1E] font-semibold bg-white"
-                    : "border-[#E5E5EA] text-[#6E6E73] bg-white"
-                }`}
-              >
-                {/* «Cheque» ya es el rótulo del campo de arriba. */}
-                {SIMPLE && c.etiqueta === "Cheque" ? "Con cheque" : c.etiqueta}
-              </button>
-            ))}
-          </div>
 
           {/* Nota */}
           <div className={BLOQUE_CAMPO}>
@@ -304,47 +337,44 @@ export default function Anotar({
               tocar la mitad derecha del botón no guardaba, abría el
               calendario, y parecía que «Listo» no había hecho nada. */}
           {SIMPLE && (
-            <div className="mx-5 border-t border-[#E5E5EA] py-3 flex items-center justify-between gap-3">
-              <span className="min-w-0">
-                <span className={ROTULO_CAMPO}>Qué día se dio</span>
-                <span className="block text-[17px] text-[#1C1C1E]">
-                  {fechaDelBoton(fecha, hoy)}
+            <>
+              {/* UN SOLO TOQUE abre el calendario del teléfono. Antes eran
+                  tres: «Cambiar el día», después la fecha, después «Listo».
+                  El calendario es el del teléfono (input de fecha), puesto
+                  invisible encima de todo el renglón. */}
+              <label
+                htmlFor="maaser-dia"
+                className="relative mx-5 border-t border-[#E5E5EA] py-3 flex items-center justify-between gap-3 cursor-pointer"
+              >
+                <span className="min-w-0">
+                  <span className={ROTULO_CAMPO}>Qué día se dio</span>
+                  <span className="block text-[17px] text-[#1C1C1E]">
+                    {fechaDelBoton(fecha, hoy)}
+                  </span>
                 </span>
-              </span>
-              <button
-                onClick={() => setHoja("fecha")}
-                className="shrink-0 min-h-[44px] rounded-[10px] border border-[#E5E5EA] bg-white text-[#007AFF] text-[16px] px-4 cursor-pointer"
-              >
-                Cambiar el día
-              </button>
-            </div>
-          )}
-
-          {/* Se repite cada mes — solo si la tabla ya existe. */}
-          {hayCompromisos && !editando && (
-            <div className="mx-5 border-t border-[#E5E5EA] py-3 flex items-center justify-between gap-3">
-              <span className="text-[17px] text-[#1C1C1E]">Se repite cada mes</span>
-              <button
-                role="switch"
-                aria-checked={repetir}
-                aria-label="Se repite cada mes"
-                onClick={() => setRepetir((v) => !v)}
-                className={`w-[51px] h-[31px] rounded-full border-0 cursor-pointer transition-colors relative shrink-0 ${
-                  repetir ? "bg-[#34C759]" : "bg-[#E5E5EA]"
-                }`}
-              >
-                <span
-                  className="absolute top-[2px] w-[27px] h-[27px] rounded-full bg-white transition-all"
-                  style={{ left: repetir ? 22 : 2, boxShadow: "0 1px 3px rgba(0,0,0,.2)" }}
+                <span className="shrink-0 min-h-[44px] flex items-center rounded-[10px] border border-[#E5E5EA] bg-white text-[#007AFF] text-[16px] px-4">
+                  Cambiar el día
+                </span>
+                <input
+                  id="maaser-dia"
+                  aria-label="Día de la donación"
+                  type="date"
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value || hoy)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-              </button>
-            </div>
-          )}
-          {SIMPLE && hayCompromisos && !editando && repetir && (
-            <p className={`${TEXTO_2} px-5 pb-1`}>
-              Todos los meses te va a esperar arriba, lista para anotarla de un
-              toque.
-            </p>
+              </label>
+              {/* Si se tocó por error, volver a hoy es un toque. Al CAMBIAR
+                  una donación vieja no se ofrece: ahí «hoy» no es el día que
+                  se dio, y mandaría una donación de septiembre a octubre. */}
+              {!editando && fecha !== hoy && (
+                <div className="px-5 pt-1">
+                  <button onClick={() => setFecha(hoy)} className={ENLACE}>
+                    Volver a hoy
+                  </button>
+                </div>
+              )}
+            </>
           )}
 
           {editando && onBorrar && (
@@ -380,7 +410,11 @@ export default function Anotar({
             disabled={guardando}
             className={`${BOTON_PRINCIPAL} max-w-[430px] mx-auto block`}
           >
-            {guardando ? "Guardando…" : "Listo, anotar"}
+            {guardando
+              ? "Guardando…"
+              : AUDITORIA && editando
+                ? "Guardar los cambios"
+                : "Listo, anotar"}
           </button>
         ) : (
           <div
@@ -409,8 +443,10 @@ export default function Anotar({
         )}
       </div>
 
+      {/* Con el rediseño el día se cambia en su renglón, de un solo toque:
+          esta hoja solo existe con el interruptor apagado. */}
       <HojaAbajo
-        abierta={hoja === "fecha"}
+        abierta={!SIMPLE && hoja === "fecha"}
         onCerrar={() => setHoja(null)}
         encabezado={<>¿Qué día se dio?</>}
         opciones={[{ texto: "Listo", tono: "fuerte", onClick: () => setHoja(null) }]}
@@ -427,10 +463,22 @@ export default function Anotar({
         </div>
       </HojaAbajo>
 
+      {/* La hoja decía «Esto no se puede deshacer» sin decir QUÉ se borra. */}
       <HojaAbajo
         abierta={hoja === "borrar"}
         onCerrar={() => setHoja(null)}
-        encabezado={<>Esto no se puede deshacer.</>}
+        encabezado={
+          AUDITORIA && editando ? (
+            <>
+              Se borra la donación de {editando.beneficiary || "sin nombre"} ·{" "}
+              {dinero(editando.amount)} · {diaYMesLargo(editando.date)}.
+              <br />
+              Esto no se puede deshacer.
+            </>
+          ) : (
+            <>Esto no se puede deshacer.</>
+          )
+        }
         opciones={[
           {
             texto: "Borrar esta donación",

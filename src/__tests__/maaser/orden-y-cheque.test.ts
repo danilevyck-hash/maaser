@@ -9,6 +9,10 @@
 import { describe, it, expect } from "vitest";
 import { historialOrdenado, textoDelOrden } from "@/lib/maaser/orden";
 import { lineaDeLaFila } from "@/lib/maaser/renglon";
+import {
+  filtrarPorBeneficiario,
+  filtrarPorNombreOCheque,
+} from "@/lib/maaser/busqueda";
 import { DE_5786, DE_5787, TODAS } from "../maaser-datos-de-prueba";
 
 const HOY = "2026-09-23";
@@ -115,5 +119,29 @@ describe("el cheque en la línea de la fila", () => {
   it("sin cheque no inventa nada, y «hoy» sigue diciendo hoy", () => {
     expect(lineaDeLaFila({ date: HOY, amount: 144 }, HOY, { cheque: true })).toBe("hoy");
     expect(lineaDeLaFila({ date: HOY, amount: 144, check_number: "  " }, HOY, { cheque: true })).toBe("hoy");
+  });
+});
+
+// PROPUESTA de la auditoría (6-oct-2026): buscar también por número de
+// cheque, que es con lo que cuadra con el banco. Hoy buscar es SOLO por
+// nombre y escribir «2936» no encuentra nada.
+describe("buscar por número de cheque", () => {
+  it("un número encuentra la donación de ese cheque", () => {
+    const halladas = filtrarPorNombreOCheque(TODAS, "2936");
+    expect(halladas.length).toBeGreaterThan(0);
+    expect(halladas.every((d) => String(d.check_number ?? "").includes("2936"))).toBe(true);
+    // Y hoy, por nombre, eso no encuentra nada: de ahí la propuesta.
+    expect(filtrarPorBeneficiario(TODAS, "2936")).toHaveLength(0);
+  });
+
+  it("un nombre sigue buscándose por nombre", () => {
+    const porNombre = filtrarPorBeneficiario(TODAS, "alberto");
+    expect(porNombre.length).toBeGreaterThan(0);
+    expect(filtrarPorNombreOCheque(TODAS, "alberto")).toEqual(porNombre);
+  });
+
+  it("sin texto devuelve todo, y un cheque «0000» no se confunde", () => {
+    expect(filtrarPorNombreOCheque(TODAS, "   ")).toEqual(TODAS);
+    expect(filtrarPorNombreOCheque(TODAS, "999999")).toHaveLength(0);
   });
 });

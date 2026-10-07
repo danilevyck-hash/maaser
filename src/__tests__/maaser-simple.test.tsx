@@ -36,6 +36,8 @@ vi.mock("next/navigation", () => ({
 // como está en producción desde el 6-oct-2026.
 const interruptor = { simple: false };
 vi.mock("@/lib/maaser/interruptores", () => ({
+  // La propuesta de la auditoría nace APAGADA.
+  AUDITORIA: false,
   HISTORIAL_ORDENADO: true,
   get SIMPLE() {
     return interruptor.simple;
@@ -59,9 +61,6 @@ function montarFetch() {
           ok: true,
           json: async () => ({ year: 5787, gastos_anuales: null, columna_gastos: true }),
         } as Response;
-      }
-      if (url.startsWith("/api/maaser/compromisos")) {
-        return { ok: true, json: async () => ({ hay_tabla: false, compromisos: [] }) } as Response;
       }
       return { ok: true, json: async () => [] } as Response;
     }),
@@ -161,6 +160,54 @@ describe("prendido: palabras en vez de íconos", () => {
     expect(screen.getByText("Tishrei")).toBeTruthy();
   });
 
+  // Daniel, 6-oct-2026: «debajo de cada mes, la fecha en español».
+  it("cada mes dice debajo de cuándo a cuándo fue, en español", async () => {
+    await abrir(true);
+    fireEvent.click(screen.getByLabelText("Ver el año 5786"));
+    await waitFor(() => expect(screen.getByText("Año 5786")).toBeTruthy());
+
+    // Tishrei de 5786: del 23 de septiembre al 22 de octubre de 2025.
+    expect(screen.getByText(/Del 23 de septiembre al 22 de octubre de 2025/)).toBeTruthy();
+    // Nada abreviado ni en inglés: ningún «sep – oct» suelto.
+    expect(screen.queryByText(/sep – oct/)).toBeNull();
+  });
+
+  // Daniel, 6-oct-2026: «que se sienta, desplegar, se siente todo igual un poco».
+  it("el mes abierto se ve abierto, y el cerrado cerrado", async () => {
+    await abrir(true);
+    fireEvent.click(screen.getByLabelText("Ver el año 5786"));
+    await waitFor(() => expect(screen.getByText("Año 5786")).toBeTruthy());
+
+    const tevet = screen.getByRole("button", { name: /^Tévet/ });
+    expect(tevet.getAttribute("aria-expanded")).toBe("false");
+
+    fireEvent.click(tevet);
+    await waitFor(() => expect(screen.getByText("Rubén Elin")).toBeTruthy());
+    expect(
+      screen.getByRole("button", { name: /^Tévet/ }).getAttribute("aria-expanded"),
+    ).toBe("true");
+    // El bloque abierto tiene fondo distinto y las filas entran con animación.
+    const caja = screen.getByRole("button", { name: /^Tévet/ }).parentElement!;
+    expect(caja.className).toContain("bg-[#F2F2F7]");
+    expect(caja.querySelector(".animate-desplegar")).toBeTruthy();
+
+    // Y se cierra con otro toque.
+    fireEvent.click(screen.getByRole("button", { name: /^Tévet/ }));
+    await waitFor(() => expect(screen.queryByText("Rubén Elin")).toBeNull());
+  });
+
+  // Un mes sin donaciones NO se toca: tocarlo no hacía nada.
+  it("un mes vacío no es un botón", async () => {
+    await abrir(true);
+    fireEvent.click(screen.getByLabelText("Ver el año 5786"));
+    await waitFor(() => expect(screen.getByText("Año 5786")).toBeTruthy());
+    const vacios = Array.from(document.querySelectorAll<HTMLElement>("[data-mes]")).filter(
+      (m) => m.textContent?.includes("No diste nada este mes"),
+    );
+    expect(vacios.length).toBeGreaterThan(0);
+    for (const v of vacios) expect(v.tagName).toBe("DIV");
+  });
+
   it("guardar es UN solo botón, y el día tiene su renglón", async () => {
     await abrir(true);
     fireEvent.click(screen.getByText("Anotar"));
@@ -171,6 +218,33 @@ describe("prendido: palabras en vez de íconos", () => {
     expect(screen.queryByText("Listo ·")).toBeNull();
     expect(screen.getByText("Cambiar el día")).toBeTruthy();
     expect(screen.getByText("Cómo pagaste")).toBeTruthy();
+    // El día se cambia de UN toque: el calendario está en el renglón mismo.
+    expect(screen.getByLabelText("Día de la donación")).toBeTruthy();
+  });
+
+  // Daniel, 6-oct-2026: «el número de cheque solo aparece si la forma de pago
+  // es cheque». Medido: de 266 donaciones, 123 llevan cheque.
+  it("el número de cheque aparece solo con «Con cheque»", async () => {
+    await abrir(true);
+    fireEvent.click(screen.getByText("Anotar"));
+    await waitFor(() => expect(screen.getByLabelText("Cuánto")).toBeTruthy());
+
+    expect(screen.queryByLabelText("Número de cheque")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Con cheque" }));
+    await waitFor(() => expect(screen.getByLabelText("Número de cheque")).toBeTruthy());
+  });
+
+  // Los «compromisos mensuales» se fueron el 6-oct-2026: la tabla existía en
+  // producción y estaba VACÍA, nadie creó uno solo. Daniel: «dale, quítalos
+  // si están vacíos». La tabla NO se borró; la pantalla sí.
+  it("no queda rastro de los compromisos", async () => {
+    await abrir(true);
+    expect(screen.queryByText(/Todos los meses/)).toBeNull();
+    fireEvent.click(screen.getByText("Anotar"));
+    await waitFor(() => expect(screen.getByLabelText("Cuánto")).toBeTruthy());
+    expect(screen.queryByText("Se repite cada mes")).toBeNull();
+    expect(screen.queryByRole("switch")).toBeNull();
+    expect(llamadas.some((l) => l.url.includes("compromisos"))).toBe(false);
   });
 
   it("sin monto, el aviso sale al tocar el botón y no se guarda nada", async () => {

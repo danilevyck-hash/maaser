@@ -41,3 +41,21 @@ export const HISTORIAL_ORDENADO =
  * posiciones.
  */
 export const SIMPLE = process.env.NEXT_PUBLIC_MAASER_SIMPLE !== "0";
+
+/**
+ * 🟡 `AUDITORIA` (6-oct-2026): lo que salió de recorrer la app entera pantalla
+ * por pantalla, pensando en un señor de 70 años en Panamá.
+ *
+ * **APAGADO.** Es una PROPUESTA: se prende con el sí de Daniel sobre las
+ * capturas (`NEXT_PUBLIC_MAASER_AUDITORIA=1` en Vercel). Al revés que los
+ * otros dos interruptores, este nace en cero: sin la variable, la app es
+ * BYTE por BYTE la de hoy.
+ *
+ * Qué cambia:
+ *  · **Buscar encuentra por número de cheque.** Hoy buscar es solo por
+ *    nombre: escribir «2936» no encuentra nada, y el número de cheque es lo
+ *    que él usa para cuadrar con el banco (123 de 266 donaciones lo llevan).
+ *  · **El número de cheque se ve.** En la fila va en tinta negra y en
+ *    negrita, no en el gris de la fecha y la nota.
+ */
+export const AUDITORIA = process.env.NEXT_PUBLIC_MAASER_AUDITORIA === "1";

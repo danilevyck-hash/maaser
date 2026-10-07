@@ -57,26 +57,42 @@ export function subtituloRenglon(d: DonacionMinima): string {
 export function lineaDeLaFila(
   d: DonacionMinima,
   hoyISO: string,
+  opciones: { cheque?: boolean; anio?: boolean } = {}
+): string {
+  const { cuando, cheque, nota } = partesDeLaFila(d, hoyISO, opciones);
+  return [cuando, cheque && `Cheque ${cheque}`, nota].filter(Boolean).join(" · ");
+}
+
+/**
+ * La misma línea, en pedazos, para poder pintar el número de cheque más
+ * oscuro que el resto: es lo que él busca con el ojo para cuadrar con el banco.
+ */
+export function partesDeLaFila(
+  d: DonacionMinima,
+  hoyISO: string,
   { cheque: conCheque = false, anio: conAnio = false }: {
     cheque?: boolean;
     anio?: boolean;
   } = {}
-): string {
-
+): { cuando: string; cheque: string | null; nota: string | null } {
   const cuando = conAnio
     ? `${diaYMesCorto(d.date)} ${d.date.slice(0, 4)}`
     : fechaDeLaFila(d.date, hoyISO);
-  const partes: string[] = [cuando];
 
   const cheque = String(d.check_number ?? "").trim();
   const numero = parseInt(cheque, 10);
-  if (conCheque && cheque && (!Number.isFinite(numero) || numero > 0)) {
-    partes.push(`Cheque ${cheque}`);
-  }
+  const seVeElCheque =
+    conCheque && !!cheque && (!Number.isFinite(numero) || numero > 0);
 
   const nota = (d.notes ?? "").replace(/\s+/g, " ").trim();
-  if (nota) {
-    partes.push(nota.length > LARGO_NOTA ? nota.slice(0, LARGO_NOTA - 1) + "…" : nota);
-  }
-  return partes.join(" · ");
+
+  return {
+    cuando,
+    cheque: seVeElCheque ? cheque : null,
+    nota: nota
+      ? nota.length > LARGO_NOTA
+        ? nota.slice(0, LARGO_NOTA - 1) + "…"
+        : nota
+      : null,
+  };
 }

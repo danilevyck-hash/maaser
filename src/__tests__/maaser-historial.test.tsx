@@ -33,6 +33,8 @@ vi.mock("next/navigation", () => ({
 // El interruptor se mueve desde la prueba: el módulo es el único lugar donde vive.
 const interruptor = { prendido: false };
 vi.mock("@/lib/maaser/interruptores", () => ({
+  // La propuesta de la auditoría nace APAGADA.
+  AUDITORIA: false,
   get HISTORIAL_ORDENADO() {
     return interruptor.prendido;
   },
@@ -57,9 +59,6 @@ function montarFetch() {
           ok: true,
           json: async () => ({ year: 5787, gastos_anuales: null, columna_gastos: true }),
         } as Response;
-      }
-      if (url.startsWith("/api/maaser/compromisos")) {
-        return { ok: true, json: async () => ({ hay_tabla: false, compromisos: [] }) } as Response;
       }
       return { ok: true, json: async () => [] } as Response;
     }),
